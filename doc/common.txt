@@ -1,0 +1,90 @@
+Пользователь
+    Проект
+        Задача
+            Задача
+                Задача
+                ...
+                ...
+            Задача
+            ...
+            ...
+        Задача
+        ...
+        ...
+    Проект
+    Проект
+
+
+API (https://api.leavemealone.ru/)
+
+NB1: Возможно, все URL'ы ниже стоит предварять "/users/$USERID"? Мы же в будущем сможем лазить и в чужие 
+NB2: Возможно, для предотвращения коллизий при совместной работе над проектом, стоит использовать HTTP-заголовок ETag = md5([task.serialize for task in all_tasks].join())
+
+GET    /projects - получить список проектов юзера, которые доступны мне
+POST   /projects - создать проект
+
+GET    /projects/$PROJECTID - получить свойства проекта
+PUT    /projects/$PROJECTID - обновить свойства проекта
+DELETE /projects/$PROJECTID - удалить проект
+
+GET    /projects/$PROJECTID/tasks - получить все задачи в проекте
+POST   /projects/$PROJECTID/tasks - создать задачу с parent_id = 0
+
+POST   /projects/$PROJECTID/tasks/$TASKID - создать подзадачу с parent_id = $TASKID,  
+PUT    /projects/$PROJECTID/tasks/$TASKID - обновить задачу
+DELETE /projects/$PROJECTID/tasks/$TASKID - удалить задачу вместе с подзадачами
+PATCH  /projects/$PROJECTID/tasks/$TASKID - поменять статус там или ещё чего? (в теле запроса - только поля, которые меняем)
+
+GET /info - профиль юзера
+GET /avatar - аватарка
+...
+
+
+Классы:
+Project {
+    id: int,
+    title: string
+}
+
+Task {
+    id: int
+    parent_id: int
+    project_id: int
+    title: string
+    descr: string
+    state: int // Task.STATE_*
+}
+
+Task.STATE_OPEN = 1
+Task.STATE_PROCESS = 2
+Task.STATE_DONE = 3
+Task.STATE_REJECTED = 4
+Task.STATE_DELAYED = 5
+...
+
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    ext_service smallint not null,
+    ext_id bigint not null,
+    name varchar(64) not null,
+    email varchar(128) not null,
+    ...
+);
+
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    user_id int not null references users.id on delete set null on update cascade,
+    title varchar(128) not null,
+    ...
+);
+
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    parent_id int references tasks.id,
+    project_id int not null references projects.id on delete cascade on update cascade,
+    title varchar(255) not null,
+    descr text not null,
+    state smallint not null
+);
+CREATE INDEX ON tasks(project_id);
