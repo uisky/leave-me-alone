@@ -14,6 +14,10 @@ class User(db.Model):
     def __repr__(self):
         return '<User %d:%s>' % (0 if self.id is None else self.id, self.name)
 
+    @property
+    def link(self):
+        return '<a href="/users/%d/" class="user">%s</a>' % (self.id, self.name)
+
     @staticmethod
     def hash_password(data):
         return hashlib.md5((data + app.config['SECRET_KEY_PASSWORD']).encode()).digest()

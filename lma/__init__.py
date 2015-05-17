@@ -22,4 +22,7 @@ def load_user(userid):
 from .users import mod as users_module
 app.register_blueprint(users_module)
 
+from .projects import mod as projects_module
+app.register_blueprint(projects_module)
+
 from . import index

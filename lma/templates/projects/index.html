@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style type="text/css">
+    ul.project-list { list-style: note; margin: 20px 0; padding: 0; }
+    ul.project-list li {
+        display: inline-block; margin: 0 20px 20px 0; padding: 20px 40px;
+        background-color: #ddeef0; border-radius: 20px;
+    }
+    ul.project-list li a { font-size: 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Мои проекты</h1>
+
+{% if not projects %}
+    <div class="alert alert-box alert-info">
+        Вы не состоите ни в одном проекте.
+    </div>
+{% else %}
+    <ul class="project-list">
+    {% for project in projects %}
+        <li>
+            <a href="{{ project.url_for() }}">{{ project.name }}</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="post" action="{{ url_for('.project_edit') }}" class="form-inline">
+    <div class="form-group">
+        <input type="text" name="name" value="{{ request.form.get('name', '') }}" class="form-control" placeholder="Название" style="width:600px">
+    </div>
+    <button type="submit" class="btn btn-success">
+        <span class="glyphicon glyphicon-plus-sign"></span>
+        Создать проект
+    </button>
+</form>
+
+{% endblock %}

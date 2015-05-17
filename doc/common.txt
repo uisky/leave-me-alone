@@ -1,20 +1,36 @@
-Пользователь
-    Проект
-        Задача
-            Задача
-                Задача
-                ...
-                ...
-            Задача
-            ...
-            ...
-        Задача
-        ...
-        ...
-    Проект
-    Проект
+Роли в проекте:
+- создавать задачи 1 уровня
+- создавать подзадачи чужим задачам
+- редактировать любые задачи
+- назначать задачи
+- ревьюить чужие задачи
+
+- комментировать задачи
+
+* * * или * * *
+- Постановщик задач - lead
+- Исполнитель       - developer
+- Проверяющий       - tester
 
 
+Статусы задач:
+==============
+open -> progress -> review -> done
+                 -> pause  -> open
+                           -> canceled
+
+---------------------------------------------------------------------------------------------------------------
+SELECT p.*
+FROM projects p
+    RIGHT JOIN project_members m ON p.id = m.project_id
+WHERE m.user_id = :me
+
+SELECT p.*
+FROM project_members m
+    JOIN projects p ON p.id = m.project_id
+WHERE m.user_id = :me
+
+---------------------------------------------------------------------------------------------------------------
 API (https://api.leavemealone.ru/)
 
 NB1: Возможно, все URL'ы ниже стоит предварять "/users/$USERID"? Мы же в будущем сможем лазить и в чужие 
@@ -88,3 +104,47 @@ CREATE TABLE tasks (
     state smallint not null
 );
 CREATE INDEX ON tasks(project_id);
+
+
+class Task(db.Model):
+    __tablename__ = 'tasks'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
+    project_id = db.Column(db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
+    assigned_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
+
+    mp = db.Column(ARRAY(db.SmallInteger(), zero_indexes=True))
+    parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'))
+
+    status = db.Column(db.Enum('open', 'progress', 'pause', 'review', 'done', 'canceled'), nullable=False, default='open')
+    subject = db.Column(db.String(64), nullable=False, index=True, unique=True)
+    description = db.Column(db.Text(), nullable=False, index=True, unique=True)
+    deadline = db.Column(db.DateTime(timezone=True))
+
+    comments = db.relationship('TaskComment', backref='task')
+
+
+class TaskHistory(db.Model):
+    __tablename__ = 'task_history'
+
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
+    task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
+
+    status = db.Column(db.Enum(name=task_status), nullable=False, default='open')
+
+
+class TaskComment(db.Model):
+    __tablename__ = 'task_comments'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
+    task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
+
+    message = db.Column(db.Text(), nullable=False)

@@ -1,10 +1,9 @@
-from flask import render_template, request, redirect, flash, abort
+from flask import render_template, request, redirect, flash
 from flask_user import login_required
 from flask.ext.login import login_user, logout_user
-import hashlib
 
 from . import mod, forms
-from .. import app, db
+from .. import db
 from .models import User
 from ..utils import flash_errors
 
@@ -31,7 +30,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(request.args.get('next', '/'))
+    return redirect('/')
 
 
 @mod.route('/register/', methods=('GET', 'POST'))

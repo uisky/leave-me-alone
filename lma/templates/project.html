@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% set menu = (
+    {'id': 'tasks', 'url': url_for('.tasks', id_=project.id), 'title': 'Задачи'},
+    {'id': 'members', 'url': url_for('.members', id_=project.id), 'title': 'Команда'},
+)
+%}
+
+{% block logo %}
+<div class="navbar-header">
+    <a class="navbar-brand" href="/">LMA: {{ project.name }}</a>
+</div>
+{% endblock %}
+
+{% block menu_main %}
+<ul class="nav navbar-nav">
+{% for item in menu %}
+    <li {% if menu_current == item.id %} class="active" {% endif %}>
+        <a href="{{ item.url }}">{{ item.title }}</a>
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}

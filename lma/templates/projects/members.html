@@ -1,0 +1,82 @@
+{% set menu_current = 'members' %}
+
+{% extends 'project.html' %}
+
+{% block content %}
+<h1>Команда</h1>
+
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>Добавлен</th>
+        <th>Участник</th>
+        <th>Роли</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% set role_classes = {'lead': 'warning', 'developer': 'info', 'tester': 'success' } %}
+    {% for member in project.members %}
+    <tr>
+        <td>{{ member.added.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td><a href="?edit={{ member.user_id }}">{{ member.user.name }}</a></td>
+        <td>
+            {% for role in member.roles %}
+                <span class="label label-{{ role_classes.get(role, 'default') }}">
+                    {{ g.role_meanings.get(role, role) }}
+                </span>
+            {% endfor %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<form method="post">
+    {% if editing.user_id %}
+        <h2>{{ editing.user.name }}</h2>
+    {% else %}
+        <h2>Добавить участника</h2>
+        <div class="form-group">
+            <input type="text" name="user" placeholder="Ник или e-mail пользователя" class="form-control" style="width:500px">
+        </div>
+    {% endif %}
+
+    <div class="form-group">
+        {% for role, title in g.role_meanings.items() %}
+            <label class="checkbox-inline">
+                <input type="checkbox" name="roles" value="{{ role }}" {% if editing.user_id and role in editing.roles %} checked {% endif %}>
+                {{ title }}
+            </label>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-success">
+    {% if editing.user_id %}
+        <span class="glyphicon glyphicon-ok"></span> Сохранить
+    {% else %}
+        <span class="glyphicon glyphicon-plus-sign"></span> Добавить участника
+    {% endif %}
+    </button>
+    {% if editing.user_id %}
+        <button id="btn-remove" type="button" class="btn btn-danger">
+            <span class="glyphicon glyphicon-ban-circle"></span> Выгнать
+        </button>
+
+        <a href="{{ url_for('.members', id_=project.id) }}" class="btn btn-warning">
+            <span class="glyphicon glyphicon-remove-sign"></span> Отмена
+        </a>
+    {% endif %}
+</form>
+
+{% if editing.user_id %}
+<form id="form-remove" method="post" action="{{ url_for('.member_delete', id_=project.id) }}">
+    <input type="hidden" name="user_id" value="{{ editing.user_id }}">
+</form>
+<script type="text/javascript">
+    $('#btn-remove').click(function() {
+        if(!confirm('Вы уверены?')) return;
+        $('#form-remove').submit()
+    })
+</script>
+{% endif %}
+
+{% endblock %}
