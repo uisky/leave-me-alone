@@ -2,8 +2,9 @@ from flask import render_template, request, redirect, flash, url_for, g
 from flask_user import login_required, current_user
 
 from . import mod, forms
-from .. import app, db
 from .models import *
+from .. import app, db
+from ..utils import flash_errors
 from ..users.models import User
 
 
@@ -45,7 +46,7 @@ def project_edit(id_=0):
     return redirect(url_for('.index'))
 
 
-@mod.route('/<int:id>/delete/', methods=['POST'])
+@mod.route('/<int:id>/delete/', methods=('POST',))
 def project_delete():
     project = Project.query.get_or_404(request.args.get('id', 0))
 
@@ -55,11 +56,22 @@ def project_delete():
     return redirect('/projects')
 
 
-@mod.route('/<int:id_>/')
+@mod.route('/<int:id_>/', methods=('GET', 'POST'))
 def tasks(id_):
     project = Project.query.get_or_404(id_)
+    if request.args.get('task'):
+        task = Task.query.get_or_404(request.args.get('task'))
+    else:
+        task = Task(project_id=project.id, user_id=current_user.id, status='open')
+    form = forms.TaskForm(obj=task)
 
-    return render_template('projects/tasks.html', project=project)
+    if form.validate_on_submit():
+        form.populate_obj(task)
+        print(task.__dict__)
+
+    flash_errors(form)
+
+    return render_template('projects/tasks.html', project=project, task=task, form=form)
 
 
 def find_user(clue):

@@ -2,6 +2,92 @@
 
 {% extends 'project.html' %}
 
+{% block head %}
+<link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
+<script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
+{% endblock %}
+
 {% block content %}
-<h1>Задачи</h1>
+<div class="row">
+    <div class="col-sm-6">
+        <h1>Задачи</h1>
+        {% if not tasks %}
+            <div class="alert alert-box alert-info">Проект пуст.</div>
+        {% endif %}
+    </div>
+    <div class="col-sm-6">
+        <form id="editor" method="post" class="form-horizontal">
+            {{ form.csrf_token }}
+            <input type="hidden" name="parent_id" value="0">
+            <h1>Поставить задачу</h1>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Создал</label>
+                <div class="col-sm-4">
+                    <p class="form-control-static">
+                        {{ task.user }}
+                    </p>
+                </div>
+                <label class="control-label col-sm-2">Статус</label>
+                <div class="col-sm-4">
+                    <p class="form-control-static">
+                        {{ task.status }}
+                    </p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Задача</label>
+                <div class="col-sm-10">
+                    {{ form.subject(class='form-control') }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Детали</label>
+                <div class="col-sm-10">
+                    {{ form.description(class='form-control', rows=5) }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Дедлайн</label>
+                <div class="col-sm-4">
+                    <div class='input-group date'>
+                        {{ form.deadline(class='form-control') }}
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-remove" id="deadline-clear"></span>
+                        </span>
+                    </div>
+                    <script type="text/javascript">
+                        $('#deadline').datetimepicker({
+                            'sideBySide': true,
+                            'showTodayButton': true,
+                            'stepping': 10,
+                            'locale': 'ru'
+                        });
+                        $('#deadline-clear').click(function(e) { $('#deadline').val(''); });
+                    </script>
+                </div>
+                <label class="control-label col-sm-2">Исполнитель</label>
+                <div class="col-sm-4">
+                    <select name="assigned_id" class="form-control">
+                        <option value="">Никто</option>
+                        {% for member in project.members %}
+                            <option value="{{ member.user_id }}" {% if member.user_id == task.assigned_id %} selected {% endif %}>
+                                {{ member.user.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-success">
+                        <span class="glyphicon glyphicon-ok"></span> Добавить
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 {% endblock %}
