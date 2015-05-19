@@ -1,9 +1,14 @@
 body { padding-top: 70px; }
 h1 { margin-top: 5px; }
 
-a.user { color: #14a; text-decoration: underline; }
+a { text-decoration: underline; }
+nav a, a.btn { text-decoration: none; }
+
+a.user { color: #57aa6f; text-decoration: underline; }
+/*
 a.user:before {
     content:''; display: inline-block;
     border-radius: 10px; margin: 0 3px 1px 0;
-    width: 7px; height: 7px; background-color: #f00;
+    width: 7px; height: 7px; background-color: #4b954b;
 }
+*/

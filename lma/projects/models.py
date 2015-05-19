@@ -94,3 +94,26 @@ class Task(db.Model):
 
         return kid
 
+    def setparent(self, parent):
+        """
+        Устанавливает parent_id и mp, чтобы усыновиться parent'ом.
+        parent может быть None, тогда создаётся задача в корень
+        :param parent:
+        :return:
+        """
+        self.parent_id = parent.id
+        if parent is None:
+            max_mp = db.session.execute(
+                "SELECT coalesce(max(mp[1]), 0) FROM %s WHERE project_id = :project_id and parent_id is null" % self.__tablename__,
+                {'project_id': self.project_id}
+            ).scalar() + 1
+            print('max_mp = %d' % max_mp)
+            self.mp = [max_mp]
+        else:
+            max_mp = db.session.execute(
+                "SELECT coalesce(max(mp[%d]), 0) FROM %s WHERE project_id = :project_id and parent_id = :parent_id" %
+                (len(parent.mp) + 1, self.__tablename__),
+                {'project_id': self.project_id, 'parent_id': parent.id}
+            ).scalar() + 1
+            print('max_mp = %d' % max_mp)
+            self.mp = parent.mp + [max_mp]

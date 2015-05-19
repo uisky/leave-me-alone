@@ -1,0 +1,9 @@
+.tasks-tree {}
+.tasks-tree .task { padding: 4px 0; border-bottom: 1px dotted #ccc; clear: both; }
+.tasks-tree .task.active { background-color: #ffefb1; }
+.tasks-tree .task .subj { }
+.tasks-tree .task .users { float: right; width: 300px; }
+.tasks-tree .task .deadline { float:right; width: 88px; }
+.tasks-tree .task .deadline:after {content:'.'; visibility: hidden;}
+
+.task-details .description { margin: 20px 0}

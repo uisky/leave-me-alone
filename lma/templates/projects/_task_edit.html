@@ -1,0 +1,68 @@
+{#
+    Ожидает увидеть переменные
+    WTForm edit_form
+    Task edit_task
+#}
+
+{{ edit_form.csrf_token }}
+<input type="hidden" name="parent_id" value="0">
+
+<div class="form-group">
+    <label class="control-label col-sm-1">Создал</label>
+    <div class="col-sm-5">
+        <p class="form-control-static">
+            {% if edit_task.user_id %}
+            {{ edit_task.user.link|safe }}
+            {% endif %}
+        </p>
+    </div>
+    <label class="control-label col-sm-2">Статус</label>
+    <div class="col-sm-4">
+        <p class="form-control-static">
+            {{ edit_task.status }}
+        </p>
+    </div>
+</div>
+<div class="form-group">
+    <label class="control-label col-sm-1">Задача</label>
+    <div class="col-sm-11">
+        {{ edit_form.subject(class='form-control') }}
+    </div>
+</div>
+<div class="form-group">
+    <label class="control-label col-sm-1">Детали</label>
+    <div class="col-sm-11">
+        {{ edit_form.description(class='form-control', rows=8) }}
+    </div>
+</div>
+<div class="form-group">
+    <label class="control-label col-sm-1">Дедлайн</label>
+    <div class="col-sm-5">
+        <div class='input-group date'>
+            {{ edit_form.deadline(class='form-control') }}
+            <span class="input-group-addon">
+                <span class="glyphicon glyphicon-remove" id="deadline-clear"></span>
+            </span>
+        </div>
+        <script type="text/javascript">
+            $('#deadline').datetimepicker({
+                'sideBySide': true,
+                'showTodayButton': true,
+                'stepping': 10,
+                'locale': 'ru'
+            });
+            $('#deadline-clear').click(function(e) { $('#deadline').val(''); });
+        </script>
+    </div>
+    <label class="control-label col-sm-2">Исполнитель</label>
+    <div class="col-sm-4">
+        <select name="assigned_id" class="form-control">
+            <option value="">Никто</option>
+            {% for member in project.members %}
+                <option value="{{ member.user_id }}" {% if member.user_id == edit_task.assigned_id %} selected {% endif %}>
+                    {{ member.user.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% set menu = (
-    {'id': 'tasks', 'url': url_for('.tasks', id_=project.id), 'title': 'Задачи'},
-    {'id': 'members', 'url': url_for('.members', id_=project.id), 'title': 'Команда'},
+    {'id': 'tasks', 'url': url_for('.tasks', project_id=project.id), 'title': 'Задачи'},
+    {'id': 'members', 'url': url_for('.members', project_id=project.id), 'title': 'Команда'},
 )
 %}
 

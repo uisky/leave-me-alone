@@ -1,6 +1,7 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_user import LoginManager
+import markdown
 
 # flask
 app = Flask(__name__)
@@ -19,6 +20,13 @@ login_manager.init_app(app)
 def load_user(userid):
     return User.query.get(userid)
 
+
+# jinja filters
+@app.template_filter('markdown')
+def jinja_markdown(x):
+    return markdown.markdown(x, output_format='html5')
+
+# blueprints
 from .users import mod as users_module
 app.register_blueprint(users_module)
 

@@ -5,6 +5,6 @@ from wtforms import validators as v
 
 class TaskForm(Form):
     subject = StringField('Пароль', [v.required(message='Опишите задачу.')])
-    description = TextAreaField('Ник')
-    deadline = DateTimeField('Дедлайн', format='%d.%m.%Y %H:%M')
-    assigned_id = IntegerField('исполнитель')
+    description = TextAreaField('Ник', [v.optional()])
+    deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
+    assigned_id = IntegerField('исполнитель', [v.optional()])
