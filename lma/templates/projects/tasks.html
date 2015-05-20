@@ -9,6 +9,10 @@
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
 {% endblock %}
 
+{% block tail %}
+<script type="text/javascript" src="/static/tasks.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <!--- Левая колонка: дерево задач -->
@@ -47,7 +51,7 @@
 
 
     <div class="col-sm-6">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" id="tabs-task">
             {% if selected %}
                 <li class="active"><a href="#task-details" data-toggle="tab">Задача</a></li>
             {% endif %}
@@ -75,7 +79,7 @@
 
             <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                 <h2>Создать подзадачу</h2>
-                <form id="editor" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/subtask" class="form-horizontal">
+                <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">
                     {% set edit_form = form_empty %}
                     {% set edit_task = empty %}
                     {% include 'projects/_task_edit.html' %}
@@ -92,7 +96,7 @@
             {% if selected %}
             <div id="task-edit" class="tab-pane">
                 <h2>Редактировать задачу</h2>
-                <form id="editor" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
+                <form id="form-edit" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
                     {% set edit_form = form_edit %}
                     {% set edit_task = selected %}
                     {% include 'projects/_task_edit.html' %}
@@ -101,12 +105,14 @@
                             <button type="submit" class="btn btn-success">
                                 <span class="glyphicon glyphicon-ok"></span> Сохранить
                             </button>
-                            <button type="button" class="btn btn-danger">
+                            <button type="button" class="btn btn-danger" id="btn-task-delete">
                                 <span class="glyphicon glyphicon-remove"></span> Удалить
                             </button>
                         </div>
                     </div>
                 </form>
+
+                <form id="form-delete" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/delete"></form>
             </div>
             {% endif %}
         </div>

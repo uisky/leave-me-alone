@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, flash, url_for, g
 from flask_user import login_required, current_user
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from . import mod, forms
 from .models import *
@@ -10,6 +11,7 @@ from ..users.models import User
 
 def load_project(project_id):
     project = Project.query.get_or_404(project_id)
+    # @todo: проверить права доступа
     return project
 
 
@@ -48,6 +50,21 @@ def task_edit(project_id, task_id):
     return redirect(url_for('.tasks', project_id=task.project_id) + ('?task=%d' % task.id))
 
 
+@mod.route('/<int:project_id>/<int:task_id>/delete', methods=('POST',))
+def task_delete(project_id, task_id):
+    project = load_project(project_id)
+    task = Task.query.get_or_404(task_id)
+
+    redirect_url = url_for('.tasks', project_id=task.project_id)
+    if task.parent_id:
+        redirect_url += '?task=%d' % task.parent_id
+
+    task.subtree(withme=True).delete(synchronize_session=False)
+    db.session.commit()
+
+    return redirect(redirect_url)
+
+
 @mod.route('/<int:project_id>/<parent_id>/subtask', methods=('POST',))
 @mod.route('/<int:project_id>/subtask', methods=('POST',))
 def task_subtask(project_id, parent_id=None):
@@ -60,6 +77,10 @@ def task_subtask(project_id, parent_id=None):
 
     form = forms.TaskForm(obj=task)
 
+    redirect_url = url_for('.tasks', project_id=task.project_id)
+    if parent:
+        redirect_url += '?task=%d' % parent.id
+
     if form.validate_on_submit():
         form.populate_obj(task)
         task.setparent(parent)
@@ -67,7 +88,7 @@ def task_subtask(project_id, parent_id=None):
         # return str(task.__dict__)
         db.session.add(task)
         db.session.commit()
-        return redirect(url_for('.tasks', project_id=task.project_id) + ('?task=%d' % parent.id))
+        return redirect(redirect_url)
 
     flash_errors(form)
-    return redirect(url_for('.tasks', project_id=task.project_id) + ('?task=%d' % parent.id))
+    return redirect(redirect_url)

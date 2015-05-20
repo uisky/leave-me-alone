@@ -68,7 +68,7 @@ class Task(db.Model):
                            nullable=False, index=True)
     assigned_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
 
-    mp = db.Column(ARRAY(db.SmallInteger(), zero_indexes=True))
+    mp = db.Column(ARRAY(db.Integer(), zero_indexes=True))
     parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
                           index=True)
 
@@ -101,7 +101,11 @@ class Task(db.Model):
         :param parent:
         :return:
         """
-        self.parent_id = parent.id
+        if parent:
+            self.parent_id = parent.id
+        else:
+            self.parent_id = None
+
         if parent is None:
             max_mp = db.session.execute(
                 "SELECT coalesce(max(mp[1]), 0) FROM %s WHERE project_id = :project_id and parent_id is null" % self.__tablename__,
@@ -117,3 +121,19 @@ class Task(db.Model):
             ).scalar() + 1
             print('max_mp = %d' % max_mp)
             self.mp = parent.mp + [max_mp]
+
+    def subtree(self, withme=False):
+        """
+        Возвращает Query для всех потомков задачи. Если withme=True, то вместе с самой задачей
+        :param withme:
+        :return:
+        """
+        query = Task.query.\
+            filter_by(project_id=self.project_id).\
+            filter(db.text(
+                'mp[1:%d] = :mp' % len(self.mp),
+                bindparams=[db.bindparam('mp', value=self.mp, type_=ARRAY(db.Integer))]
+            ))
+        if not withme:
+            query = query.filter(Task.id != self.id)
+        return query
