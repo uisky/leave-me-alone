@@ -8,7 +8,19 @@
 
 {% block logo %}
 <div class="navbar-header">
-    <a class="navbar-brand" href="/">LMA: {{ project.name }}</a>
+    <a class="navbar-brand" href="/" class="dropdown-toggle" data-toggle="dropdown">LMA: {{ project.name }} <span class="caret"></span></a>
+    <ul class="dropdown-menu">
+        {% for prj in g.my_projects %}
+            <li><a href="{{ prj.url_for() }}">
+                {% if project and prj.id == project.id %}
+                    <strong>{{ prj.name }}</strong>
+                {% else %}
+                    {{ prj.name }}
+                {% endif %}
+            </a></li>
+        {% endfor %}
+        <li><a href="/projects">Создать проект</a></li>
+    </ul>
 </div>
 {% endblock %}
 

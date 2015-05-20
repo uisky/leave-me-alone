@@ -14,13 +14,13 @@
 {% block content %}
 <h1>Мои проекты</h1>
 
-{% if not projects %}
+{% if not g.my_projects %}
     <div class="alert alert-box alert-info">
         Вы не состоите ни в одном проекте.
     </div>
 {% else %}
     <ul class="project-list">
-    {% for project in projects %}
+    {% for project in g.my_projects %}
         <li>
             <a href="{{ project.url_for() }}">{{ project.name }}</a>
         </li>

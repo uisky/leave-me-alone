@@ -8,15 +8,22 @@ from ..utils import flash_errors
 from ..users.models import User
 
 
-@mod.route('/')
-@login_required
-def index():
+@app.before_request
+def load_projects():
+    if not current_user.is_authenticated():
+        return
+
     projects = db.session.query(Project).join(ProjectMember) \
         .filter(ProjectMember.user_id == current_user.id) \
         .order_by(Project.created.desc()) \
         .all()
+    g.my_projects = projects
 
-    return render_template('projects/index.html', projects=projects)
+
+@mod.route('/')
+@login_required
+def index():
+    return render_template('projects/index.html')
 
 
 @mod.route('/add', methods=['POST'])
