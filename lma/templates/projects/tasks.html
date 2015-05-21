@@ -5,6 +5,7 @@
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
 <link rel="stylesheet" href="/static/tasks.css">
+<script type="text/javascript" src="/static/js.cookie.js"></script>
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
 {% endblock %}
@@ -21,8 +22,17 @@
             <div class="alert alert-box alert-info">Проект пуст.</div>
         {% else %}
             <div class="tasks-tree">
+            {% set prev_depth = -1 %}
             {% for task in tasks %}
-                <div class="task {% if task.id == selected.id %} active {% endif %}">
+                {% if task.depth == prev_depth %}
+                    {% if loop.index0 > 0 %} </li> {% endif %}
+                {% elif task.depth > prev_depth %}
+                    <ul>
+                {% elif task.depth < prev_depth %}
+                    {{ ('</li></ul>' * (prev_depth - task.depth)) | safe}}
+                {% endif %}
+                <li data-id="{{ task.id }}">
+                    <div class="task {% if task.id == selected.id %} active {% endif %}">
                     <div class="deadline">
                         {% if task.deadline %}{{ task.deadline.strftime('%d.%m.%Y') }}{% endif %}
                     </div>
@@ -34,12 +44,13 @@
                         {% endif %}
                     </div>
 
-                    <div class="subj" style="padding-left:{{ (task.mp|length - 1) * 20 }}px">
+                    <div class="subj">
+                        <a href="#" class="toggler">[+]</a>
                         <span class="label label-info">{{ task.status }}</span>
                         <a href="?task={{ task.id }}">{{ task.subject }}</a>
                     </div>
-
-                </div>
+                    </div>
+                {% set prev_depth = task.depth %}
             {% endfor %}
             <p style="margin: 10px 0">
                 <a href="?" class="btn btn-warning btn-xs">Поставить задачу в корень</a>

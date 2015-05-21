@@ -80,6 +80,10 @@ class Task(db.Model):
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
 
+    @property
+    def depth(self):
+        return len(self.mp) - 1
+
     def engender(self):
         """
         Возвращает своего потомка, подготовив ему project_id, parent_id и mp
