@@ -64,6 +64,7 @@
         <ul class="nav nav-tabs" id="tabs-task">
             {% if selected %}
                 <li class="active"><a href="#task-details" data-toggle="tab">Задача</a></li>
+                <li><a href="#task-history" data-toggle="tab">История</a></li>
             {% endif %}
             <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
             {% if selected %}
@@ -81,6 +82,7 @@
                     {% if selected.assigned_id %}
                         &rarr; {{ selected.assignee.link|safe }}
                     {% endif %}
+                    <label class="label label-{{ selected.css_class }}">{{ selected.status }}</label>
                 </p>
                 <div class="description">
                     {{ selected.description|markdown|safe }}
@@ -97,6 +99,26 @@
                     {% endfor %}
                 </form>
             </div>
+
+            <!-- История -->
+            <div id="task-history" class="tab-pane active task-details">
+                <h1>История задачи</h1>
+                <ul>
+                    <li>
+                        {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
+                        {{ selected.user.link|safe }}:
+                        Создал задачу
+                    </li>
+                {% for hist in selected.history %}
+                    <li>
+                        {{ hist.created.strftime('%d.%m.%Y %H:%M') }}
+                        {{ hist.user.link|safe }}:
+                        {{ hist.text()|safe }}
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+
             {% endif %}
 
             <!-- Создать подзадачу -->

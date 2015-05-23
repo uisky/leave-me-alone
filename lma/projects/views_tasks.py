@@ -42,7 +42,17 @@ def task_edit(project_id, task_id):
 
     form = forms.TaskForm(obj=task)
     if form.validate_on_submit():
+        # Пишем в историю, если что-то изменилось
+        hist = TaskHistory(task_id=task.id, user_id=current_user.id)
+        is_modified = False
+        for field in ('assigned_id', 'subject', 'description', 'deadline'):
+            if getattr(form, field).data != getattr(task, field):
+                setattr(hist, field, getattr(form, field).data)
+                is_modified = True
+
         form.populate_obj(task)
+        if is_modified:
+            db.session.add(hist)
         db.session.commit()
     else:
         flash_errors(form)
@@ -86,7 +96,9 @@ def task_subtask(project_id, parent_id=None):
         task.setparent(parent)
 
         # Открываем родительскую задачу
-        parent.status = 'open'
+        if parent.status != 'open':
+            parent.status = 'open'
+            db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status='open'))
 
         # return str(task.__dict__)
         db.session.add(task)
@@ -107,7 +119,12 @@ def task_status(project_id, task_id):
         flash('Вы не можете установить этой задаче такой статус.', 'danger')
     else:
         task.status = status
-        db.session.add(task)
+
+        # Пишем в историю
+        hist = TaskHistory(
+            task_id=task.id, user_id=current_user.id, status=status
+        )
+        db.session.add(hist)
         db.session.commit()
 
     return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)

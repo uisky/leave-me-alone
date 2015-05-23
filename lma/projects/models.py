@@ -80,6 +80,11 @@ class Task(db.Model):
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
     parent = db.relation('Task')
+    history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created')
+
+    @property
+    def depth(self):
+        return len(self.mp) - 1
 
     @property
     def css_class(self):
@@ -116,25 +121,6 @@ class Task(db.Model):
 
         return variants[self.status]
 
-
-    @property
-    def depth(self):
-        return len(self.mp) - 1
-
-    def engender(self):
-        """
-        Возвращает своего потомка, подготовив ему project_id, parent_id и mp
-        :return:
-        """
-        kid = self.__class__(project_id=self.project_id, parent_id=self.id)
-        kid.mp = self.mp
-        maxp = db.session\
-            .query('SELECT max(mp[:pos]) FROM %s WHERE parent_id = :me' % self.__tablename__)\
-            .scalar({'pos': len(self.mp), 'me': self.ud})
-        kid.mp.append(maxp)
-
-        return kid
-
     def setparent(self, parent):
         """
         Устанавливает parent_id и mp, чтобы усыновиться parent'ом.
@@ -152,7 +138,6 @@ class Task(db.Model):
                 "SELECT coalesce(max(mp[1]), 0) FROM %s WHERE project_id = :project_id and parent_id is null" % self.__tablename__,
                 {'project_id': self.project_id}
             ).scalar() + 1
-            print('max_mp = %d' % max_mp)
             self.mp = [max_mp]
         else:
             max_mp = db.session.execute(
@@ -160,7 +145,6 @@ class Task(db.Model):
                 (len(parent.mp) + 1, self.__tablename__),
                 {'project_id': self.project_id, 'parent_id': parent.id}
             ).scalar() + 1
-            print('max_mp = %d' % max_mp)
             self.mp = parent.mp + [max_mp]
 
     def subtree(self, withme=False):
@@ -178,3 +162,41 @@ class Task(db.Model):
         if not withme:
             query = query.filter(Task.id != self.id)
         return query
+
+
+class TaskHistory(db.Model):
+    __tablename__ = 'task_history'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+
+    task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False, index=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False, index=True)
+
+    assigned_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
+    status = db.Column(ENUM_TASK_STATUS, nullable=True)
+    subject = db.Column(db.String(1024), nullable=True)
+    description = db.Column(db.Text(), nullable=True)
+    deadline = db.Column(db.DateTime(timezone=True))
+
+    user = db.relationship('User', backref='history', foreign_keys=[user_id])
+    assignee = db.relationship('User', foreign_keys=[assigned_id])
+
+    def text(self):
+        deeds = []
+        if self.assigned_id is not None:
+            deeds.append('Назначил исполнителя %s' % self.assignee.link)
+        if self.status is not None:
+            deeds.append('Установил статус &laquo;%s&raquo' % self.status)
+        if self.subject is not None:
+            # @todo: А вот тут у нас HTML Injection
+            deeds.append('Изменил формулировку на &laquo;%s&raquo' % self.subject)
+        if self.description is not None:
+            # @todo: И тут ещё одна
+            deeds.append('Изменил описание: &laquo;%s&raquo' % self.subject)
+        if self.deadline is not None:
+            deeds.append('Установил дедлайн на %s' % self.deadline.strftime('%d.%m.%Y %H:%M'))
+
+        return '; '.join(deeds)
