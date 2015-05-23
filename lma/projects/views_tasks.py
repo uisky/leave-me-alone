@@ -85,6 +85,9 @@ def task_subtask(project_id, parent_id=None):
         form.populate_obj(task)
         task.setparent(parent)
 
+        # Открываем родительскую задачу
+        parent.status = 'open'
+
         # return str(task.__dict__)
         db.session.add(task)
         db.session.commit()
@@ -92,3 +95,19 @@ def task_subtask(project_id, parent_id=None):
 
     flash_errors(form)
     return redirect(redirect_url)
+
+
+@mod.route('/<int:project_id>/<int:task_id>/status', methods=('POST',))
+def task_status(project_id, task_id):
+    project = load_project(project_id)
+    task = Task.query.get_or_404(task_id)
+
+    status = request.form.get('status')
+    if status not in task.allowed_statuses(current_user):
+        flash('Вы не можете установить этой задаче такой статус.', 'danger')
+    else:
+        task.status = status
+        db.session.add(task)
+        db.session.commit()
+
+    return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)

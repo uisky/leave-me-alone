@@ -26,31 +26,36 @@ def index():
     return render_template('projects/index.html')
 
 
-@mod.route('/add', methods=['POST'])
-@mod.route('/<int:id_>/edit/', methods=['POST'])
-def project_edit(id_=0):
-    # id_ = request.args.get('id', 0)
-    if id_:
-        project = Project.query.get_or_404(id_)
+@mod.route('/add', methods=('POST',), endpoint='project_add')
+@mod.route('/<int:project_id>/edit/', methods=('GET', 'POST'), endpoint='project_edit')
+def project_edit(project_id=None):
+    if project_id:
+        project = Project.query.get_or_404(project_id)
     else:
         project = Project(user_id=current_user.id)
 
-    project.name = request.form.get('name', '').strip()
-    if project.name == '':
-        flash('Проекту нужно имя.', 'danger')
-        return redirect(url_for('.index'))
+    form = forms.ProjectPropertiesForm(obj=project)
 
-    db.session.add(project)
-    db.session.commit()
+    if form.validate_on_submit():
+        form.populate_obj(project)
+        db.session.add(project)
+        db.session.commit()
 
-    # Вступаем в свой проект
-    membership = ProjectMember(user_id=current_user.id,
-                               project_id=project.id,
-                               roles=['lead'])
-    db.session.add(membership)
-    db.session.commit()
+        # Вступаем в свой проект
+        if project_id is None:
+            membership = ProjectMember(user_id=current_user.id,
+                                       project_id=project.id,
+                                       roles=['lead'])
+            db.session.add(membership)
+            db.session.commit()
 
-    return redirect(url_for('.index'))
+        return redirect(url_for('.tasks', project_id=project.id))
+
+    else:
+        print("NOT OK")
+        flash_errors(form)
+
+    return render_template('projects/edit.html', project=project, form=form)
 
 
 @mod.route('/<int:id>/delete/', methods=('POST',))

@@ -28,7 +28,7 @@
     </ul>
 {% endif %}
 
-<form method="post" action="{{ url_for('.project_edit') }}" class="form-inline">
+<form method="post" action="{{ url_for('.project_add') }}" class="form-inline">
     <div class="form-group">
         <input type="text" name="name" value="{{ request.form.get('name', '') }}" class="form-control" placeholder="Название" style="width:600px">
     </div>

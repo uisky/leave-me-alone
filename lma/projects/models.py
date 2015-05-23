@@ -79,6 +79,43 @@ class Task(db.Model):
 
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
+    parent = db.relation('Task')
+
+    @property
+    def css_class(self):
+        return {'open': 'info', 'progress': 'success', 'pause': 'warning',
+                'review': 'primary', 'done': 'default', 'canceled': 'default'}.get(self.status, 'default')
+
+    def allowed_statuses(self, user):
+        """
+        Возвращает список статусов, которые может пользователь user присвоить этой задаче
+        :return:
+        """
+        if user.id == self.user_id:
+            # Владелец задачи. Права ограничены здравым смыслом.
+            variants = {
+                'open': ('progress', 'done', 'cancelled'),
+                'progress': ('open', 'pause', 'review', 'done', 'canceled'),
+                'pause': ('open', 'progress'),
+                'review': ('open', 'done', 'canceled'),
+                'done': ('open', 'review', 'canceled'),
+                'canceled': ('open',)
+            }
+        elif user.id == self.assigned_id:
+            # Назначенный исполнитель
+            variants = {
+                'open': ('progress', 'review'),
+                'progress': ('open', 'pause', 'review', 'done', 'canceled'),
+                'pause': ('open', 'progress'),
+                'review': ('open', 'done', 'canceled'),
+                'done': ('open', 'review', 'canceled'),
+                'canceled': ('open',)
+            }
+        else:
+            return ()
+
+        return variants[self.status]
+
 
     @property
     def depth(self):

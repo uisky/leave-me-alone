@@ -45,8 +45,7 @@
                     </div>
 
                     <div class="subj">
-                        <a href="#" class="toggler">[+]</a>
-                        <span class="label label-info">{{ task.status }}</span>
+                        <span class="label label-{{ task.css_class }}">{{ task.status }}</span>
                         <a href="?task={{ task.id }}">{{ task.subject }}</a>
                     </div>
                     </div>
@@ -72,6 +71,7 @@
             {% endif %}
         </ul>
         <div class="tab-content">
+            <!-- Описание задачи -->
             {% if selected %}
             <div id="task-details" class="tab-pane active task-details">
                 <h1>{{ selected.subject }}</h1>
@@ -85,9 +85,21 @@
                 <div class="description">
                     {{ selected.description|markdown|safe }}
                 </div>
+
+                <form id="form-setstatus"
+                      method="post"
+                      action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
+                    <input type="hidden" name="status">
+                    {% for status in selected.allowed_statuses(current_user) %}
+                        <button type="button" class="btn btn-default setter" data-status="{{ status }}">
+                            {{ status }}
+                        </button>
+                    {% endfor %}
+                </form>
             </div>
             {% endif %}
 
+            <!-- Создать подзадачу -->
             <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                 <h2>Создать подзадачу</h2>
                 <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">
@@ -104,6 +116,7 @@
                 </form>
             </div>
 
+            <!-- Редактор -->
             {% if selected %}
             <div id="task-edit" class="tab-pane">
                 <h2>Редактировать задачу</h2>

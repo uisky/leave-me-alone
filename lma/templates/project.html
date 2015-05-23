@@ -3,6 +3,7 @@
 {% set menu = (
     {'id': 'tasks', 'url': url_for('.tasks', project_id=project.id), 'title': 'Задачи'},
     {'id': 'members', 'url': url_for('.members', project_id=project.id), 'title': 'Команда'},
+    {'id': 'edit', 'url': url_for('.project_edit', project_id=project.id), 'title': 'Свойства'},
 )
 %}
 
