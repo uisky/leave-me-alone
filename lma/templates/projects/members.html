@@ -12,7 +12,7 @@
         <th>Добавлен</th>
         <th>Участник</th>
         <th>Роли</th>
-        <th>Что делает</th>
+        <th></th>
     </tr>
     </thead>
     <tbody>
@@ -21,7 +21,7 @@
     <tr>
         <td>{{ loop.index }}</td>
         <td>{{ member.added.strftime('%d.%m.%Y %H:%M') }}</td>
-        <td><a href="?edit={{ member.user_id }}">{{ member.user.name }}</a></td>
+        <td><a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a></td>
         <td>
             {% for role in member.roles %}
                 <span class="label label-{{ role_classes.get(role, 'default') }}">
@@ -30,16 +30,16 @@
             {% endfor %}
         </td>
         <td>
-            {% for task in member.assigned %}
-            {% if task.status == 'progress' %}
-                <a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.subject }}</a>
-            {% endif %}
-            {% endfor %}
+            <a href="?edit={{ member.user_id }}">
+                <span class="glyphicon glyphicon-pencil"></span>
+            </a>
         </td>
     </tr>
     {% endfor %}
     </tbody>
 </table>
+
+{% if project.user_id == current_user.id %}
 
 <form method="post">
     {% if editing.user_id %}
@@ -87,6 +87,8 @@
         $('#form-remove').submit()
     })
 </script>
+{% endif %}
+
 {% endif %}
 
 {% endblock %}

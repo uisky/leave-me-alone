@@ -1,7 +1,9 @@
 from flask import render_template, request, redirect, flash, url_for, g
 from flask_login import login_required, current_user
+from datetime import datetime
+import pytz
 
-from . import mod, forms
+from . import mod, forms, load_project
 from .models import *
 from .. import app, db
 from ..utils import flash_errors
@@ -19,7 +21,7 @@ def find_user(clue):
 
 @mod.route('/<project_id>/members/', methods=('GET', 'POST'))
 def members(project_id):
-    project = Project.query.get_or_404(project_id)
+    project, membership = load_project(project_id)
 
     edit = request.args.get('edit')
     if edit:
@@ -70,3 +72,18 @@ def member_delete(project_id):
             db.session.commit()
 
     return redirect(url_for('.members', project_id=project.id))
+
+
+@mod.route('/<int:project_id>/members/<int:member_id>/')
+def member(project_id, member_id):
+    project, membership = load_project(project_id)
+
+    member = ProjectMember.query.get_or_404((member_id, project_id))
+
+    tasks = Task.query\
+        .filter_by(project_id=project.id, assigned_id=member.user_id)\
+        .order_by(Task.deadline.nullslast()).all()
+
+    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
+
+    return render_template('projects/member.html', project=project, member=member, tasks=tasks)

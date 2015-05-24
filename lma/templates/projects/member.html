@@ -1,0 +1,35 @@
+{% set menu_current = 'members' %}
+
+{% extends 'project.html' %}
+{% block content %}
+<h1>Участие {{ member.user.name }} в {{ project.name }}</h1>
+<p>
+    <a href="{{ url_for('.members', project_id=project.id) }}" class="btn btn-default btn-sm">
+        <span class="glyphicon glyphicon-arrow-left"></span>
+        Назад
+    </a>
+</p>
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>Поставлено</th>
+        <th>Статус</th>
+        <th>Задача</th>
+        <th>Дедлайн</th>
+    </tr>
+    {% for task in tasks %}
+    <tr>
+        <td>{{ task.created.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ task.status|status_label|safe }}</td>
+        <td><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.subject }}</a></td>
+        <td {% if task.deadline and task.deadline > g.now %} style="color:#f00" {% endif %}>
+            {% if task.deadline %}
+                {{ task.deadline.strftime('%d.%m.%Y') }}
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </thead>
+</table>
+
+{% endblock %}
