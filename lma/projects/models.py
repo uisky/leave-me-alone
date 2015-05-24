@@ -98,7 +98,7 @@ class Task(db.Model):
         Возвращает список статусов, которые может пользователь user присвоить этой задаче
         :return:
         """
-        if user.id == self.user_id or 'lead' in membership.roles:
+        if user.id == self.user_id or (membership and 'lead' in membership.roles):
             # Владелец задачи. Права ограничены здравым смыслом.
             variants = {
                 'open': ('progress', 'done', 'canceled'),

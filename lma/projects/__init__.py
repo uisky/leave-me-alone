@@ -7,7 +7,7 @@ mod = Blueprint('projects', __name__, url_prefix='/projects')
 
 def load_project(project_id):
     project = Project.query.get_or_404(project_id)
-    membership = ProjectMember.query.filter_by(project_id=project.id, user_id=current_user.id)
+    membership = ProjectMember.query.filter_by(project_id=project.id, user_id=current_user.id).first()
     if not membership:
         abort(403)
     return project, membership
