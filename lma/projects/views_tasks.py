@@ -98,11 +98,10 @@ def task_subtask(project_id, parent_id=None):
         task.setparent(parent)
 
         # Открываем родительскую задачу
-        if parent and parent.status != 'open':
+        if parent and parent.status in('done', 'review'):
             parent.status = 'open'
             db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status='open'))
 
-        # return str(task.__dict__)
         db.session.add(task)
         db.session.commit()
         return redirect(redirect_url)
@@ -113,7 +112,7 @@ def task_subtask(project_id, parent_id=None):
 
 @mod.route('/<int:project_id>/<int:task_id>/status', methods=('POST',))
 def task_status(project_id, task_id):
-    def check(status, task, membership):
+    def check():
         if status not in task.allowed_statuses(current_user, membership):
             flash('Вы не можете установить этой задаче такой статус.', 'danger')
             return False
@@ -129,13 +128,78 @@ def task_status(project_id, task_id):
 
     project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
-
     status = request.form.get('status')
+
     if check(status, task, membership):
         task.status = status
-
         # Пишем в историю
         db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status=status))
         db.session.commit()
 
     return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+
+
+@mod.route('/<int:project_id>/<int:task_id>/chparent', methods=('POST',))
+def task_chparent(project_id, task_id, debug=False):
+    def check_parent():
+        if task.id == parent.id:
+            flash('Вы промахнулись.', 'danger')
+            return False
+        elif task.parent_id == parent.id:
+            flash('Задача не перемещена.', 'warning')
+            return False
+        elif parent in subtree:
+            flash('Задача не станет собственной подзадачей.', 'danger')
+            return False
+        return True
+
+    project, membership = load_project(project_id)
+    task = Task.query.get_or_404(task_id)
+    subtree = task.subtree(withme=True).order_by(Task.mp).all()
+    if request.form.get('parent_id', 0, int):
+        parent = Task.query.get_or_404(request.form.get('parent_id'))
+        # Проверяем родителя
+        if not check_parent():
+            return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+    else:
+        parent = None
+
+    if debug:
+        print('Moving task %s to parent %s' % (task, parent or 'None'))
+        print('Tree:')
+        tree = Task.query.filter_by(project_id=project.id).order_by(Task.mp).all()
+        for t in tree:
+            print(t)
+
+    # Создаём префикс mp для поддерева
+    if parent:
+        prefix = parent.mp[:]
+        max_mp = db.session.execute(
+            "SELECT coalesce(max(mp[%d]), 0) FROM tasks WHERE project_id = :project_id and parent_id = :parent_id" %
+            (len(parent.mp) + 1),
+            {'project_id': project.id, 'parent_id': parent.id}
+        ).scalar() + 1
+        prefix += [max_mp]
+        task.parent_id = parent.id
+    else:
+        prefix = [db.session.execute(
+            "SELECT coalesce(max(mp[1]), 0) FROM tasks WHERE project_id = :project_id and parent_id is null",
+            {'project_id': project.id}
+        ).scalar() + 1]
+        task.parent_id = None
+    print('NEW PREFIX: %s, task.mp=%s' % (prefix, task))
+
+    # Меняем mp у всего поддерева исходной задачи
+    cut = len(task.mp)
+    for t in subtree:
+        t.mp = prefix + t.mp[cut:]
+        print(task, prefix + t.mp[len(task.mp):], t.mp)
+
+    if debug:
+        print('FINAL TREE:')
+        for t in tree:
+            print(t)
+        return 'Look at the terminal'
+    else:
+        db.session.commit()
+        return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)

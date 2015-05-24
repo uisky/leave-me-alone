@@ -82,6 +82,9 @@ class Task(db.Model):
     parent = db.relation('Task')
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created')
 
+    def __str__(self):
+        return '<Task %d: %s - %s>' % (self.id, self.mp, self.subject)
+
     @property
     def depth(self):
         return len(self.mp) - 1

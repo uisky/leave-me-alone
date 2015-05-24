@@ -35,7 +35,6 @@
                     </div>
 
                     <div class="users narrow">
-                        {# {{ task.user.link|safe }} #}
                         {% if task.assigned_id and task.user_id != task.assigned_id %}
                             &rarr; {{ task.assignee.link|safe }}
                         {% endif %}
@@ -47,6 +46,7 @@
                     </div>
                 {% set prev_depth = task.depth %}
             {% endfor %}
+            {{ ('</li></ul>' * tasks[-1].depth) | safe }}
             <p style="margin: 10px 0">
                 <a href="?" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
             </p>
@@ -137,8 +137,8 @@
             <!-- Редактор -->
             {% if selected %}
             <div id="task-edit" class="tab-pane">
-                <h2>Редактировать задачу</h2>
                 <form id="form-edit" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
+                    <h2>Редактировать задачу</h2>
                     {% set edit_form = form_edit %}
                     {% set edit_task = selected %}
                     {% include 'projects/_task_edit.html' %}
@@ -150,11 +150,30 @@
                             <button type="button" class="btn btn-danger" id="btn-task-delete">
                                 <span class="glyphicon glyphicon-remove"></span> Удалить
                             </button>
+                            <button type="button" class="btn btn-info" id="btn-chparent">
+                                <span class="glyphicon glyphicon-random"></span> Переместить
+                            </button>
                         </div>
                     </div>
                 </form>
 
                 <form id="form-delete" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/delete"></form>
+
+                <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, task_id=selected.id) }}">
+                    <h2>Переместить ветку</h2>
+                    <p>
+                        Выберите задачу, которая должна стать новым родителем выбранной задачи.
+                    </p>
+                    <input type="hidden" name="parent_id">
+                    {% if selected.parent_id %}
+                    <button type="button" class="btn btn-default" id="btn-chparent-root">
+                        <span class="glyphicon glyphicon-hand-up"></span> В корень
+                    </button>
+                    {% endif %}
+                    <button type="button" class="btn btn-warning" id="btn-chparent-cancel">
+                        <span class="glyphicon glyphicon-remove"></span> Отмена
+                    </button>
+                </form>
             </div>
             {% endif %}
         </div>

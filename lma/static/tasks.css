@@ -23,3 +23,5 @@
 .tasks-tree .task .deadline:after {content:'.'; visibility: hidden;}
 
 .task-details .description { margin: 20px 0}
+
+#form-chparent { display: none; }

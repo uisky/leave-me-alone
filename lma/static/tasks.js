@@ -15,10 +15,32 @@
         $('#form-subtask').find('input[name=subject]').focus();
     });
 
+    // Сабмит редакторов по Ctrl+Enter
     $('#form-subtask, #form-edit').keypress(function(e) {
         if(e.ctrlKey && e.which == 10) {
             $(this).submit();
         }
+    });
+
+    // Переместить задачу
+    selectTask = function(e) {
+        e.preventDefault();
+        $('#form-chparent input[name=parent_id]').val($(this).closest('li').data('id'));
+        $('#form-chparent').submit();
+    }
+    $('#btn-chparent').click(function(e) {
+        $('#form-edit').hide();
+        $('#form-chparent').show();
+        $tree.on('click', 'a', selectTask);
+    });
+    $('#btn-chparent-cancel').click(function(e) {
+        $('#form-edit').show();
+        $('#form-chparent').hide();
+        $tree.off('click', 'a', selectTask);
+    });
+    $('#btn-chparent-root').click(function(e) {
+        $('#form-chparent input[name=parent_id]').val(0);
+        $('#form-chparent').submit();
     });
 
     // Развешиваем toggler'ы

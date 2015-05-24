@@ -46,7 +46,7 @@
 
 <div class="container-fluid">
     <div class="container">
-        {% with messages = get_flashed_messages(with_categories=True, category_filter=['danger', 'success', 'info']) %}
+        {% with messages = get_flashed_messages(with_categories=True, category_filter=['danger', 'warning', 'success', 'info']) %}
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{{ message[0] }}" role="alert">
