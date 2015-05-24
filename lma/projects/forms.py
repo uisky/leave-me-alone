@@ -4,7 +4,8 @@ from wtforms import validators as v
 
 
 def stripfield(s):
-    return s.strip()
+    if isinstance(s, str):
+        return s.strip()
 
 
 class ProjectPropertiesForm(Form):

@@ -8,7 +8,7 @@ from ..utils import flash_errors
 from ..users.models import User
 
 
-@app.before_request
+@mod.before_request
 def load_projects():
     if not current_user.is_authenticated():
         return
@@ -23,7 +23,8 @@ def load_projects():
 @mod.route('/')
 @login_required
 def index():
-    return render_template('projects/index.html')
+    form = forms.ProjectPropertiesForm()
+    return render_template('projects/index.html', form=form)
 
 
 @mod.route('/add', methods=('POST',), endpoint='project_add')
@@ -50,9 +51,7 @@ def project_edit(project_id=None):
             db.session.commit()
 
         return redirect(url_for('.tasks', project_id=project.id))
-
     else:
-        print("NOT OK")
         flash_errors(form)
 
     return render_template('projects/edit.html', project=project, form=form)

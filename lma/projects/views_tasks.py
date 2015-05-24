@@ -20,12 +20,11 @@ def load_project(project_id):
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
 def tasks(project_id):
     project, membership = load_project(project_id)
-
     tasks = Task.query.filter_by(project_id=project.id).order_by(Task.mp).all()
 
     form_empty = forms.TaskForm()
-
     empty = Task(project_id=project.id, user_id=current_user.id, status='open')
+
     if request.args.get('task'):
         selected = Task.query.get_or_404(request.args.get('task'))
         form_edit = forms.TaskForm(obj=selected)
@@ -99,7 +98,7 @@ def task_subtask(project_id, parent_id=None):
         task.setparent(parent)
 
         # Открываем родительскую задачу
-        if parent.status != 'open':
+        if parent and parent.status != 'open':
             parent.status = 'open'
             db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status='open'))
 
