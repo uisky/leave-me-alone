@@ -12,6 +12,7 @@
         <th>Добавлен</th>
         <th>Участник</th>
         <th>Роли</th>
+        <th>Что делает</th>
     </tr>
     </thead>
     <tbody>
@@ -26,6 +27,13 @@
                 <span class="label label-{{ role_classes.get(role, 'default') }}">
                     {{ g.role_meanings.get(role, role) }}
                 </span>
+            {% endfor %}
+        </td>
+        <td>
+            {% for task in member.assigned %}
+            {% if task.status == 'progress' %}
+                <a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.subject }}</a>
+            {% endif %}
             {% endfor %}
         </td>
     </tr>

@@ -2,19 +2,11 @@ from flask import render_template, request, redirect, flash, url_for, g, abort
 from flask_user import login_required, current_user
 from sqlalchemy.dialects.postgresql import ARRAY
 
-from . import mod, forms
+from . import mod, forms, load_project
 from .models import *
 from .. import app, db
 from ..utils import flash_errors
 from ..users.models import User
-
-
-def load_project(project_id):
-    project = Project.query.get_or_404(project_id)
-    membership = ProjectMember.query.filter_by(project_id=project.id, user_id=current_user.id)
-    if not membership:
-        abort(403)
-    return project, membership
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
@@ -130,7 +122,7 @@ def task_status(project_id, task_id):
     task = Task.query.get_or_404(task_id)
     status = request.form.get('status')
 
-    if check(status, task, membership):
+    if check():
         task.status = status
         # Пишем в историю
         db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status=status))
@@ -145,9 +137,6 @@ def task_chparent(project_id, task_id, debug=False):
         if task.id == parent.id:
             flash('Вы промахнулись.', 'danger')
             return False
-        elif task.parent_id == parent.id:
-            flash('Задача не перемещена.', 'warning')
-            return False
         elif parent in subtree:
             flash('Задача не станет собственной подзадачей.', 'danger')
             return False
@@ -158,18 +147,10 @@ def task_chparent(project_id, task_id, debug=False):
     subtree = task.subtree(withme=True).order_by(Task.mp).all()
     if request.form.get('parent_id', 0, int):
         parent = Task.query.get_or_404(request.form.get('parent_id'))
-        # Проверяем родителя
         if not check_parent():
             return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
     else:
         parent = None
-
-    if debug:
-        print('Moving task %s to parent %s' % (task, parent or 'None'))
-        print('Tree:')
-        tree = Task.query.filter_by(project_id=project.id).order_by(Task.mp).all()
-        for t in tree:
-            print(t)
 
     # Создаём префикс mp для поддерева
     if parent:
@@ -187,19 +168,41 @@ def task_chparent(project_id, task_id, debug=False):
             {'project_id': project.id}
         ).scalar() + 1]
         task.parent_id = None
-    print('NEW PREFIX: %s, task.mp=%s' % (prefix, task))
 
     # Меняем mp у всего поддерева исходной задачи
     cut = len(task.mp)
     for t in subtree:
         t.mp = prefix + t.mp[cut:]
-        print(task, prefix + t.mp[len(task.mp):], t.mp)
 
-    if debug:
-        print('FINAL TREE:')
-        for t in tree:
-            print(t)
-        return 'Look at the terminal'
-    else:
-        db.session.commit()
-        return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+    db.session.commit()
+    return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+
+
+@mod.route('/<int:project_id>/<int:task_id>/swap', methods=('POST',))
+def task_swap(project_id, task_id):
+    project, membership = load_project(project_id)
+    sisters = (
+        Task.query.get_or_404(task_id),
+        Task.query.get_or_404(request.form.get('sister_id', 0, type=int))
+    )
+
+    def check():
+        if sisters[0].parent_id != sisters[1].parent_id:
+            flash('Задачи должны быть подзадачами одной задачи.', 'danger')
+            return False
+        return True
+
+    if not check():
+        return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % sisters[0].id)
+
+    mps = (sisters[0].mp[:], sisters[1].mp[:])
+    trees = [x.subtree(withme=True).all() for x in sisters]
+
+    for t in trees[0]:
+        t.mp = mps[1] + t.mp[len(mps[1]):]
+
+    for t in trees[1]:
+        t.mp = mps[0] + t.mp[len(mps[0]):]
+
+    db.session.commit()
+    return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % sisters[0].id)

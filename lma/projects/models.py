@@ -53,7 +53,8 @@ class ProjectMember(db.Model):
     # seen_tasks = int, seen_my_tasks = int  - для отслеживания количества новых тасков
 
 
-ENUM_TASK_STATUS = ENUM('open', 'progress', 'pause', 'review', 'done', 'canceled', name='task_status')
+TASK_STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
+ENUM_TASK_STATUS = ENUM(*TASK_STATUSES, name='task_status')
 
 
 class Task(db.Model):
@@ -85,14 +86,12 @@ class Task(db.Model):
     def __str__(self):
         return '<Task %d: %s - %s>' % (self.id, self.mp, self.subject)
 
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def depth(self):
         return len(self.mp) - 1
-
-    @property
-    def css_class(self):
-        return {'open': 'info', 'progress': 'success', 'pause': 'warning',
-                'review': 'primary', 'done': 'default', 'canceled': 'default'}.get(self.status, 'default')
 
     def allowed_statuses(self, user, membership=None):
         """
@@ -203,3 +202,10 @@ class TaskHistory(db.Model):
             deeds.append('Установил дедлайн на %s' % self.deadline.strftime('%d.%m.%Y %H:%M'))
 
         return '; '.join(deeds)
+
+    @property
+    def status_label(self):
+        return '<label class="label label-%s">%s</label>' % (
+            Task.STATUS_CSS_CLASSES.get(self.status, 'default'),
+            Task.STATUS_MEANING.get(self.status, self.status)
+        )

@@ -19,7 +19,7 @@
     <label class="control-label col-sm-2">Статус</label>
     <div class="col-sm-4">
         <p class="form-control-static">
-            {{ edit_task.status }}
+            {{ edit_task.status|status_label|safe }}
         </p>
     </div>
 </div>
@@ -42,7 +42,7 @@
             {% set deadline_id = 'deadline-%d' % (edit_task.id or 0) %}
             {{ edit_form.deadline(class='form-control', id=deadline_id) }}
             <span class="input-group-addon">
-                <span class="glyphicon glyphicon-remove" id="deadline-clear"></span>
+                <span class="glyphicon glyphicon-remove" id="{{ deadline_id }}-clear"></span>
             </span>
         </div>
         <script type="text/javascript">
@@ -52,7 +52,7 @@
                 'stepping': 10,
                 'locale': 'ru'
             });
-            $('#deadline-clear').click(function(e) { $('#deadline').val(''); });
+            $('#{{ deadline_id }}-clear').click(function(e) { $('#{{ deadline_id }}').val(''); });
         </script>
     </div>
     <label class="control-label col-sm-2">Исполнитель</label>

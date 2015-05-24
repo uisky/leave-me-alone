@@ -31,7 +31,7 @@
                     <div class="task {% if task.id == selected.id %} active {% endif %}">
                     <div class="deadline">
                         {# {% if task.deadline %}{{ task.deadline.strftime('%d.%m.%Y') }}{% endif %} #}
-                        <span class="label label-{{ task.css_class }}">{{ task.status }}</span>
+                        {{ task.status|status_label|safe }}
                     </div>
 
                     <div class="users narrow">
@@ -78,7 +78,7 @@
                     {% if selected.assigned_id %}
                         &rarr; {{ selected.assignee.link|safe }}
                     {% endif %}
-                    <label class="label label-{{ selected.css_class }}">{{ selected.status }}</label>
+                    {{ selected.status|status_label|safe }}
                 </p>
                 <div class="description">
                     {{ selected.description|markdown|safe }}
@@ -89,8 +89,8 @@
                       action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                     <input type="hidden" name="status">
                     {% for status in selected.allowed_statuses(current_user, membership) %}
-                        <button type="button" class="btn btn-default setter" data-status="{{ status }}">
-                            {{ status }}
+                        <button type="button" class="btn btn-{{ status|status_class }} setter" data-status="{{ status }}">
+                            {{ status|status_rus }}
                         </button>
                     {% endfor %}
                 </form>
@@ -151,7 +151,10 @@
                                 <span class="glyphicon glyphicon-remove"></span> Удалить
                             </button>
                             <button type="button" class="btn btn-info" id="btn-chparent">
-                                <span class="glyphicon glyphicon-random"></span> Переместить
+                                <span class="glyphicon glyphicon-share-alt"></span> Сменить надзадачу
+                            </button>
+                            <button type="button" class="btn btn-info" id="btn-swap">
+                                <span class="glyphicon glyphicon-random"></span> Поменять местами
                             </button>
                         </div>
                     </div>
@@ -171,6 +174,17 @@
                     </button>
                     {% endif %}
                     <button type="button" class="btn btn-warning" id="btn-chparent-cancel">
+                        <span class="glyphicon glyphicon-remove"></span> Отмена
+                    </button>
+                </form>
+
+                <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, task_id=selected.id) }}">
+                    <h2>Сортировка</h2>
+                    <p>
+                        Выберите задачу того же уровня, с которой нужно поменяться местами.
+                    </p>
+                    <input type="hidden" name="sister_id">
+                    <button type="button" class="btn btn-warning" id="btn-swap-cancel">
                         <span class="glyphicon glyphicon-remove"></span> Отмена
                     </button>
                 </form>

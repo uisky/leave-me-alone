@@ -1,0 +1,112 @@
+{% set menu_current = 'history' %}
+
+{% extends 'project.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
+<script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
+<style type="text/css">
+    #form-filter { margin-bottom: 10px; }
+    #form-filter .btn-filter-status { opacity: .5; }
+    #form-filter .btn-filter-status.active { opacity: 1; }
+    #form-filter .datepick { width: 130px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h1>История</h1>
+
+<form id="form-filter" method="get" class="form-inline">
+    <div class="form-group">
+        <label class="control-label">Участник:</label>
+        <select name="user_id" class="form-control">
+            <option value="">Все</option>
+            {% for member in project.members %}
+                <option value="{{ member.user_id }}"
+                        {% if request.args.get('user_id')|int == member.user_id %} selected {% endif %}
+                >{{ member.user.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label class="control-label">За время:</label>
+        <input type="text" name="start" class="form-control datepick">
+        <input type="text" name="end" class="form-control datepick">
+    </div>
+    <div class="form-group">
+        <input type="hidden" name="status" value="{{ request.args.get('status') }}">
+        {% set selected = request.args.get('status', '').split(',') %}
+        {% for st in statuses %}
+            <button type="button"
+                    class="btn btn-{{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
+                    data-status="{{ st }}">
+                {{ st|status_rus }}
+            </button>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary pull-right">
+        Показать
+    </button>
+</form>
+
+{% if not history %}
+<div class="alert alert-info">
+    Ещё ничего не происходило.
+</div>
+{% else %}
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Участник</th>
+            <th>Действие</th>
+            <th>Задача</th>
+        </tr>
+        </thead>
+        {% for row in history %}
+        <tr>
+            <td>{{ row.created.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ row.user.link|safe }}</td>
+            <td>{{ row.status|status_label|safe }}</td>
+            <td><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.subject }}</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+{% endblock %}
+
+
+{% block tail %}
+<script type="text/javascript">
+(function() {
+    $('#form-filter .btn-filter-status').click(function(e) {
+        var $this = $(this);
+        if($this.hasClass('active')) {
+            $this.removeClass('active');
+        } else {
+            $this.addClass('active');
+        }
+
+        var v = [];
+        $('#form-filter .btn-filter-status.active').each(function() {
+            v.push($(this).data('status'))
+        });
+        $('#form-filter input[name=status]').val(v.join(','));
+
+        $this.blur();
+    });
+
+    $('#form-filter .datepick').datetimepicker({
+        'sideBySide': true,
+        'showTodayButton': true,
+        'stepping': 10,
+        'locale': 'ru',
+        'format': 'yyyy-MM-dd',
+    });
+
+})();
+</script>
+{% endblock %}

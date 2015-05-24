@@ -23,7 +23,7 @@
     });
 
     // Переместить задачу
-    selectTask = function(e) {
+    chparentSelectTask = function(e) {
         e.preventDefault();
         $('#form-chparent input[name=parent_id]').val($(this).closest('li').data('id'));
         $('#form-chparent').submit();
@@ -31,16 +31,33 @@
     $('#btn-chparent').click(function(e) {
         $('#form-edit').hide();
         $('#form-chparent').show();
-        $tree.on('click', 'a', selectTask);
+        $tree.on('click', 'a', chparentSelectTask);
     });
     $('#btn-chparent-cancel').click(function(e) {
         $('#form-edit').show();
         $('#form-chparent').hide();
-        $tree.off('click', 'a', selectTask);
+        $tree.off('click', 'a', chparentSelectTask);
     });
     $('#btn-chparent-root').click(function(e) {
         $('#form-chparent input[name=parent_id]').val(0);
         $('#form-chparent').submit();
+    });
+
+    // Поменять местами
+    swapSelectTask = function(e) {
+        e.preventDefault();
+        $('#form-swap input[name=sister_id]').val($(this).closest('li').data('id'));
+        $('#form-swap').submit();
+    }
+    $('#btn-swap').click(function(e) {
+        $('#form-edit').hide();
+        $('#form-swap').show();
+        $tree.on('click', 'a', swapSelectTask);
+    });
+    $('#btn-swap-cancel').click(function(e) {
+        $('#form-edit').show();
+        $('#form-swap').hide();
+        $tree.off('click', 'a', swapSelectTask);
     });
 
     // Развешиваем toggler'ы

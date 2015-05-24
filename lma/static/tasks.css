@@ -24,4 +24,4 @@
 
 .task-details .description { margin: 20px 0}
 
-#form-chparent { display: none; }
+#form-chparent, #form-swap { display: none; }
