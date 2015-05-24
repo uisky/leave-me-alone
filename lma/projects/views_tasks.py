@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, flash, url_for, g, abort
-from flask_user import login_required, current_user
-from sqlalchemy.dialects.postgresql import ARRAY
+from flask_user import current_user
+from datetime import datetime
+import pytz
 
 from . import mod, forms, load_project
 from .models import *
@@ -23,6 +24,8 @@ def tasks(project_id):
     else:
         selected = None
         form_edit = None
+
+    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
     return render_template('projects/tasks.html',
                            project=project, membership=membership, tasks=tasks,

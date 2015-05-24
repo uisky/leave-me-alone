@@ -7,7 +7,7 @@ from .models import *
 def history(project_id):
     project, membership = load_project(project_id)
 
-    history = TaskHistory.query.options(db.joinedload('task'))\
+    history = TaskHistory.query.join(Task)\
         .filter(Task.project_id == project.id)\
         .filter(TaskHistory.status != None)\
         .order_by(TaskHistory.created)

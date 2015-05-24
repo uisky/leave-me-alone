@@ -16,11 +16,17 @@
 .tasks-tree ul li {  margin: 0; padding: 0; position: relative; }
 .tasks-tree .task { padding: 4px 0; border-bottom: 1px dotted #ccc; clear: both; }
 .tasks-tree .task.active { background-color: #ffefb1; }
+.tasks-tree .task:hover { background-color: #eee; }
+
 .tasks-tree .task .subj { }
-.tasks-tree .task .users { float: right; width: 300px; }
-.tasks-tree .task .users.narrow { width: 150px; }
-.tasks-tree .task .deadline { float:right; width: 88px; text-align: right; }
-.tasks-tree .task .deadline:after {content:'.'; visibility: hidden;}
+
+.tasks-tree .task .users { float: right; width: 150px; overflow: hidden; white-space: nowrap; }
+
+.tasks-tree .task .status { float: right; width: 68px; text-align: right; }
+
+.tasks-tree .task .deadline { float:right; width: 40px; text-align: right; overflow: hidden; white-space: nowrap;}
+.tasks-tree .task .deadline:after {content:'.'; visibility: hidden; font-size:1px;}
+.tasks-tree .task .deadline.late { color: #f00; }
 
 .task-details .description { margin: 20px 0}
 

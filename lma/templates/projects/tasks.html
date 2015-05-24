@@ -17,7 +17,7 @@
         {% if not tasks %}
             <div class="alert alert-box alert-info">Проект пуст.</div>
         {% else %}
-            <div class="tasks-tree">
+            <div class="tasks-tree show-deadline">
             {% set prev_depth = -1 %}
             {% for task in tasks %}
                 {% if task.depth == prev_depth %}
@@ -29,14 +29,16 @@
                 {% endif %}
                 <li data-id="{{ task.id }}">
                     <div class="task {% if task.id == selected.id %} active {% endif %}">
-                    <div class="deadline">
-                        {# {% if task.deadline %}{{ task.deadline.strftime('%d.%m.%Y') }}{% endif %} #}
+                    <div class="status">
                         {{ task.status|status_label|safe }}
                     </div>
+                    <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
+                        {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
+                    </div>
 
-                    <div class="users narrow">
-                        {% if task.assigned_id and task.user_id != task.assigned_id %}
-                            &rarr; {{ task.assignee.link|safe }}
+                    <div class="users">
+                        {% if task.assigned_id %}
+                            {{ task.assignee.link|safe }}
                         {% endif %}
                     </div>
 
