@@ -15,15 +15,17 @@ def tasks(project_id):
     project, membership = load_project(project_id)
     tasks = Task.query.filter_by(project_id=project.id).order_by(Task.mp).all()
 
-    form_empty = forms.TaskForm()
-    empty = Task(project_id=project.id, user_id=current_user.id, status='open')
-
     if request.args.get('task'):
         selected = Task.query.get_or_404(request.args.get('task'))
         form_edit = forms.TaskForm(obj=selected)
     else:
         selected = None
         form_edit = None
+
+    empty = Task(project_id=project.id, user_id=current_user.id, status='open')
+    if selected:
+        empty.assigned_id = selected.assigned_id
+    form_empty = forms.TaskForm(obj=empty)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
