@@ -19,7 +19,7 @@ def login():
 
     if User.hash_password(request.form.get('password', '')) == user.password_hash:
         login_user(user)
-        flash('Велкам бэк, говнюк!', 'success')
+        return redirect('/projects')
     else:
         flash('Неправильный e-mail или пароль.', 'danger')
 
