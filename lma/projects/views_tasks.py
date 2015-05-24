@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, flash, url_for, g, abort
-from flask_user import current_user
+from flask_login import current_user
 from datetime import datetime
 import pytz
 

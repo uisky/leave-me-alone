@@ -1,6 +1,6 @@
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM
 from .. import db
-from flask_user import current_user
+from flask_login import current_user
 
 
 class Project(db.Model):

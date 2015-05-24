@@ -1,6 +1,6 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask_user import LoginManager
+from flask_login import LoginManager
 import markdown
 
 # flask
