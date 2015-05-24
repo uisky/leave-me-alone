@@ -11,14 +11,15 @@
 .tasks-tree .toggler { position: absolute; top: 11px; left: -12px; }
 
 .tasks-tree {}
-.tasks-tree ul { list-style:none; margin: 0; padding-left: 30px; }
-.tasks-tree ul:first-child { padding-left: 16px; }
+.tasks-tree ul { list-style:none; margin: 0; padding-left: 20px; }
+.tasks-tree ul:first-child { padding-left: 10px; }
 .tasks-tree ul li {  margin: 0; padding: 0; position: relative; }
 .tasks-tree .task { padding: 4px 0; border-bottom: 1px dotted #ccc; clear: both; }
 .tasks-tree .task.active { background-color: #ffefb1; }
 .tasks-tree .task .subj { }
 .tasks-tree .task .users { float: right; width: 300px; }
-.tasks-tree .task .deadline { float:right; width: 88px; }
+.tasks-tree .task .users.narrow { width: 150px; }
+.tasks-tree .task .deadline { float:right; width: 88px; text-align: right; }
 .tasks-tree .task .deadline:after {content:'.'; visibility: hidden;}
 
 .task-details .description { margin: 20px 0}

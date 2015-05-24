@@ -17,7 +17,7 @@ class Project(db.Model):
     members = db.relationship('ProjectMember', backref='project')
 
     def __repr__(self):
-        return '<Project %d:%s>' % (0 if self.id is None else self.id, self.name)
+        return '<Project %d:%s>' % (self.id or 0, self.name)
 
     def url_for(self):
         return '/projects/%d/' % self.id
@@ -91,17 +91,17 @@ class Task(db.Model):
         return {'open': 'info', 'progress': 'success', 'pause': 'warning',
                 'review': 'primary', 'done': 'default', 'canceled': 'default'}.get(self.status, 'default')
 
-    def allowed_statuses(self, user):
+    def allowed_statuses(self, user, membership=None):
         """
         Возвращает список статусов, которые может пользователь user присвоить этой задаче
         :return:
         """
-        if user.id == self.user_id:
+        if user.id == self.user_id or 'lead' in membership.roles:
             # Владелец задачи. Права ограничены здравым смыслом.
             variants = {
-                'open': ('progress', 'done', 'cancelled'),
+                'open': ('progress', 'done', 'canceled'),
                 'progress': ('open', 'pause', 'review', 'done', 'canceled'),
-                'pause': ('open', 'progress'),
+                'pause': ('open', 'progress', 'canceled'),
                 'review': ('open', 'done', 'canceled'),
                 'done': ('open', 'review', 'canceled'),
                 'canceled': ('open',)
@@ -111,8 +111,8 @@ class Task(db.Model):
             variants = {
                 'open': ('progress', 'review'),
                 'progress': ('open', 'pause', 'review', 'done', 'canceled'),
-                'pause': ('open', 'progress'),
-                'review': ('open', 'done', 'canceled'),
+                'pause': ('progress',),
+                'review': ('open', 'progress'),
                 'done': ('open', 'review', 'canceled'),
                 'canceled': ('open',)
             }

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, flash, url_for, g
+from flask import render_template, request, redirect, flash, url_for, g, abort
 from flask_user import login_required, current_user
 from sqlalchemy.dialects.postgresql import ARRAY
 
@@ -11,13 +11,15 @@ from ..users.models import User
 
 def load_project(project_id):
     project = Project.query.get_or_404(project_id)
-    # @todo: проверить права доступа
-    return project
+    membership = ProjectMember.query.filter_by(project_id=project.id, user_id=current_user.id)
+    if not membership:
+        abort(403)
+    return project, membership
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
 def tasks(project_id):
-    project = load_project(project_id)
+    project, membership = load_project(project_id)
 
     tasks = Task.query.filter_by(project_id=project.id).order_by(Task.mp).all()
 
@@ -31,13 +33,14 @@ def tasks(project_id):
         selected = None
         form_edit = None
 
-    return render_template('projects/tasks.html', project=project, tasks=tasks, selected=selected, empty=empty,
-                           form_empty=form_empty, form_edit=form_edit)
+    return render_template('projects/tasks.html',
+                           project=project, membership=membership, tasks=tasks,
+                           selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit)
 
 
 @mod.route('/<int:project_id>/<int:task_id>/edit', methods=('POST',))
 def task_edit(project_id, task_id):
-    project = load_project(project_id)
+    project, _ = load_project(project_id)
     task = Task.query.get_or_404(task_id)
 
     form = forms.TaskForm(obj=task)
@@ -62,7 +65,7 @@ def task_edit(project_id, task_id):
 
 @mod.route('/<int:project_id>/<int:task_id>/delete', methods=('POST',))
 def task_delete(project_id, task_id):
-    project = load_project(project_id)
+    project, _ = load_project(project_id)
     task = Task.query.get_or_404(task_id)
 
     redirect_url = url_for('.tasks', project_id=task.project_id)
@@ -78,7 +81,7 @@ def task_delete(project_id, task_id):
 @mod.route('/<int:project_id>/<parent_id>/subtask', methods=('POST',))
 @mod.route('/<int:project_id>/subtask', methods=('POST',))
 def task_subtask(project_id, parent_id=None):
-    project = load_project(project_id)
+    project, _ = load_project(project_id)
     if parent_id:
         parent = Task.query.get_or_404(parent_id)
     else:
@@ -111,20 +114,29 @@ def task_subtask(project_id, parent_id=None):
 
 @mod.route('/<int:project_id>/<int:task_id>/status', methods=('POST',))
 def task_status(project_id, task_id):
-    project = load_project(project_id)
+    def check(status, task, membership):
+        if status not in task.allowed_statuses(current_user, membership):
+            flash('Вы не можете установить этой задаче такой статус.', 'danger')
+            return False
+
+        # Проверяем, нет ли детей в статусе 'open', 'progress'
+        if status in ('done', 'review'):
+            kids = task.subtree().filter(Task.status.in_(['open', 'progress', 'review'])).first()
+            if kids is not None:
+                flash('У задачи есть незавершённые подзадачи, завершите сперва их.', 'danger')
+                return False
+
+        return True
+
+    project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
 
     status = request.form.get('status')
-    if status not in task.allowed_statuses(current_user):
-        flash('Вы не можете установить этой задаче такой статус.', 'danger')
-    else:
+    if check(status, task, membership):
         task.status = status
 
         # Пишем в историю
-        hist = TaskHistory(
-            task_id=task.id, user_id=current_user.id, status=status
-        )
-        db.session.add(hist)
+        db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status=status))
         db.session.commit()
 
     return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)

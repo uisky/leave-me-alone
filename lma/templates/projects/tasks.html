@@ -10,10 +10,6 @@
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
 {% endblock %}
 
-{% block tail %}
-<script type="text/javascript" src="/static/tasks.js"></script>
-{% endblock %}
-
 {% block content %}
 <div class="row">
     <!--- Левая колонка: дерево задач -->
@@ -34,18 +30,18 @@
                 <li data-id="{{ task.id }}">
                     <div class="task {% if task.id == selected.id %} active {% endif %}">
                     <div class="deadline">
-                        {% if task.deadline %}{{ task.deadline.strftime('%d.%m.%Y') }}{% endif %}
+                        {# {% if task.deadline %}{{ task.deadline.strftime('%d.%m.%Y') }}{% endif %} #}
+                        <span class="label label-{{ task.css_class }}">{{ task.status }}</span>
                     </div>
 
-                    <div class="users">
-                        {{ task.user.link|safe }}
+                    <div class="users narrow">
+                        {# {{ task.user.link|safe }} #}
                         {% if task.assigned_id and task.user_id != task.assigned_id %}
                             &rarr; {{ task.assignee.link|safe }}
                         {% endif %}
                     </div>
 
                     <div class="subj">
-                        <span class="label label-{{ task.css_class }}">{{ task.status }}</span>
                         <a href="?task={{ task.id }}">{{ task.subject }}</a>
                     </div>
                     </div>
@@ -92,7 +88,7 @@
                       method="post"
                       action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                     <input type="hidden" name="status">
-                    {% for status in selected.allowed_statuses(current_user) %}
+                    {% for status in selected.allowed_statuses(current_user, membership) %}
                         <button type="button" class="btn btn-default setter" data-status="{{ status }}">
                             {{ status }}
                         </button>
@@ -164,6 +160,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
 
+{% block tail %}
+<script type="text/javascript" src="/static/tasks.js"></script>
 {% endblock %}

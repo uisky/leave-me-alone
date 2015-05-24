@@ -39,13 +39,14 @@
     <label class="control-label col-sm-1">Дедлайн</label>
     <div class="col-sm-5">
         <div class='input-group date'>
-            {{ edit_form.deadline(class='form-control') }}
+            {% set deadline_id = 'deadline-%d' % (edit_task.id or 0) %}
+            {{ edit_form.deadline(class='form-control', id=deadline_id) }}
             <span class="input-group-addon">
                 <span class="glyphicon glyphicon-remove" id="deadline-clear"></span>
             </span>
         </div>
         <script type="text/javascript">
-            $('#deadline').datetimepicker({
+            $('#{{ deadline_id }}').datetimepicker({
                 'sideBySide': true,
                 'showTodayButton': true,
                 'stepping': 10,
