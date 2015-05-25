@@ -65,8 +65,10 @@
                 <li><a href="#task-history" data-toggle="tab">История</a></li>
             {% endif %}
             {% if 'lead' in membership.roles or 'developer' in membership.roles %}
-                <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
-                {% if selected %}
+                {% if 'lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id %}
+                    <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
+                {% endif %}
+                {% if selected and 'lead' in membership.roles or selected.user_id == current_user.id %}
                     <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
                 {% endif %}
             {% endif %}
@@ -123,24 +125,26 @@
 
             {% if 'lead' in membership.roles or 'developer' in membership.roles %}
             <!-- Создать подзадачу -->
-            <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
-                <h2>Создать подзадачу</h2>
-                <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">
-                    {% set edit_form = form_empty %}
-                    {% set edit_task = empty %}
-                    {% include 'projects/_task_edit.html' %}
-                    <div class="form-group">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <button type="submit" class="btn btn-success">
-                                <span class="glyphicon glyphicon-ok"></span> Создать
-                            </button>
+            {% if 'lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id %}
+                <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
+                    <h2>Создать подзадачу</h2>
+                    <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">
+                        {% set edit_form = form_empty %}
+                        {% set edit_task = empty %}
+                        {% include 'projects/_task_edit.html' %}
+                        <div class="form-group">
+                            <div class="col-sm-offset-1 col-sm-11">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="glyphicon glyphicon-ok"></span> Создать
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>
+            {% endif %}
 
             <!-- Редактор -->
-            {% if selected %}
+            {% if selected and 'lead' in membership.roles or selected.user_id == current_user.id %}
             <div id="task-edit" class="tab-pane">
                 <form id="form-edit" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
                     <h2>Редактировать задачу</h2>
