@@ -24,7 +24,7 @@
         <td>
             <a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.path }}</a>
         </td>
-        <td {% if task.deadline and task.deadline <= g.now %} style="color:#f00" {% endif %}>
+        <td {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} style="color:#f00" {% endif %}>
             {% if task.deadline %}
                 {{ task.deadline.strftime('%d.%m.%Y') }}
             {% endif %}
