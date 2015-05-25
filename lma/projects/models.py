@@ -80,7 +80,7 @@ class Task(db.Model):
 
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
-    parent = db.relation('Task')
+    parent = db.relation('Task', foreign_keys=[parent_id])
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created')
 
     def __str__(self):
@@ -92,6 +92,16 @@ class Task(db.Model):
     @property
     def depth(self):
         return len(self.mp) - 1
+
+    @property
+    def path(self):
+        task = self
+        subjs = [self.subject]
+        while task.parent_id is not None:
+            task = Task.query.get(task.parent_id)
+            subjs.insert(0, task.subject)
+
+        return ' / '.join(subjs)
 
     def allowed_statuses(self, user, membership=None):
         """

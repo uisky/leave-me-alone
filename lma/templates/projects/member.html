@@ -21,7 +21,9 @@
     <tr>
         <td>{{ task.created.strftime('%d.%m.%Y %H:%M') }}</td>
         <td>{{ task.status|status_label|safe }}</td>
-        <td><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.subject }}</a></td>
+        <td>
+            <a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.path }}</a>
+        </td>
         <td {% if task.deadline and task.deadline <= g.now %} style="color:#f00" {% endif %}>
             {% if task.deadline %}
                 {{ task.deadline.strftime('%d.%m.%Y') }}
