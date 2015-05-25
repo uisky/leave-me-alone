@@ -38,7 +38,7 @@
 
                     <div class="users">
                         {% if task.assigned_id %}
-                            {{ task.assignee.link|safe }}
+                            <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
                         {% endif %}
                     </div>
 
