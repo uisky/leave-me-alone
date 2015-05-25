@@ -28,7 +28,10 @@
                     {{ ('</li></ul>' * (prev_depth - task.depth)) | safe}}
                 {% endif %}
                 <li data-id="{{ task.id }}">
-                    <div class="task {% if task.id == selected.id %} active {% endif %}">
+                    <div class="task
+                        {%- if task.id == selected.id %} active {% endif %}
+                        {%- if task.assigned_id == current_user.id %} my {% endif %}
+                    ">
                     <div class="status">
                         {{ task.status|status_label|safe }}
                     </div>

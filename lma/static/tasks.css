@@ -21,6 +21,7 @@
 .tasks-tree .task .subj { }
 
 .tasks-tree .task .users { float: right; width: 150px; overflow: hidden; white-space: nowrap; }
+.tasks-tree .task.my .users a.user { font-weight: bold; color: #3d8c2d; }
 
 .tasks-tree .task .status { float: right; width: 68px; text-align: right; }
 
