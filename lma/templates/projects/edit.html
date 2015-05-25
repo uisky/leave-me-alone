@@ -5,6 +5,7 @@
 {% block content %}
 <h1>Свойства проекта</h1>
 
+{% if project.user_id == current_user.id %}
 <form method="post" action="{{ url_for('.project_edit', project_id=project.id) }}" class="form-horizontal">
     {{ form.csrf_token }}
     <div class="form-group">
@@ -22,5 +23,9 @@
         </div>
     </div>
 </form>
-
+{% else %}
+    <div class="alert alert-info">
+        Вы не можете изменять свойства проекта.
+    </div>
+{% endif %}
 {% endblock %}

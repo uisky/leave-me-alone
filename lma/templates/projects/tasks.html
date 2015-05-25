@@ -64,9 +64,11 @@
                 <li class="active"><a href="#task-details" data-toggle="tab">Задача</a></li>
                 <li><a href="#task-history" data-toggle="tab">История</a></li>
             {% endif %}
-            <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
-            {% if selected %}
-                <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
+            {% if 'lead' in membership.roles or 'developer' in membership.roles %}
+                <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
+                {% if selected %}
+                    <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
+                {% endif %}
             {% endif %}
         </ul>
         <div class="tab-content">
@@ -119,6 +121,7 @@
 
             {% endif %}
 
+            {% if 'lead' in membership.roles or 'developer' in membership.roles %}
             <!-- Создать подзадачу -->
             <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                 <h2>Создать подзадачу</h2>
@@ -191,6 +194,7 @@
                     </button>
                 </form>
             </div>
+            {% endif %}
             {% endif %}
         </div>
     </div>

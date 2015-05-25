@@ -12,7 +12,7 @@
         <th>Добавлен</th>
         <th>Участник</th>
         <th>Роли</th>
-        <th></th>
+        {% if project.user_id == current_user.id %}<th></th>{% endif %}
     </tr>
     </thead>
     <tbody>
@@ -29,11 +29,13 @@
                 </span>
             {% endfor %}
         </td>
+        {% if project.user_id == current_user.id %}
         <td>
             <a href="?edit={{ member.user_id }}">
                 <span class="glyphicon glyphicon-pencil"></span>
             </a>
         </td>
+        {% endif %}
     </tr>
     {% endfor %}
     </tbody>
