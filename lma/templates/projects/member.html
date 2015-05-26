@@ -1,4 +1,8 @@
-{% set menu_current = 'members' %}
+{% if member.user_id == current_user.id %}
+    {% set menu_current = 'my' %}
+{% else %}
+    {% set menu_current = 'members' %}
+{% endif %}
 
 {% extends 'project.html' %}
 {% block content %}

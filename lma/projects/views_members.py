@@ -82,7 +82,7 @@ def member(project_id, member_id):
 
     tasks = Task.query\
         .filter_by(project_id=project.id, assigned_id=member.user_id)\
-        .order_by(Task.deadline.nullslast()).all()
+        .order_by(Task.deadline.nullslast(), Task.mp).all()
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 

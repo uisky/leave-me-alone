@@ -68,7 +68,7 @@
         {% for row in history %}
         <tr>
             <td>{{ row.created.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td>{{ row.user.link|safe }}</td>
+            <td><a href="{{ url_for('.member', project_id=project.id, member_id=row.user_id) }}">{{ row.user.name }}</a></td>
             <td>{{ row.status|status_label|safe }}</td>
             <td><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.subject }}</a></td>
         </tr>
