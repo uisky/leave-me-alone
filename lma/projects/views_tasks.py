@@ -97,7 +97,7 @@ def task_subtask(project_id, parent_id=None):
         # Открываем родительскую задачу
         if parent and parent.status in('done', 'review'):
             parent.status = 'open'
-            db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status='open'))
+            db.session.add(TaskHistory(task_id=parent.id, user_id=current_user.id, status='open'))
 
         db.session.add(task)
         db.session.commit()
