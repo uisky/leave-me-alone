@@ -22,10 +22,13 @@ def tasks(project_id):
         selected = None
         form_edit = None
 
-    empty = Task(project_id=project.id, user_id=current_user.id, status='open')
+    empty = Task(project_id=project.id, user_id=current_user.id, status='open', importance=0)
     if selected:
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)
+
+    print(empty.__dict__)
+    print(form_empty)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 

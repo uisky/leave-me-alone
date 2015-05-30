@@ -91,6 +91,14 @@
                         &rarr; {{ selected.assignee.link|safe }}
                     {% endif %}
                     {{ selected.status|status_label|safe }}
+                    {% if selected.deadline %}
+                        <p>
+                            Дедлайн:
+                            {% if selected.deadline <= g.now %}<span class="deadline late">{% endif %}
+                                {{ selected.deadline.strftime('%d.%m.%Y %H:%M') }}
+                            {% if selected.deadline <= g.now %}</span>{% endif %}
+                        </p>
+                    {% endif %}
                 </p>
                 <div class="description">
                     {{ selected.description|markdown|safe }}

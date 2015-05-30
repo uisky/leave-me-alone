@@ -90,7 +90,7 @@ class Task(db.Model):
 
     status = db.Column(ENUM_TASK_STATUS, nullable=False, default='open')
     # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
-    importance = db.Column(db.SmallInteger, nullable=False, server_default='0')
+    importance = db.Column(db.SmallInteger, nullable=False, server_default='0', default=0)
     # Тип задачи: баг, фича, подумать
     character = db.Column(db.SmallInteger, nullable=True)
     subject = db.Column(db.String(1024), nullable=False)
