@@ -3,6 +3,21 @@ from .. import db
 from flask_login import current_user
 
 
+IMPORTANCE = [
+    {'id':  2, 'name': 'Очень важно', 'icon': '<span class="importance important-2">&uarr;&uarr;</span>'},
+    {'id':  1, 'name': 'Важно', 'icon': '<span class="importance important-1">&uarr;</span>'},
+    {'id':  0, 'name': 'Обычная', 'icon': ''},
+    {'id': -1, 'name': 'Незначительно', 'icon': '<span class="importance important--1">&darr;</span>'},
+    {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2">&darr;&darr;</span>'},
+]
+
+CHARACTERS = [
+    {'id': 1, 'name': 'Фича', 'icon': ''},
+    {'id': 2, 'name': 'Баг', 'icon': '<i class="fa fa-bug text-danger"></i>'},
+    {'id': 3, 'name': 'Подумать', 'icon': '<i class="fa fa-lightbulb-o"></i>'},
+]
+
+
 class Project(db.Model):
     __tablename__ = 'projects'
 
@@ -74,6 +89,10 @@ class Task(db.Model):
                           index=True)
 
     status = db.Column(ENUM_TASK_STATUS, nullable=False, default='open')
+    # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
+    importance = db.Column(db.SmallInteger, nullable=False, server_default='0')
+    # Тип задачи: баг, фича, подумать
+    character = db.Column(db.SmallInteger, nullable=True)
     subject = db.Column(db.String(1024), nullable=False)
     description = db.Column(db.Text(), nullable=False)
     deadline = db.Column(db.DateTime(timezone=True))

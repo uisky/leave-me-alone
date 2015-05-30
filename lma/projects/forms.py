@@ -1,6 +1,7 @@
 from flask_wtf import Form
-from wtforms import StringField, TextAreaField, DateTimeField, IntegerField
+from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField
 from wtforms import validators as v
+from .models import IMPORTANCE, CHARACTERS
 
 
 def stripfield(s):
@@ -17,3 +18,9 @@ class TaskForm(Form):
     description = TextAreaField('Ник', [v.optional()])
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
     assigned_id = IntegerField('исполнитель', [v.optional()])
+    importance = SelectField('Важность', [v.optional()], choices=[(x['id'], x['name']) for x in IMPORTANCE], coerce=int)
+    character = SelectField('Характер', [v.optional()],
+                            choices=[(0, '')] + [(x['id'], x['name']) for x in CHARACTERS],
+                            coerce=int
+                            )
+

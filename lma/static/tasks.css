@@ -32,3 +32,9 @@
 .task-details .description { margin: 20px 0}
 
 #form-chparent, #form-swap { display: none; }
+
+.importance { font-weight: bold; color: #fff; padding: 0 3px; border-radius: 3px; }
+.important-2 { background-color: #f00; }
+.important-1 { background-color: #D25858; }
+.important--1 { background-color: #58d258; }
+.important--2 { background-color: #AEEDBB; }

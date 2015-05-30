@@ -1,6 +1,10 @@
-from . import app
 import markdown
+from . import app
+from .projects.models import IMPORTANCE, CHARACTERS
 
+
+_importance_icons = {x['id']: x['icon'] for x in IMPORTANCE}
+_character_icons = {x['id']: x['icon'] for x in CHARACTERS}
 
 @app.template_filter('markdown')
 def jinja_markdown(x):
@@ -28,3 +32,13 @@ def jinja_status_rus(x):
 @app.template_filter('status_label')
 def jinga_status_label(x):
     return '<label class="label label-%s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x))
+
+
+@app.template_filter('importance_icon')
+def importance_icon(x):
+    return _importance_icons.get(x, '')
+
+
+@app.template_filter('character_icon')
+def character_icon(x):
+    return _character_icons.get(x, '')

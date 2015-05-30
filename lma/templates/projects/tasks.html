@@ -35,6 +35,7 @@
                     <div class="status">
                         {{ task.status|status_label|safe }}
                     </div>
+
                     <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
                         {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
                     </div>
@@ -47,6 +48,8 @@
 
                     <div class="subj">
                         <a href="?task={{ task.id }}">{{ task.subject }}</a>
+                        {{ task.importance|importance_icon|safe }}
+                        {{ task.character|character_icon|safe }}
                     </div>
                     </div>
                 {% set prev_depth = task.depth %}

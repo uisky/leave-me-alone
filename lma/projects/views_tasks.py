@@ -50,6 +50,9 @@ def task_edit(project_id, task_id):
                 is_modified = True
 
         form.populate_obj(task)
+        if task.character == 0:
+            task.character = None
+
         if is_modified:
             db.session.add(hist)
         db.session.commit()
