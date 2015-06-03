@@ -6,12 +6,31 @@
 
 {% extends 'project.html' %}
 {% block content %}
+
 <h1>Участие {{ member.user.name }} в {{ project.name }}</h1>
-<p>
+
+<form id="form-filter" method="get" class="form-inline">
     <a href="{{ url_for('.members', project_id=project.id) }}" class="btn btn-default btn-sm">
         <span class="glyphicon glyphicon-arrow-left"></span>
         Назад
     </a>
+    <div class="form-group">
+        <input type="hidden" name="status" value="{{ request.args.get('status') }}">
+        {% set selected = request.args.get('status', '').split(',') %}
+        {% for st in statuses %}
+            <button type="button"
+                    class="btn btn-{{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
+                    data-status="{{ st }}">
+                {{ st|status_rus }}
+            </button>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary pull-right">
+        Показать
+    </button>
+</form>
+
+<p>
 </p>
 <table class="table table-bordered">
     <thead>
@@ -27,6 +46,8 @@
         <td>{{ task.status|status_label|safe }}</td>
         <td>
             <a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.path }}</a>
+            {{ task.importance|importance_icon|safe }}
+            {{ task.character|character_icon|safe }}
         </td>
         <td {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} style="color:#f00" {% endif %}>
             {% if task.deadline %}
@@ -38,4 +59,28 @@
     </thead>
 </table>
 
+{% endblock %}
+
+
+{% block tail %}
+<script type="text/javascript">
+(function() {
+    $('#form-filter .btn-filter-status').click(function(e) {
+        var $this = $(this);
+        if($this.hasClass('active')) {
+            $this.removeClass('active');
+        } else {
+            $this.addClass('active');
+        }
+
+        var v = [];
+        $('#form-filter .btn-filter-status.active').each(function() {
+            v.push($(this).data('status'))
+        });
+        $('#form-filter input[name=status]').val(v.join(','));
+
+        $this.blur();
+    });
+})();
+</script>
 {% endblock %}

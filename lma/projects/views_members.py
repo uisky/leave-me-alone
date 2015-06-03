@@ -82,8 +82,14 @@ def member(project_id, member_id):
 
     tasks = Task.query\
         .filter_by(project_id=project.id, assigned_id=member.user_id)\
-        .order_by(Task.deadline.nullslast(), Task.mp).all()
+        .order_by(Task.deadline.nullslast(), Task.mp)
+
+    if request.args.get('status'):
+        statuses = request.args.get('status').split(',')
+        tasks = tasks.filter(Task.status.in_(statuses))
+
+    tasks = tasks.all()
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
-    return render_template('projects/member.html', project=project, member=member, tasks=tasks)
+    return render_template('projects/member.html', project=project, member=member, tasks=tasks, statuses=TASK_STATUSES)
