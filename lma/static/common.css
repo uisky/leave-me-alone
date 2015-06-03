@@ -12,3 +12,9 @@ a.user:before {
     width: 7px; height: 7px; background-color: #4b954b;
 }
 */
+
+.importance { font-weight: bold; color: #fff; padding: 0 3px; border-radius: 3px; }
+.important-2 { background-color: #f00; }
+.important-1 { background-color: #D25858; }
+.important--1 { background-color: #58d258; }
+.important--2 { background-color: #AEEDBB; }
