@@ -1,8 +1,6 @@
 (function() {
     var project = {id: /projects\/(\d+)/.exec(location.pathname)[1]};
-    var collapsed_cookie = 'clps_' + project.id;
-    var collapsed = Cookies.getJSON(collapsed_cookie) || {};
-    var $tree = $('.tasks-tree');
+    var $tree = $('.tasks-tree > ul');
 
     // Кнопка удаления задачи в редакторе
     $('#btn-task-delete').click(function() {
@@ -61,32 +59,47 @@
     });
 
     // Развешиваем toggler'ы
+    var collapsed_cookie = 'clps';
+    var collapsed = Cookies.getJSON(collapsed_cookie) || [];
     $tree.find('li').each(function() {
-        var $this = $(this), $toggler = $('<i class="toggler">');
-        if($this.children('ul').length) {
-            if($this.data('id') in collapsed) {
-                $toggler.addClass('collapsed');
-                $this.find('> ul').hide();
+        var $li = $(this);
+        if($li.children('ul').length) {
+            if(collapsed.indexOf(parseInt($li.data('id'))) != -1) {
+                $li.addClass('collapsed');
             }
-            $this.append($toggler);
+            $li.append($('<i class="toggler">'));
         }
     });
 
     // Разворачивание деревьев
     $tree.on('click', '.toggler', function(e) {
         e.preventDefault();
-        var $this = $(this), $li = $this.closest('li'), id = $li.data('id');
-        if($this.hasClass('collapsed')) {
-            $this.removeClass('collapsed');
-            $li.find('> ul').show();
-            delete(collapsed[id]);
+        var $this = $(this), $li = $this.closest('li'), id = parseInt($li.data('id'));
+        if($li.hasClass('collapsed')) {
+            $li.removeClass('collapsed');
+            collapsed.splice(collapsed.indexOf(id), 1);
         } else {
-            $this.addClass('collapsed');
-            $li.find('> ul').hide();
-            collapsed[id] = 1;
+            $li.addClass('collapsed');
+            collapsed.push(id);
         }
         Cookies.set(collapsed_cookie, collapsed, {expires: 365, path: ''});
     });
+
+    // Свернуть/развернуть все
+    $('#btn-toggle-collapsed').click(function() {
+        var $this = $(this), open_togglers = $tree.children('li').not('.collapsed').children('.toggler');
+        if(open_togglers.length > 0) {
+            open_togglers.click()
+            $this.html('<i class="fa fa-plus"></i>');
+        } else {
+            $tree.children('li').children('.toggler').click()
+            $this.html('<i class="fa fa-minus"></i>');
+        }
+    }).html(
+        $tree.children('li').not('.collapsed').children('.toggler').length
+            ? '<i class="fa fa-minus"></i>'
+            : '<i class="fa fa-plus"></i>'
+    );
 
     // Установка статуса
     $('#form-setstatus').on('click', 'button.setter', function(e) {
