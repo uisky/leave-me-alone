@@ -81,7 +81,9 @@ def member(project_id, member_id):
     member = ProjectMember.query.get_or_404((member_id, project_id))
 
     tasks = Task.query\
-        .filter_by(project_id=project.id, assigned_id=member.user_id)\
+        .filter_by(project_id=project.id)\
+        .filter(db.or_(Task.assigned_id == member.user_id,
+                       db.and_(Task.assigned_id == None, Task.user_id == member.user_id)))\
         .order_by(Task.deadline.nullslast(), Task.mp)
 
     if request.args.get('status'):

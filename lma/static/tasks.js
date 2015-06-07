@@ -94,4 +94,28 @@
         $('#form-setstatus').submit();
     });
 
+    // Показать/скрыть готовое
+    function hideDone() {
+        if(Cookies.get('hide_done')) {
+            console.log('hD: hide');
+            $('.li-done').hide();
+            $('#btn-toggle-done').html('<i class="fa fa-eye-slash"></i>').attr('title', 'Показать выполненные задачи');
+        } else {
+            console.log('hD: show');
+            $('.li-done').show()
+            $('#btn-toggle-done').html('<i class="fa fa-eye"></i>').attr('title', 'Скрыть выполненные задачи');;
+        }
+    }
+    $('#btn-toggle-done').click(function() {
+        if(Cookies.get('hide_done')) {
+            console.log('CLICK: SHOW')
+            Cookies.remove('hide_done');
+        } else {
+            console.log('CLICK: SHOW')
+            Cookies.set('hide_done', 1);
+        }
+        hideDone();
+    });
+    hideDone();
+
 })();

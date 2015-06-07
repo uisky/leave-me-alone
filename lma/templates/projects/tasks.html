@@ -17,14 +17,21 @@
         {% if not tasks %}
             <div class="alert alert-box alert-info">Проект пуст.</div>
         {% else %}
-            <div class="progress">
-                {% for status in g.TASK_STATUSES if status in stats %}
-                    <div
-                            class="progress-bar {{ status | status_class }}"
-                            style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
-                            title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
-                            ></div>
-                {% endfor %}
+            <div class="row">
+                <div class="col-sm-1">
+                    <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+                </div>
+                <div class="col-sm-11">
+                    <div class="progress">
+                        {% for status in g.TASK_STATUSES if status in stats %}
+                            <div
+                                    class="progress-bar {{ status | status_class }}"
+                                    style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
+                                    title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
+                                    ></div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
 
             <div class="tasks-tree show-deadline">
@@ -37,7 +44,7 @@
                 {% elif task.depth < prev_depth %}
                     {{ ('</li></ul>' * (prev_depth - task.depth)) | safe}}
                 {% endif %}
-                <li data-id="{{ task.id }}">
+                <li data-id="{{ task.id }}" class="li-{{ task.status }}">
                     <div class="task
                         {%- if task.id == selected.id %} active {% endif %}
                         {%- if task.assigned_id == current_user.id %} my {% endif %}
