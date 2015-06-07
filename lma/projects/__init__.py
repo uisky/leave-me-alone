@@ -1,4 +1,4 @@
-from flask import Blueprint, abort
+from flask import Blueprint, abort, g
 from flask_login import login_required, current_user
 from .models import *
 
@@ -17,5 +17,11 @@ def load_project(project_id):
 def check_login():
     if not current_user.is_authenticated():
         abort(403)
+
+
+@mod.before_request
+def set_globals():
+    g.TASK_STATUSES = TASK_STATUSES
+
 
 from . import views, views_members, views_tasks, views_history

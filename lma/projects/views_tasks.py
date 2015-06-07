@@ -27,13 +27,17 @@ def tasks(project_id):
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)
 
-    print(empty.__dict__)
-    print(form_empty)
+    stats = {}
+    for t in tasks:
+        stats.setdefault(t.status, 0)
+        stats[t.status] += 1
+    stats['total'] = sum(stats.values())
+    print(stats)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
     return render_template('projects/tasks.html',
-                           project=project, membership=membership, tasks=tasks,
+                           project=project, membership=membership, tasks=tasks, stats=stats,
                            selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit)
 
 

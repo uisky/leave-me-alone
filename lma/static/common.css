@@ -18,3 +18,10 @@ a.user:before {
 .important-1 { background-color: #D25858; }
 .important--1 { background-color: #58d258; }
 .important--2 { background-color: #AEEDBB; }
+
+.status-open { background-color: #5bc0de; }
+.status-progress { background-color: #5cb85c; }
+.status-pause { background-color: #f0ad4e; }
+.status-review { background-color: #AA4FAD; color: #ff0; }
+.status-done { background-color: #888; }
+.status-canceled { background-color: #555; color: #fff; }

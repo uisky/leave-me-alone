@@ -13,11 +13,12 @@ def jinja_markdown(x):
 
 @app.template_filter('status_class')
 def jinja_status_class(x):
-    classes = {
-        'open': 'info', 'progress': 'success', 'pause': 'warning',
-        'review': 'primary', 'done': 'default', 'canceled': 'default'
-    }
-    return classes.get(x, 'default')
+    # classes = {
+    #     'open': 'info', 'progress': 'success', 'pause': 'warning',
+    #     'review': 'primary', 'done': 'default', 'canceled': 'default'
+    # }
+    # return classes.get(x, 'default')
+    return 'status-%s' % x
 
 
 @app.template_filter('status_rus')
@@ -31,7 +32,7 @@ def jinja_status_rus(x):
 
 @app.template_filter('status_label')
 def jinga_status_label(x):
-    return '<label class="label label-%s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x))
+    return '<label class="label %s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x))
 
 
 @app.template_filter('importance_icon')

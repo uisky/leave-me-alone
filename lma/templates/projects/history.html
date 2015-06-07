@@ -40,7 +40,7 @@
         {% set selected = request.args.get('status', '').split(',') %}
         {% for st in statuses %}
             <button type="button"
-                    class="btn btn-{{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
+                    class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
                     data-status="{{ st }}">
                 {{ st|status_rus }}
             </button>

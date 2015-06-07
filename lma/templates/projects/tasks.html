@@ -17,6 +17,16 @@
         {% if not tasks %}
             <div class="alert alert-box alert-info">Проект пуст.</div>
         {% else %}
+            <div class="progress">
+                {% for status in g.TASK_STATUSES if status in stats %}
+                    <div
+                            class="progress-bar {{ status | status_class }}"
+                            style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
+                            title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
+                            ></div>
+                {% endfor %}
+            </div>
+
             <div class="tasks-tree show-deadline">
             {% set prev_depth = -1 %}
             {% for task in tasks %}
@@ -109,7 +119,7 @@
                       action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                     <input type="hidden" name="status">
                     {% for status in selected.allowed_statuses(current_user, membership) %}
-                        <button type="button" class="btn btn-{{ status|status_class }} setter" data-status="{{ status }}">
+                        <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}">
                             {{ status|status_rus }}
                         </button>
                     {% endfor %}

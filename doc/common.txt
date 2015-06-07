@@ -1,3 +1,20 @@
+INSTALL
+
+sudo apt-get install cython
+
+Зависимости
+flask-socketio <- gevent-socketio <- gevent-websocket <- gevent
+
+gevent: pip install git+https://github.com/fantix/gevent.git
+
+траблы в gevent-websocket
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+
+
+
                 <div >
 
                 </div>
