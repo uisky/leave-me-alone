@@ -87,16 +87,16 @@
 
     // Свернуть/развернуть все
     $('#btn-toggle-collapsed').click(function() {
-        var $this = $(this), open_togglers = $tree.children('li').not('.collapsed').children('.toggler');
+        var $this = $(this), open_togglers = $tree.find('li').not('.collapsed').children('.toggler');
         if(open_togglers.length > 0) {
             open_togglers.click()
             $this.html('<i class="fa fa-plus"></i>');
         } else {
-            $tree.children('li').children('.toggler').click()
+            $tree.find('li').children('.toggler').click()
             $this.html('<i class="fa fa-minus"></i>');
         }
     }).html(
-        $tree.children('li').not('.collapsed').children('.toggler').length
+        $tree.find('li').not('.collapsed').children('.toggler').length
             ? '<i class="fa fa-minus"></i>'
             : '<i class="fa fa-plus"></i>'
     );

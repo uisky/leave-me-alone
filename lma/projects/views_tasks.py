@@ -28,10 +28,18 @@ def tasks(project_id):
     form_empty = forms.TaskForm(obj=empty)
 
     stats = {}
+    max_deadline = None
     for t in tasks:
         stats.setdefault(t.status, 0)
         stats[t.status] += 1
+        if t.deadline is not None:
+            if max_deadline is None:
+                max_deadline = t.deadline
+            else:
+                max_deadline = max(t.deadline, max_deadline)
     stats['total'] = sum(stats.values())
+    stats['max_deadline'] = max_deadline
+    print(stats)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
