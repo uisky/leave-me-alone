@@ -32,7 +32,6 @@ def tasks(project_id):
         stats.setdefault(t.status, 0)
         stats[t.status] += 1
     stats['total'] = sum(stats.values())
-    print(stats)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
