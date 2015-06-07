@@ -39,7 +39,6 @@ def tasks(project_id):
                 max_deadline = max(t.deadline, max_deadline)
     stats['total'] = sum(stats.values())
     stats['max_deadline'] = max_deadline
-    print(stats)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
