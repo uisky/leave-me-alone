@@ -127,4 +127,6 @@
     });
     hideDone();
 
+    // Разворачиваем ветку с текущей задачей
+    $tree.find('.active').parents('li.collapsed').children('.toggler').click();
 })();
