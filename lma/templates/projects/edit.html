@@ -23,6 +23,26 @@
         </div>
     </div>
 </form>
+
+<div class="row">
+    <div class="col-sm-offset-2 col-sm-10">
+        <form method="post" action="{{ url_for('.set_type', project_id=project.id) }}">
+        {% if project.type == 'tree' %}
+            <input type="hidden" name="type" value="list">
+            <button type="submit" class="btn btn-danger">
+                Превратить в простой список задач
+            </button>
+        </form>
+        {% elif project.type == 'list' %}
+            <input type="hidden" name="type" value="tree">
+            <button type="submit" class="btn btn-danger">
+                Превратить дерево задач
+            </button>
+        {% endif %}
+        </form>
+    </div>
+</div>
+
 {% else %}
     <div class="alert alert-info">
         Вы не можете изменять свойства проекта.

@@ -18,6 +18,10 @@ CHARACTERS = [
 ]
 
 
+PROJECT_TYPES = ('tree', 'list', 'stickers', 'bubbles')
+ENUM_PROJECT_TYPE = ENUM(*PROJECT_TYPES, name='project_type')
+
+
 class Project(db.Model):
     __tablename__ = 'projects'
 
@@ -25,6 +29,7 @@ class Project(db.Model):
     created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
                         nullable=False, index=True)
+    type = db.Column(ENUM_PROJECT_TYPE, nullable=False, default='tree', server_default='tree')
 
     name = db.Column(db.String(64), nullable=False)
 

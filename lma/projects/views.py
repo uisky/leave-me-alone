@@ -1,7 +1,7 @@
-from flask import render_template, request, redirect, flash, url_for, g
+from flask import render_template, request, redirect, flash, url_for, g, abort
 from flask_login import login_required, current_user
 
-from . import mod, forms
+from . import mod, forms, load_project
 from .models import *
 from .. import app, db
 from ..utils import flash_errors
@@ -21,7 +21,6 @@ def load_projects():
 
 
 @mod.route('/')
-@login_required
 def index():
     form = forms.ProjectPropertiesForm()
     return render_template('projects/index.html', form=form)
@@ -32,6 +31,8 @@ def index():
 def project_edit(project_id=None):
     if project_id:
         project = Project.query.get_or_404(project_id)
+        if project.user_id != current_user.id:
+            abort(403)
     else:
         project = Project(user_id=current_user.id)
 
@@ -57,9 +58,9 @@ def project_edit(project_id=None):
     return render_template('projects/edit.html', project=project, form=form)
 
 
-@mod.route('/<int:id>/delete/', methods=('POST',))
-def project_delete():
-    project = Project.query.get_or_404(request.args.get('id', 0))
+@mod.route('/<int:project_id>/delete/', methods=('POST',))
+def project_delete(project_id):
+    project, membership = load_project(project_id)
 
     project.delete()
     db.session.commit()
@@ -67,3 +68,15 @@ def project_delete():
     return redirect('/projects')
 
 
+@mod.route('/<int:project_id>/type', methods=('POST',))
+def set_type(project_id):
+    project, membership = load_project(project_id)
+
+    type_ = request.form.get('type')
+    if type_ not in PROJECT_TYPES:
+        abort(400)
+
+    project.type = type_
+    db.session.commit()
+
+    return redirect(url_for('.tasks', project_id=project.id))

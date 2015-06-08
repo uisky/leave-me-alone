@@ -19,8 +19,16 @@
         {% else %}
             <div class="row">
                 <div class="col-sm-2">
-                    <button type="button" class="btn btn-xs" id="btn-toggle-collapsed"><i class="fa fa-plus"></i></button>
-                    <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+                    {% if project.type == 'tree' %}
+                        <button type="button" class="btn btn-xs" id="btn-toggle-collapsed"><i class="fa fa-plus"></i></button>
+                        <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+                    {% elif project.type == 'list' %}
+                        <select name="sort" class="form-control" style="padding: 2px 0px; font-size: 10px; line-height: 1; height: 22px;">
+                            <option value="created">По дате создания</option>
+                            <option value="deadline">По дедлайну</option>
+                            <option value="importance">По важности</option>
+                        </select>
+                    {% endif %}
                 </div>
                 <div class="col-sm-8">
                     <div class="progress">
@@ -90,13 +98,15 @@
 
 
     <div class="col-sm-6">
+
+
         <ul class="nav nav-tabs" id="tabs-task">
             {% if selected %}
                 <li class="active"><a href="#task-details" data-toggle="tab">Задача</a></li>
                 <li><a href="#task-history" data-toggle="tab">История</a></li>
             {% endif %}
             {% if 'lead' in membership.roles or 'developer' in membership.roles %}
-                {% if 'lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id %}
+                {% if project.type == 'tree' and ('lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id) %}
                     <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
                 {% endif %}
                 {% if selected and 'lead' in membership.roles or selected.user_id == current_user.id %}
@@ -104,6 +114,8 @@
                 {% endif %}
             {% endif %}
         </ul>
+
+
         <div class="tab-content">
             <!-- Описание задачи -->
             {% if selected %}
@@ -164,7 +176,7 @@
 
             {% if 'lead' in membership.roles or 'developer' in membership.roles %}
             <!-- Создать подзадачу -->
-            {% if 'lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id %}
+            {% if (project.type == 'list' and not selected) or (project.type == 'tree' and ('lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id)) %}
                 <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                     <h2>Создать подзадачу</h2>
                     <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">

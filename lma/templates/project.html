@@ -2,10 +2,10 @@
 
 {% set menu = (
     {'id': 'tasks', 'url': url_for('.tasks', project_id=project.id), 'title': 'Задачи'},
-    {'id': 'members', 'url': url_for('.members', project_id=project.id), 'title': 'Команда'},
-    {'id': 'edit', 'url': url_for('.project_edit', project_id=project.id), 'title': 'Свойства'},
-    {'id': 'history', 'url': url_for('.history', project_id=project.id), 'title': 'История'},
     {'id': 'my', 'url': url_for('.member', project_id=project.id, member_id=current_user.id), 'title': 'Мои задачи'},
+    {'id': 'members', 'url': url_for('.members', project_id=project.id), 'title': 'Команда'},
+    {'id': 'history', 'url': url_for('.history', project_id=project.id), 'title': 'История'},
+    {'id': 'edit', 'url': url_for('.project_edit', project_id=project.id), 'title': 'Свойства'},
 )
 %}
 
