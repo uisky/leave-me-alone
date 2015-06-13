@@ -49,6 +49,16 @@ class Project(db.Model):
             return user.id == self.user_id
         return False
 
+    def get_tasks_query(self, options):
+        if self.type == 'tree':
+            tasks = Task.query.filter_by(project_id=self.id).order_by(Task.mp)
+        else:
+            tasks = Task.query.filter_by(project_id=self.id)
+            sort = {'created': 'created', 'deadline': 'deadline', 'importance': 'importance desc', 'custom': 'mp[1]'}
+            tasks = tasks.order_by(sort.get(options.sort.data, 'created'))
+
+        return tasks
+
 
 class ProjectMember(db.Model):
     __tablename__ = 'project_members'

@@ -13,10 +13,13 @@ from ..users.models import User
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
 def tasks(project_id):
     project, membership = load_project(project_id)
-    tasks = Task.query.filter_by(project_id=project.id).order_by(Task.mp).all()
+    options = forms.OutputOptions(request.args)
+    tasks = project.get_tasks_query(options).all()
 
     if request.args.get('task'):
-        selected = Task.query.get_or_404(request.args.get('task'))
+        selected = Task.query.filter_by(id=request.args.get('task'), project_id=project.id).first()
+        if not selected:
+            abort(404, 'Выбранная задача не обнаружена. Может, удалили? <a href="?">Весь проект</a>.')
         form_edit = forms.TaskForm(obj=selected)
     else:
         selected = None
@@ -43,7 +46,8 @@ def tasks(project_id):
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
     return render_template('projects/tasks.html',
-                           project=project, membership=membership, tasks=tasks, stats=stats,
+                           project=project, membership=membership, options=options,
+                           tasks=tasks, stats=stats,
                            selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit)
 
 
@@ -227,3 +231,20 @@ def task_swap(project_id, task_id):
 
     db.session.commit()
     return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % sisters[0].id)
+
+
+@mod.route('/<int:project_id>/reorder', methods=('POST',))
+def reorder_tasks(project_id):
+    project, membership = load_project(project_id)
+    if project.type != 'list':
+        abort('400')
+
+    ids = request.form.get('order').split(',')
+    for o, id_ in enumerate(ids):
+        db.session.execute(
+            'UPDATE tasks SET mp[1] = :order WHERE id = :id AND project_id = :project_id',
+            {'id': int(id_), 'project_id': project.id, 'order': o + 1}
+        )
+    db.session.commit()
+
+    return 'ok'

@@ -1,0 +1,52 @@
+<ul>
+{% for task in tasks %}
+    <li data-id="{{ task.id }}" class="li-{{ task.status }}">
+        <div class="task
+            {%- if task.id == selected.id %} active {% endif %}
+            {%- if task.assigned_id == current_user.id %} my {% endif %}
+        ">
+        <div class="status">
+            {{ task.status|status_label|safe }}
+        </div>
+
+        <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
+            {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
+        </div>
+
+        <div class="users">
+            {% if task.assigned_id %}
+                <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
+            {% endif %}
+        </div>
+
+        <div class="subj">
+            {% if options.sort.data == 'custom' %}
+                <i class="fa fa-bars handle"></i>
+            {% endif %}
+            <a href="?task={{ task.id }}&sort={{ options.sort.data }}">{{ task.subject }}</a>
+            {{ task.importance|importance_icon|safe }}
+            {{ task.character|character_icon|safe }}
+        </div>
+        </div>
+    </li>
+{% endfor %}
+</ul>
+
+<p style="margin: 10px 0">
+    <a href="?" class="btn btn-warning btn-xs">Добавить задачу</a>
+</p>
+
+<script type="text/javascript">
+    $('.tasks-tree > ul').sortable({
+        forcePlaceholderSize: true,
+        handle: '.handle',
+    }).bind('sortupdate', function(e, ui) {
+        order = [];
+        $('.tasks-tree > ul > li').each(function(i) {
+            order.push($(this).data('id'));
+        })
+        $.post(location.pathname + 'reorder', {order: order.join(',')}, function(data) {
+            if(data != 'ok') alert(data);
+        });
+    });
+</script>
