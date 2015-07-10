@@ -20,11 +20,12 @@ li.collapsed > ul { display: none; }
 .tasks-tree ul:first-child { padding-left: 10px; }
 .tasks-tree ul li {  margin: 0; padding: 0; position: relative; }
 .tasks-tree .task { padding: 4px 0; border-bottom: 1px dotted #ccc; clear: both; }
-.tasks-tree > ul > li { margin-bottom: 10px; }
-.tasks-tree > ul > li > .task { border-bottom: 2px solid black; }
+
+.tasks-tree > ul > li > .task { border-top: 2px solid black; }
+.tasks-tree > ul > li:first-child > .task { border-top: none; }
 
 .tasks-tree .task.active { background-color: #ffefb1; }
-.tasks-tree .task:hover { background-color: #eee; }
+.tasks-tree .task:hover { background-color: #e0e0e0; }
 
 .tasks-tree .task .subj { }
 
