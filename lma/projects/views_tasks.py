@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, flash, url_for, g, abort
 from flask_login import current_user
 from datetime import datetime
+from collections import OrderedDict
 import pytz
 
 from . import mod, forms, load_project
@@ -14,8 +15,47 @@ from ..users.models import User
 def tasks(project_id):
     project, membership = load_project(project_id)
     options = forms.OutputOptions(request.args)
-    tasks = project.get_tasks_query(options).all()
+    tasks = OrderedDict()
 
+    # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
+    for task in project.get_tasks_query(options).all():
+        task.children_statuses = {}
+        tasks[task.id] = task
+
+        status = task.status
+        if status:
+            while task.parent_id:
+                if task.parent_id not in tasks:
+                    print('\033[31mСтранно, у задачи %d не найден родитель (%d)' % (task.id, task.parent_id))
+                    continue
+
+                parent = tasks[task.parent_id]
+
+                parent.children_statuses.setdefault(status, 0)
+                parent.children_statuses[status] += 1
+
+                task = parent
+
+    # Считаем статистику по всему проекту
+    stats = {}
+    max_deadline = None
+    for id_, task in tasks.items():
+        if task.children_statuses:
+            cs = task.children_statuses
+            cs['complete'] = int((cs.get('done', 0) + cs.get('canceled', 0)) / sum(cs.values()) * 100)
+
+        if task.status is not None:
+            stats.setdefault(task.status, 0)
+            stats[task.status] += 1
+            if task.deadline is not None:
+                if max_deadline is None:
+                    max_deadline = task.deadline
+                else:
+                    max_deadline = max(task.deadline, max_deadline)
+    stats['total'] = sum(stats.values())
+    stats['max_deadline'] = max_deadline
+
+    # Выбранная задача
     if request.args.get('task'):
         selected = Task.query.filter_by(id=request.args.get('task'), project_id=project.id).first()
         if not selected:
@@ -30,24 +70,11 @@ def tasks(project_id):
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)
 
-    stats = {}
-    max_deadline = None
-    for t in tasks:
-        stats.setdefault(t.status, 0)
-        stats[t.status] += 1
-        if t.deadline is not None:
-            if max_deadline is None:
-                max_deadline = t.deadline
-            else:
-                max_deadline = max(t.deadline, max_deadline)
-    stats['total'] = sum(stats.values())
-    stats['max_deadline'] = max_deadline
-
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
     return render_template('projects/tasks.html',
                            project=project, membership=membership, options=options,
-                           tasks=tasks, stats=stats,
+                           tasks=list(tasks.values()), stats=stats,
                            selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit)
 
 
@@ -89,6 +116,12 @@ def task_delete(project_id, task_id):
         redirect_url += '?task=%d' % task.parent_id
 
     task.subtree(withme=True).delete(synchronize_session=False)
+
+    # Остались ли у родителя детки?
+    kids = db.session.execute('SELECT 1 FROM tasks WHERE parent_id = :id LIMIT 1', {'id': task.parent_id}).scalar()
+    if kids is None:
+        task.parent.status = task.status
+
     db.session.commit()
 
     return redirect(redirect_url)
@@ -114,10 +147,9 @@ def task_subtask(project_id, parent_id=None):
         form.populate_obj(task)
         task.setparent(parent)
 
-        # Открываем родительскую задачу
-        if parent and parent.status in('done', 'review'):
-            parent.status = 'open'
-            db.session.add(TaskHistory(task_id=parent.id, user_id=current_user.id, status='open'))
+        # Удаляем статус у родительской задачи
+        if parent:
+            parent.status = None
 
         db.session.add(task)
         db.session.commit()
@@ -134,14 +166,16 @@ def task_status(project_id, task_id):
             flash('Вы не можете установить этой задаче такой статус.', 'danger')
             return False
 
+        return True
+
+        # OBSOLETE: типа, у нас теперь не может быть задач со статусом и детьми одновременно.
+        # Типа, либо у тебя есть статус, либо семья и дети, гы-гы.
         # Проверяем, нет ли детей в статусе 'open', 'progress'
         if status in ('done', 'review'):
             kids = task.subtree().filter(Task.status.in_(['open', 'progress', 'review'])).first()
             if kids is not None:
                 flash('У задачи есть незавершённые подзадачи, завершите сперва их.', 'danger')
                 return False
-
-        return True
 
     project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
@@ -157,7 +191,7 @@ def task_status(project_id, task_id):
 
 
 @mod.route('/<int:project_id>/<int:task_id>/chparent', methods=('POST',))
-def task_chparent(project_id, task_id, debug=False):
+def task_chparent(project_id, task_id):
     def check_parent():
         if task.id == parent.id:
             flash('Вы промахнулись.', 'danger')
@@ -170,10 +204,18 @@ def task_chparent(project_id, task_id, debug=False):
     project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
     subtree = task.subtree(withme=True).order_by(Task.mp).all()
+    if task.parent_id:
+        old_parent = Task.query.get(task.parent_id)
+    else:
+        old_parent = None
+
     if request.form.get('parent_id', 0, int):
         parent = Task.query.get_or_404(request.form.get('parent_id'))
         if not check_parent():
             return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+
+        # Удаляем статус у нового родителя
+        parent.status = None
     else:
         parent = None
 
@@ -193,6 +235,12 @@ def task_chparent(project_id, task_id, debug=False):
             {'project_id': project.id}
         ).scalar() + 1]
         task.parent_id = None
+
+    # Остались ли у детки у старого родителя?
+    if old_parent:
+        kids = db.session.execute('SELECT count(*) FROM tasks WHERE parent_id = :id', {'id': old_parent.id}).scalar()
+        if kids:
+            old_parent.status = task.status
 
     # Меняем mp у всего поддерева исходной задачи
     cut = len(task.mp)

@@ -7,13 +7,17 @@
     {% elif task.depth < prev_depth %}
         {{ ('</li></ul>' * (prev_depth - task.depth)) | safe}}
     {% endif %}
-    <li data-id="{{ task.id }}" class="li-{{ task.status }}">
+    <li data-id="{{ task.id }}" class="{% if task.status %}li-{{ task.status }}{% elif task.children_statuses.get('complete') == 100 %}li-done li-100{% endif %}">
         <div class="task
             {%- if task.id == selected.id %} active {% endif %}
             {%- if task.assigned_id == current_user.id %} my {% endif %}
         ">
         <div class="status">
-            {{ task.status|status_label|safe }}
+            {% if task.children_statuses %}
+                <small>{{ task.children_statuses['complete'] }}%</small>
+            {% else %}
+                {{ task.status|status_label|safe }}
+            {% endif %}
         </div>
 
         <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
@@ -28,6 +32,11 @@
 
         <div class="subj">
             <a href="?task={{ task.id }}">{{ task.subject }}</a>
+            {#
+            <small>
+                {{ task.children_statuses }} : <b>{{ task.status }}</b>
+            </small>
+            #}
             {{ task.importance|importance_icon|safe }}
             {{ task.character|character_icon|safe }}
         </div>

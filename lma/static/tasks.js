@@ -110,10 +110,10 @@
     // Показать/скрыть готовое
     function hideDone() {
         if(Cookies.get('hide_done')) {
-            $('.li-done').hide();
+            $('.li-done, .li-canceled').hide();
             $('#btn-toggle-done').html('<i class="fa fa-eye-slash"></i>').attr('title', 'Показать выполненные задачи');
         } else {
-            $('.li-done').show()
+            $('.li-done, .li-canceled').show()
             $('#btn-toggle-done').html('<i class="fa fa-eye"></i>').attr('title', 'Скрыть выполненные задачи');;
         }
     }

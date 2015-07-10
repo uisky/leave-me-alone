@@ -20,6 +20,9 @@ li.collapsed > ul { display: none; }
 .tasks-tree ul:first-child { padding-left: 10px; }
 .tasks-tree ul li {  margin: 0; padding: 0; position: relative; }
 .tasks-tree .task { padding: 4px 0; border-bottom: 1px dotted #ccc; clear: both; }
+.tasks-tree > ul > li { margin-bottom: 10px; }
+.tasks-tree > ul > li > .task { border-bottom: 2px solid black; }
+
 .tasks-tree .task.active { background-color: #ffefb1; }
 .tasks-tree .task:hover { background-color: #eee; }
 
@@ -36,6 +39,7 @@ li.collapsed > ul { display: none; }
 .tasks-tree .task .deadline { float:right; width: 40px; text-align: right; overflow: hidden; white-space: nowrap;}
 .tasks-tree .task .deadline:after {content:'.'; visibility: hidden; font-size:1px;}
 
+.tasks-tree .li-100 .status { color: #090; }
 
 .deadline.late { color: #f00; }
 

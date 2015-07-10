@@ -52,6 +52,7 @@ class Project(db.Model):
     def get_tasks_query(self, options):
         if self.type == 'tree':
             tasks = Task.query.filter_by(project_id=self.id).order_by(Task.mp)
+            tasks = tasks.options(db.joinedload('user'), db.joinedload('assignee'))
         else:
             tasks = Task.query.filter_by(project_id=self.id)
             sort = {'created': 'created', 'deadline': 'deadline', 'importance': 'importance desc', 'custom': 'mp[1]'}
@@ -103,7 +104,7 @@ class Task(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
                           index=True)
 
-    status = db.Column(ENUM_TASK_STATUS, nullable=False, default='open')
+    status = db.Column(ENUM_TASK_STATUS, default='open')
     # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
     importance = db.Column(db.SmallInteger, nullable=False, server_default='0', default=0)
     # Тип задачи: баг, фича, подумать
@@ -114,7 +115,8 @@ class Task(db.Model):
 
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
-    parent = db.relation('Task', foreign_keys=[parent_id])
+    children = db.relationship('Task', backref=db.backref('parent', remote_side=id))
+    # parent = db.relation('Task', foreign_keys=[parent_id])
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created')
 
     def __str__(self):
@@ -142,6 +144,9 @@ class Task(db.Model):
         Возвращает список статусов, которые может пользователь user присвоить этой задаче
         :return:
         """
+        if self.status is None:
+            return []
+
         if user.id == self.user_id or (membership and 'lead' in membership.roles):
             # Владелец задачи. Права ограничены здравым смыслом.
             variants = {
