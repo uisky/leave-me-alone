@@ -11,7 +11,10 @@
 
 {% block logo %}
 <div class="navbar-header">
-    <a class="navbar-brand" href="/" class="dropdown-toggle" data-toggle="dropdown">LMA: {{ project.name }} <span class="caret"></span></a>
+    <a class="navbar-brand dropdown-toggle" href="/" data-toggle="dropdown">
+        LMA: {{ project.name }}
+        <span class="caret"></span>
+    </a>
     <ul class="dropdown-menu">
         {% for prj in g.my_projects %}
             <li><a href="{{ prj.url_for() }}">

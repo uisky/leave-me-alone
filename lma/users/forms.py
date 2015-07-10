@@ -10,3 +10,7 @@ class RegisterForm(Form):
     ])
     password = StringField('Пароль', [v.required(message='Введите пароль.')])
     name = StringField('Ник', [v.required(message='Введите ник.')])
+
+
+class SettingsForm(RegisterForm):
+    password = StringField('Пароль', [v.optional()])
