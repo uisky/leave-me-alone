@@ -6,9 +6,61 @@ import pytz
 
 from . import mod, forms, load_project
 from .models import *
-from .. import app, db
+from .. import app, db, mail
 from ..utils import flash_errors
-from ..users.models import User
+
+
+def mail_assigned(project, task):
+    if task.assigned_id is None or task.assigned_id == task.user_id or task.assigned_id == current_user.id:
+        return
+
+    msg_text = """Хэллоу май френд!
+
+Зэрэ из э нью джоб фо ю ин проджэкт "%s"!
+
+  http://leave-me-alone.ru%s
+
+Донт форгет ту пут ит ин "прогресс" статус, вэн ю бегин))))))))))))))))))))
+
+Гуд лак!
+    """ % (project.name, url_for('.tasks', project_id=task.project_id, task=task.id))
+    mail.send_message(
+        subject='Новая задача: %s' % task.subject,
+        recipients=[task.assignee.email],
+        body=msg_text
+    )
+
+
+def mail_changed(project, task, hist):
+    if task.assigned_id is None or task.assigned_id == task.user_id or task.assigned_id == current_user.id:
+        return
+
+    changed = []
+    hist_props = OrderedDict([
+        ('status', 'статус'), ('subject', 'заголовок'), ('description', 'комментарий'), 
+        ('deadline', 'дедлайн'), ('importance', 'важность'), ('character', 'характер')
+    ])
+    for prop, descr in hist_props.items():
+        if getattr(hist, prop) is not None:
+            changed.append(descr)
+    if not changed:
+        changed.append('не удалось установить, какие :(')
+
+    msg_text = """Пссст, человек!
+
+В задаче "%s" проекта "%s" поменялись свойства: %s.
+
+  http://leave-me-alone.ru%s
+
+    """ % (
+        task.subject, project.name, ', '.join(changed),
+        url_for('.tasks', project_id=task.project_id, task=task.id)
+    )
+    mail.send_message(
+        subject='Изменилась задача: %s' % task.subject,
+        recipients=[task.assignee.email],
+        body=msg_text
+    )
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
@@ -82,13 +134,13 @@ def tasks(project_id):
 def task_edit(project_id, task_id):
     project, _ = load_project(project_id)
     task = Task.query.get_or_404(task_id)
-
     form = forms.TaskForm(obj=task)
+
     if form.validate_on_submit():
         # Пишем в историю, если что-то изменилось
         hist = TaskHistory(task_id=task.id, user_id=current_user.id)
         is_modified = False
-        for field in ('assigned_id', 'subject', 'description', 'deadline'):
+        for field in ('assigned_id', 'subject', 'description', 'deadline', 'importance', 'character'):
             if getattr(form, field).data != getattr(task, field):
                 setattr(hist, field, getattr(form, field).data)
                 is_modified = True
@@ -99,6 +151,12 @@ def task_edit(project_id, task_id):
 
         if is_modified:
             db.session.add(hist)
+
+            if hist.assigned_id:
+                mail_assigned(project, task)
+            else:
+                mail_changed(project, task, hist)
+
         db.session.commit()
     else:
         flash_errors(form)
@@ -153,6 +211,10 @@ def task_subtask(project_id, parent_id=None):
 
         db.session.add(task)
         db.session.commit()
+
+        # Оповещаем assignee
+        mail_assigned(project, task)
+
         return redirect(redirect_url)
 
     flash_errors(form)
@@ -168,15 +230,6 @@ def task_status(project_id, task_id):
 
         return True
 
-        # OBSOLETE: типа, у нас теперь не может быть задач со статусом и детьми одновременно.
-        # Типа, либо у тебя есть статус, либо семья и дети, гы-гы.
-        # Проверяем, нет ли детей в статусе 'open', 'progress'
-        if status in ('done', 'review'):
-            kids = task.subtree().filter(Task.status.in_(['open', 'progress', 'review'])).first()
-            if kids is not None:
-                flash('У задачи есть незавершённые подзадачи, завершите сперва их.', 'danger')
-                return False
-
     project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
     status = request.form.get('status')
@@ -184,8 +237,10 @@ def task_status(project_id, task_id):
     if check():
         task.status = status
         # Пишем в историю
-        db.session.add(TaskHistory(task_id=task.id, user_id=current_user.id, status=status))
+        hist = TaskHistory(task_id=task.id, user_id=current_user.id, status=status)
+        db.session.add(hist)
         db.session.commit()
+        mail_changed(project, task, hist)
 
     return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
 

@@ -231,6 +231,8 @@ class TaskHistory(db.Model):
     subject = db.Column(db.String(1024), nullable=True)
     description = db.Column(db.Text(), nullable=True)
     deadline = db.Column(db.DateTime(timezone=True))
+    importance = db.Column(db.SmallInteger)
+    character = db.Column(db.SmallInteger)
 
     user = db.relationship('User', backref='history', foreign_keys=[user_id])
     assignee = db.relationship('User', foreign_keys=[assigned_id])

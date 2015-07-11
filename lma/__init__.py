@@ -1,7 +1,7 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-import markdown
+import flask_mail
 
 # flask
 app = Flask(__name__)
@@ -10,6 +10,10 @@ app.config.from_pyfile('../local.cfg', silent=True)
 
 # flask.sqlalchemy
 db = SQLAlchemy(app)
+
+# flask.mail
+flask_mail.message_policy = None
+mail = flask_mail.Mail(app)
 
 # logging
 import logging

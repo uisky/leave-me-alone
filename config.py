@@ -8,3 +8,4 @@ SECRET_KEY_PASSWORD = 'nYnLmHvghNl&bhTvVk)i8NM:7^%ASbB+g9asd'
 
 WTF_CSRF_ENABLED = True
 
+MAIL_DEFAULT_SENDER = 'no-reply@leave-me-alone.ru'

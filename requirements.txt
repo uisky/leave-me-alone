@@ -6,3 +6,4 @@ flask-wtf
 flask-login
 markdown
 pytz
+flask-mail
