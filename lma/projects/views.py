@@ -55,7 +55,41 @@ def project_edit(project_id=None):
     else:
         flash_errors(form)
 
-    return render_template('projects/edit.html', project=project, form=form)
+    if project.has_sprints:
+        sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.start, Sprint.created).all()
+    else:
+        sprints = []
+
+    return render_template(
+        'projects/edit.html',
+        project=project, form=form,
+        sprints=sprints
+    )
+
+
+@mod.route('/<int:project_id>/sprints/add', methods=('GET', 'POST'))
+@mod.route('/<int:project_id>/sprints/<int:sprint_id>/edit', methods=('GET', 'POST'))
+def sprint_edit(project_id, sprint_id=None):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id:
+        abort(403)
+
+    if sprint_id is not None:
+        sprint = Sprint.query.filter_by(project_id=project.id, id=sprint_id).first()
+    else:
+        sprint = Sprint(project_id=project.id)
+
+    form = forms.SprintPropertiesForm(obj=sprint)
+
+    if form.validate_on_submit():
+        form.populate_obj(sprint)
+        db.session.add(sprint)
+        db.session.commit()
+        return redirect(url_for('.project_edit', project_id=project.id))
+    else:
+        flash_errors(form)
+
+    return render_template('projects/sprint_edit.html', project=project, sprint=sprint, form=form)
 
 
 @mod.route('/<int:project_id>/delete/', methods=('POST',))

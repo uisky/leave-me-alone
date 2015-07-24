@@ -18,19 +18,23 @@
         {% if not tasks %}
             <div class="alert alert-box alert-info">Проект пуст.</div>
         {% else %}
+            <form method="get">
             <div class="row show-options">
                 <div class="col-sm-2">
                     {% if project.type == 'tree' %}
                         <button type="button" class="btn btn-xs" id="btn-toggle-collapsed"><i class="fa fa-plus"></i></button>
                         <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
                     {% elif project.type == 'list' %}
-                    <form method="get">
                         <input type="hidden" name="task" value="{{ request.args.get('task', '') }}">
                         {{ options.sort(class='form-control', onchange='this.form.submit()') }}
-                    </form>
                     {% endif %}
                 </div>
-                <div class="col-sm-8">
+                <div class="col-sm-2">
+                    {% if project.has_sprints %}
+                        {{ options.sprint(class='form-control', onchange='this.form.submit()') }}
+                    {% endif %}
+                </div>
+                <div class="col-sm-6">
                     <div class="progress">
                         {% for status in g.TASK_STATUSES if status in stats %}
                             <div
@@ -49,6 +53,7 @@
                     {% endif %}
                 </div>
             </div>
+            </form>
 
             <div class="tasks-tree show-deadline">
                 {% include 'projects/_task_' + project.type + '.html' %}

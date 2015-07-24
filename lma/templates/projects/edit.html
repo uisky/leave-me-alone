@@ -1,6 +1,7 @@
 {% set menu_current = 'edit' %}
-
 {% extends 'project.html' %}
+
+
 
 {% block content %}
 <h1>Свойства проекта</h1>
@@ -15,6 +16,14 @@
         </div>
     </div>
     <div class="form-group">
+        <div class="col-sm-10 col-sm-offset-2">
+            <label>
+                {{ form.has_sprints() }}
+                Использовать спринты
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
             <button type="submit" class="btn btn-success">
                 <span class="glyphicon glyphicon-ok"></span>
@@ -23,6 +32,9 @@
         </div>
     </div>
 </form>
+
+
+
 
 <div class="row">
     <div class="col-sm-offset-2 col-sm-10">
@@ -42,6 +54,42 @@
         </form>
     </div>
 </div>
+
+
+
+
+{% if project.has_sprints %}
+    <h2>Спринты</h2>
+    {% if sprints %}
+        <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th style="width:60%">Название</th>
+            <th>Сроки</th>
+            <th></th>
+        </tr>
+        </thead>
+        {% for sprint in sprints %}
+        <tr data-id="{{ sprint.id }}">
+            <td><a href="{{ url_for('.sprint_edit', project_id=project.id, sprint_id=sprint.id) }}">{{ sprint.name }}</a></td>
+            <td>{{ sprint.start.strftime('%d.%m.%Y') }} — {{ sprint.start.strftime('%d.%m.%Y') }}</td>
+            <td>
+                <button type="button" class="btn btn-xs btn-danger">
+                    <i class="glyphicon glyphicon-remove"></i>
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <div class="alert alert-info">В проекте ещё нет ни одного спринта.</div>
+    {% endif %}
+    <a href="{{ url_for('.sprint_edit', project_id=project.id) }}" class="btn btn-success">
+        <i class="glyphicon glyphicon-plus-sign"></i> Добавить спринт
+    </a>
+{% endif %}
+
+
 
 {% else %}
     <div class="alert alert-info">

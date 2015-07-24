@@ -32,6 +32,7 @@ class Project(db.Model):
     type = db.Column(ENUM_PROJECT_TYPE, nullable=False, default='tree', server_default='tree')
 
     name = db.Column(db.String(64), nullable=False)
+    has_sprints = db.Column(db.Boolean, nullable=False, server_default='false')
 
     tasks = db.relationship('Task', backref='project')
     members = db.relationship('ProjectMember', backref='project')
@@ -59,6 +60,22 @@ class Project(db.Model):
             tasks = tasks.order_by(sort.get(options.sort.data, 'created'))
 
         return tasks
+
+
+class Sprint(db.Model):
+    __tablename__ = 'sprints'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+    project_id = db.Column(
+        db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
+        nullable=True, index=True
+    )
+    name = db.Column(db.String(255), nullable=False)
+    start = db.Column(db.Date(), nullable=False, server_default=db.text('current_date'))
+    finish = db.Column(db.Date(), nullable=False, server_default=db.text('current_date + 7'))
+
+    project = db.relationship('Project', backref='sprints')
 
 
 class ProjectMember(db.Model):
@@ -98,6 +115,8 @@ class Task(db.Model):
                         nullable=False)
     project_id = db.Column(db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
                            nullable=False, index=True)
+    sprint_id = db.Column(db.Integer(), db.ForeignKey('sprints.id', ondelete='CASCADE', onupdate='CASCADE'),
+                          nullable=True, index=True)
     assigned_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
 
     mp = db.Column(ARRAY(db.Integer(), zero_indexes=True))

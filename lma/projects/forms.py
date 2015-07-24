@@ -1,16 +1,17 @@
 from flask_wtf import Form
-from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField
+from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DateField
 from wtforms import validators as v
 from .models import IMPORTANCE, CHARACTERS, PROJECT_TYPES
 
 
-def stripfield(s):
+def strip_field(s):
     if isinstance(s, str):
         return s.strip()
 
 
 class ProjectPropertiesForm(Form):
-    name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[stripfield])
+    name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[strip_field])
+    has_sprints = BooleanField('Использровать спринты')
 
 
 class OutputOptions(Form):
@@ -24,9 +25,11 @@ class OutputOptions(Form):
             ('custom', 'Как сам расставил'),
         ])
 
+    sprint = SelectField('Спринт', [v.optional()])
+
 
 class TaskForm(Form):
-    subject = StringField('Пароль', [v.required(message='Опишите задачу.')])
+    subject = StringField('Пароль', [v.required(message='Опишите задачу.')], filters=[strip_field])
     description = TextAreaField('Ник', [v.optional()])
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
     assigned_id = IntegerField('исполнитель', [v.optional()])
@@ -37,3 +40,8 @@ class TaskForm(Form):
                             choices=[(0, '')] + [(x['id'], x['name']) for x in CHARACTERS],
                             coerce=int)
 
+
+class SprintPropertiesForm(Form):
+    name = StringField('Название', [v.required(message='У спринта должно быть название')], filters=[strip_field])
+    start = DateField('Начало', [v.optional()], format='%d.%m.%Y')
+    finish = DateField('Конец', [v.optional()], format='%d.%m.%Y')
