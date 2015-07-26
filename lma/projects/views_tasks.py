@@ -14,11 +14,16 @@ def tasks(project_id):
     project, membership = load_project(project_id)
 
     options = forms.OutputOptions(request.args)
-    options.sprint.choices = [(x.id, x.name) for x in Sprint.query.filter_by(project_id=project.id).order_by(Sprint.start).all()]
 
-    tasks = OrderedDict()
+    # Текущий спринт, если проект спринтованный
+    if project.has_sprints:
+        sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.start).all()
+        options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Без спринта')]
+        if options.sprint.data is None:
+            options.sprint.data = 0
 
     # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
+    tasks = OrderedDict()
     for task in project.get_tasks_query(options).all():
         task.children_statuses = {}
         tasks[task.id] = task

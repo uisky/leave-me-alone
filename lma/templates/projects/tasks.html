@@ -15,46 +15,46 @@
 <div class="row">
     <!--- Левая колонка: дерево задач -->
     <div class="col-sm-6">
+        <form method="get">
+        <div class="row show-options">
+            <div class="col-sm-2">
+                {% if project.type == 'tree' %}
+                    <button type="button" class="btn btn-xs" id="btn-toggle-collapsed"><i class="fa fa-plus"></i></button>
+                    <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+                {% elif project.type == 'list' %}
+                    <input type="hidden" name="task" value="{{ request.args.get('task', '') }}">
+                    {{ options.sort(class='form-control', onchange='this.form.submit()') }}
+                {% endif %}
+            </div>
+            <div class="col-sm-2">
+                {% if project.has_sprints %}
+                    {{ options.sprint(class='form-control', onchange='this.form.submit()') }}
+                {% endif %}
+            </div>
+            <div class="col-sm-6">
+                <div class="progress">
+                    {% for status in g.TASK_STATUSES if status in stats %}
+                        <div
+                                class="progress-bar {{ status | status_class }}"
+                                style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
+                                title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
+                                ></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
+                {% if stats['max_deadline'] %}
+                    <i class="fa fa-bed"></i> {{ stats.max_deadline.strftime('%d.%m') }}
+                {% else %}
+                    Без дедлайна
+                {% endif %}
+            </div>
+        </div>
+        </form>
+
         {% if not tasks %}
             <div class="alert alert-box alert-info">Проект пуст.</div>
         {% else %}
-            <form method="get">
-            <div class="row show-options">
-                <div class="col-sm-2">
-                    {% if project.type == 'tree' %}
-                        <button type="button" class="btn btn-xs" id="btn-toggle-collapsed"><i class="fa fa-plus"></i></button>
-                        <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
-                    {% elif project.type == 'list' %}
-                        <input type="hidden" name="task" value="{{ request.args.get('task', '') }}">
-                        {{ options.sort(class='form-control', onchange='this.form.submit()') }}
-                    {% endif %}
-                </div>
-                <div class="col-sm-2">
-                    {% if project.has_sprints %}
-                        {{ options.sprint(class='form-control', onchange='this.form.submit()') }}
-                    {% endif %}
-                </div>
-                <div class="col-sm-6">
-                    <div class="progress">
-                        {% for status in g.TASK_STATUSES if status in stats %}
-                            <div
-                                    class="progress-bar {{ status | status_class }}"
-                                    style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
-                                    title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
-                                    ></div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
-                    {% if stats['max_deadline'] %}
-                        <i class="fa fa-bed"></i> {{ stats.max_deadline.strftime('%d.%m') }}
-                    {% else %}
-                        Без дедлайна
-                    {% endif %}
-                </div>
-            </div>
-            </form>
-
             <div class="tasks-tree show-deadline">
                 {% include 'projects/_task_' + project.type + '.html' %}
             </div>

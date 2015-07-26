@@ -52,14 +52,23 @@ class Project(db.Model):
 
     def get_tasks_query(self, options):
         if self.type == 'tree':
-            tasks = Task.query.filter_by(project_id=self.id).order_by(Task.mp)
-            tasks = tasks.options(db.joinedload('user'), db.joinedload('assignee'))
+            query = Task.query.filter_by(project_id=self.id).order_by(Task.mp)
+            query = query.options(db.joinedload('user'), db.joinedload('assignee'))
         else:
-            tasks = Task.query.filter_by(project_id=self.id)
+            query = Task.query.filter_by(project_id=self.id)
             sort = {'created': 'created', 'deadline': 'deadline', 'importance': 'importance desc', 'custom': 'mp[1]'}
-            tasks = tasks.order_by(sort.get(options.sort.data, 'created'))
+            query = query.order_by(sort.get(options.sort.data, 'created'))
 
-        return tasks
+        if self.has_sprints:
+            print(repr(options.sprint.data))
+            if options.sprint.data is not None and options.sprint.data != 0:
+                print('NOT NULL')
+                query = query.filter_by(sprint_id=options.sprint.data)
+            else:
+                print('IS NULL')
+                query = query.filter(Task.sprint_id == None)
+        print(query)
+        return query
 
 
 class Sprint(db.Model):

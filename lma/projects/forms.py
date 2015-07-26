@@ -25,7 +25,7 @@ class OutputOptions(Form):
             ('custom', 'Как сам расставил'),
         ])
 
-    sprint = SelectField('Спринт', [v.optional()])
+    sprint = SelectField('Спринт', [v.optional()], default=0, coerce=int)
 
 
 class TaskForm(Form):
