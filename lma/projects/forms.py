@@ -1,5 +1,6 @@
 from flask_wtf import Form
-from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DateField
+from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DateField, \
+    HiddenField
 from wtforms import validators as v
 from .models import IMPORTANCE, CHARACTERS, PROJECT_TYPES
 

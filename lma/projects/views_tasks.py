@@ -18,7 +18,7 @@ def tasks(project_id):
     # Текущий спринт, если проект спринтованный
     if project.has_sprints:
         sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.start).all()
-        options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Без спринта')]
+        options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне спринтов')]
         if options.sprint.data is None:
             options.sprint.data = 0
 
@@ -115,7 +115,10 @@ def task_edit(project_id, task_id):
     else:
         flash_errors(form)
 
-    return redirect(url_for('.tasks', project_id=task.project_id) + ('?task=%d' % task.id))
+    kw = {'project_id': task.project_id, 'task': task.id}
+    if project.has_sprints:
+        kw['sprint'] = task.sprint_id
+    return redirect(url_for('.tasks', **kw))
 
 
 @mod.route('/<int:project_id>/<int:task_id>/delete', methods=('POST',))
@@ -123,16 +126,20 @@ def task_delete(project_id, task_id):
     project, _ = load_project(project_id)
     task = Task.query.get_or_404(task_id)
 
-    redirect_url = url_for('.tasks', project_id=task.project_id)
+    kw = {'project_id': task.project_id}
     if task.parent_id:
-        redirect_url += '?task=%d' % task.parent_id
+        kw['task'] = task.parent_id
+    if project.has_sprints:
+        kw['sprint'] = task.sprint_id
+    redirect_url = url_for('.tasks', **kw)
 
     task.subtree(withme=True).delete(synchronize_session=False)
 
     # Остались ли у родителя детки?
-    kids = db.session.execute('SELECT 1 FROM tasks WHERE parent_id = :id LIMIT 1', {'id': task.parent_id}).scalar()
-    if kids is None:
-        task.parent.status = task.status
+    if task.parent_id:
+        kids = db.session.execute('SELECT 1 FROM tasks WHERE parent_id = :id LIMIT 1', {'id': task.parent_id}).scalar()
+        if kids is None:
+            task.parent.status = task.status
 
     db.session.commit()
 
@@ -151,12 +158,18 @@ def task_subtask(project_id, parent_id=None):
 
     form = forms.TaskForm(obj=task)
 
-    redirect_url = url_for('.tasks', project_id=task.project_id)
+    # Строим URL, куда пойти после добавления задачи
+    kw = {'project_id': task.project_id}
     if parent:
-        redirect_url += '?task=%d' % parent.id
+        kw['task'] = parent.id
+    if project.has_sprints:
+        kw['sprint'] = request.form.get('sprint_id', 0, type=int)
+    redirect_url = url_for('.tasks', **kw)
 
     if form.validate_on_submit():
         form.populate_obj(task)
+        if project.has_sprints and request.form.get('sprint_id', 0, type=int):
+            task.sprint_id = request.form.get('sprint_id', type=int)
         task.setparent(parent)
 
         # Удаляем статус у родительской задачи
@@ -196,7 +209,10 @@ def task_status(project_id, task_id):
         db.session.commit()
         mail_changed(project, task, hist)
 
-    return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+    kw = {'project_id': task.project_id, 'task': task.id}
+    if project.has_sprints:
+        kw['sprint'] = task.sprint_id
+    return redirect(url_for('.tasks', **kw))
 
 
 @mod.route('/<int:project_id>/<int:task_id>/chparent', methods=('POST',))
@@ -257,7 +273,11 @@ def task_chparent(project_id, task_id):
         t.mp = prefix + t.mp[cut:]
 
     db.session.commit()
-    return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+
+    kw = {'project_id': task.project_id, 'task': task.id}
+    if project.has_sprints:
+        kw['sprint'] = task.sprint_id
+    return redirect(url_for('.tasks', **kw))
 
 
 @mod.route('/<int:project_id>/<int:task_id>/swap', methods=('POST',))
@@ -287,7 +307,11 @@ def task_swap(project_id, task_id):
         t.mp = mps[0] + t.mp[len(mps[0]):]
 
     db.session.commit()
-    return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % sisters[0].id)
+
+    kw = {'project_id': project.id, 'task': sisters[0].id}
+    if project.has_sprints:
+        kw['sprint'] = sisters[0].sprint_id
+    return redirect(url_for('.tasks', **kw))
 
 
 @mod.route('/<int:project_id>/reorder', methods=('POST',))

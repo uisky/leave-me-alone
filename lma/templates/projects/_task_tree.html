@@ -31,7 +31,7 @@
         </div>
 
         <div class="subj">
-            <a href="?task={{ task.id }}">{{ task.subject }}</a>
+            <a href="?task={{ task.id }}{% if project.has_sprints %}&sprint={{ options.sprint.data }}{% endif %}">{{ task.subject }}</a>
             {#
             <small>
                 {{ task.children_statuses }} : <b>{{ task.status }}</b>
@@ -45,5 +45,5 @@
 {% endfor %}
 {{ ('</li></ul>' * tasks[-1].depth) | safe }}
 <p style="margin: 10px 0">
-    <a href="?" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
+    <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
 </p>

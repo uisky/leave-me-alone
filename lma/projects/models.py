@@ -60,14 +60,10 @@ class Project(db.Model):
             query = query.order_by(sort.get(options.sort.data, 'created'))
 
         if self.has_sprints:
-            print(repr(options.sprint.data))
             if options.sprint.data is not None and options.sprint.data != 0:
-                print('NOT NULL')
                 query = query.filter_by(sprint_id=options.sprint.data)
             else:
-                print('IS NULL')
                 query = query.filter(Task.sprint_id == None)
-        print(query)
         return query
 
 

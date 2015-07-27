@@ -72,7 +72,7 @@
         {% for sprint in sprints %}
         <tr data-id="{{ sprint.id }}">
             <td><a href="{{ url_for('.sprint_edit', project_id=project.id, sprint_id=sprint.id) }}">{{ sprint.name }}</a></td>
-            <td>{{ sprint.start.strftime('%d.%m.%Y') }} — {{ sprint.start.strftime('%d.%m.%Y') }}</td>
+            <td>{{ sprint.start.strftime('%d.%m.%Y') }} — {{ sprint.finish.strftime('%d.%m.%Y') }}</td>
             <td>
                 <button type="button" class="btn btn-xs btn-danger">
                     <i class="glyphicon glyphicon-remove"></i>

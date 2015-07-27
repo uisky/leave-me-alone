@@ -13,7 +13,9 @@
 
 {% block content %}
 <div class="row">
-    <!--- Левая колонка: дерево задач -->
+    {#
+     # Панель дерева задач
+     #}
     <div class="col-sm-6">
         <form method="get">
         <div class="row show-options">
@@ -53,7 +55,9 @@
         </form>
 
         {% if not tasks %}
-            <div class="alert alert-box alert-info">Проект пуст.</div>
+            <div class="alert alert-box alert-info">
+                {% if project.has_sprints %}Спринт{% else %}Проект{% endif %} пуст.
+            </div>
         {% else %}
             <div class="tasks-tree show-deadline">
                 {% include 'projects/_task_' + project.type + '.html' %}
@@ -63,9 +67,12 @@
 
 
 
+    {#
+     # Панель задачи
+     #}
     <div class="col-sm-6">
 
-
+        {# Табы #}
         <ul class="nav nav-tabs" id="tabs-task">
             {% if selected %}
                 <li class="active"><a href="#task-details" data-toggle="tab">Задача</a></li>
@@ -83,7 +90,7 @@
 
 
         <div class="tab-content">
-            <!-- Описание задачи -->
+            {# Описание задачи #}
             {% if selected %}
             <div id="task-details" class="tab-pane active task-details">
                 <h1>{{ selected.subject }}</h1>
@@ -119,7 +126,7 @@
                 </form>
             </div>
 
-            <!-- История -->
+            {# История #}
             <div id="task-history" class="tab-pane">
                 <h1>История задачи</h1>
                 <ul>
@@ -140,12 +147,15 @@
 
             {% endif %}
 
+            {# Создать подзадачу #}
             {% if 'lead' in membership.roles or 'developer' in membership.roles %}
-            <!-- Создать подзадачу -->
             {% if (project.type == 'list' and not selected) or (project.type == 'tree' and ('lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id)) %}
                 <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                     <h2>Создать подзадачу</h2>
                     <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">
+                        {% if project.has_sprints %}
+                            <input type="x-hidden" name="sprint_id" value="{{ options.sprint.data }}">
+                        {% endif %}
                         {% set edit_form = form_empty %}
                         {% set edit_task = empty %}
                         {% include 'projects/_task_edit.html' %}
@@ -157,10 +167,14 @@
                             </div>
                         </div>
                     </form>
+                    <script>
+                        $form = $('#form-subtask');
+                        $form.append($form.attr('action'));
+                    </script>
                 </div>
             {% endif %}
 
-            <!-- Редактор -->
+            {# Редактор задачи #}
             {% if selected and 'lead' in membership.roles or selected.user_id == current_user.id %}
             <div id="task-edit" class="tab-pane">
                 <form id="form-edit" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
