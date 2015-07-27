@@ -154,7 +154,7 @@
                     <h2>Создать подзадачу</h2>
                     <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">
                         {% if project.has_sprints %}
-                            <input type="x-hidden" name="sprint_id" value="{{ options.sprint.data }}">
+                            <input type="hidden" name="sprint_id" value="{{ options.sprint.data }}">
                         {% endif %}
                         {% set edit_form = form_empty %}
                         {% set edit_task = empty %}
@@ -167,10 +167,6 @@
                             </div>
                         </div>
                     </form>
-                    <script>
-                        $form = $('#form-subtask');
-                        $form.append($form.attr('action'));
-                    </script>
                 </div>
             {% endif %}
 

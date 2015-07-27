@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, flash, url_for, g, abort
+from flask import render_template, request, redirect, flash, url_for, g, abort, make_response
 from datetime import datetime
 import pytz
 
@@ -19,8 +19,8 @@ def tasks(project_id):
     if project.has_sprints:
         sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.start).all()
         options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне спринтов')]
-        if options.sprint.data is None:
-            options.sprint.data = 0
+        if 'sprint' not in request.args:
+            options.sprint.data = int(request.cookies.get('sprint', '0'))
 
     # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
     tasks = OrderedDict()
@@ -78,10 +78,21 @@ def tasks(project_id):
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
-    return render_template('projects/tasks.html',
-                           project=project, membership=membership, options=options,
-                           tasks=list(tasks.values()), stats=stats,
-                           selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit)
+    page = render_template(
+        'projects/tasks.html',
+        project=project, membership=membership, options=options,
+        tasks=list(tasks.values()), stats=stats,
+        selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit
+    )
+    resp = make_response(page)
+    if project.has_sprints:
+        resp.set_cookie(
+            'sprint', str(options.sprint.data),
+            path=url_for('.tasks', project_id=project.id),
+            expires=datetime(2029, 8, 8)
+        )
+
+    return resp
 
 
 @mod.route('/<int:project_id>/<int:task_id>/edit', methods=('POST',))
