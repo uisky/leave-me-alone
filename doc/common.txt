@@ -18,6 +18,9 @@ gevent: pip install git+https://github.com/fantix/gevent.git
                 <div >
 
                 </div>
+UPDATE tasks SET sprint_id = 1 WHERE project_id = 1;
+UPDATE tasks SET sprint_id = 2, project_id = 1 WHERE project_id = 11;
+UPDATE tasks SET sprint_id = 3, project_id = 1 WHERE project_id = 16;
 
 
 

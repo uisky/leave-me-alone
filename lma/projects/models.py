@@ -284,3 +284,16 @@ class TaskHistory(db.Model):
             Task.STATUS_CSS_CLASSES.get(self.status, 'default'),
             Task.STATUS_MEANING.get(self.status, self.status)
         )
+
+
+class TaskComment(db.Model):
+    __tablename__ = 'task_comments'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+
+    task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False, index=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False, index=True)
+    body = db.Column(db.Text, nullable=False)
