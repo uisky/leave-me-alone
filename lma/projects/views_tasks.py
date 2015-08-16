@@ -78,8 +78,9 @@ def tasks(project_id):
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
+    # Ответ
     page = render_template(
-        'projects/tasks.html',
+        'projects/tasks_%s.html' % project.type,
         project=project, membership=membership, options=options,
         tasks=list(tasks.values()), stats=stats,
         selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit

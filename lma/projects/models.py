@@ -1,6 +1,7 @@
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM
 from .. import db
 from flask_login import current_user
+import json
 
 
 IMPORTANCE = [
@@ -178,7 +179,7 @@ class Task(db.Model):
                 'progress': ('open', 'pause', 'review', 'done', 'canceled'),
                 'pause': ('open', 'progress', 'canceled'),
                 'review': ('open', 'done', 'canceled'),
-                'done': ('open', 'review', 'canceled'),
+                'done': ('open',),
                 'canceled': ('open',)
             }
         elif user.id == self.assigned_id:
@@ -237,6 +238,35 @@ class Task(db.Model):
         if not withme:
             query = query.filter(Task.id != self.id)
         return query
+
+
+class TaskJSONEncoder(json.JSONEncoder):
+    @staticmethod
+    def _serialize_date(d):
+        if d is None:
+            return None
+        return d.strftime('%Y-%m-%d %H:%M:%S')
+
+    def default(self, o):
+        if type(o) is Task:
+            dct = {x: getattr(o, x) for x in ('id', 'project_id', 'mp', 'parent_id', 'status', 'subject', 'description', 'character', 'importance', 'sprint_id')}
+
+            dct['created'] = self._serialize_date(o.created)
+            dct['deadline'] = self._serialize_date(o.deadline)
+
+            if o.assigned_id is None:
+                dct['assignee'] = None
+            else:
+                dct['assignee'] = {'id': o.assigned_id, 'username': o.assignee.name}
+
+            if o.user_id is None:
+                dct['user'] = None
+            else:
+                dct['user'] = {'id': o.user_id, 'username': o.user.name}
+
+            return dct
+        else:
+            return super().default(o)
 
 
 class TaskHistory(db.Model):

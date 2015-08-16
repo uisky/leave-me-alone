@@ -1,0 +1,168 @@
+{% set menu_current = 'tasks' %}
+
+{% extends 'project.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" href="/static/tasks_list.css">
+<script type="text/javascript" src="/static/js.cookie.js"></script>
+<script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="/static/html.sortable.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+var Tasks = {
+{% for task in tasks %}
+    {{ task.id }}: {{ task|taskjson|safe }}
+    {%- if not loop.last %},{% endif %}
+{%- endfor %}
+}
+</script>
+
+<div class="container">
+{#
+ # Панель управления
+ #}
+<div class="row">
+    <form method="get">
+        <div class="row show-options">
+            <div class="col-sm-2">
+                <input type="hidden" name="task" value="{{ request.args.get('task', '') }}">
+                {{ options.sort(class='form-control', onchange='this.form.submit()') }}
+            </div>
+            <div class="col-sm-1">
+                <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+            </div>
+            <div class="col-sm-2">
+                {% if project.has_sprints %}
+                    {{ options.sprint(class='form-control', onchange='this.form.submit()') }}
+                {% endif %}
+            </div>
+            <div class="col-sm-5">
+                <div class="progress">
+                    {% for status in g.TASK_STATUSES if status in stats %}
+                        <div
+                                class="progress-bar {{ status | status_class }}"
+                                style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
+                                title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
+                                ></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
+                {% if stats['max_deadline'] %}
+                    <i class="fa fa-bed"></i> {{ stats.max_deadline.strftime('%d.%m') }}
+                {% else %}
+                    Без дедлайна
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+
+<div class="container tasks-containter">
+{% if not tasks %}
+    <div class="alert alert-box alert-info">
+        {% if project.has_sprints %}Спринт{% else %}Проект{% endif %} пуст.
+    </div>
+{% else %}
+    <ul class="tasks-list">
+    {%
+        set status_btn_icons = {
+            'open': ('fa-refresh', 'Начать заново'),
+            'progress': ('fa-play', 'Начать выполнение'),
+            'pause': ('fa-pause', 'Поставить на паузу'),
+            'review': ('fa-eye', 'Отправить на проверку'),
+            'done': ('fa-check', 'Готово'),
+            'canceled': ('fa-close', 'Отменить'),
+        }
+    %}
+    {% for task in tasks %}
+        <li data-id="{{ task.id }}" class="
+            li-{{ task.status }}
+            {%- if task.id == selected.id %} active {% endif %}
+            {%- if task.assigned_id == current_user.id %} my {% endif %}
+        ">
+            <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
+                {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
+            </div>
+
+            <div class="users">
+                {% if task.assigned_id %}
+                    <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
+                {% endif %}
+            </div>
+
+            <div class="subj">
+                {% if options.sort.data == 'custom' %}
+                    <i class="fa fa-bars handle"></i>
+                {% endif %}
+
+                {% for status in task.allowed_statuses(current_user, membership) %}
+                <button class="btn btn-xs" title="{{ status_btn_icons.get(status)[1] }}">
+                    <i class="fa {{ status_btn_icons.get(status)[0] }}"></i>
+                </button>
+                {% endfor %}
+
+                <a href="?task={{ task.id }}&sort={{ options.sort.data }}">{{ task.subject }}</a>
+
+                {{ task.importance|importance_icon|safe }}
+                {{ task.character|character_icon|safe }}
+            </div>
+
+            <div class="description">{{ task.description|markdown|safe }}</div>
+
+            {% if task.id == selected.id %}
+                <form id="form-edit" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
+                    {% set edit_form = form_edit %}
+                    {% set edit_task = selected %}
+                    {% include 'projects/_task_edit.html' %}
+                    <div class="form-group">
+                        <div class="col-sm-offset-1 col-sm-11">
+                            <button type="submit" class="btn btn-success">
+                                <span class="glyphicon glyphicon-ok"></span> Сохранить
+                            </button>
+                            <button type="button" class="btn btn-danger" id="btn-task-delete">
+                                <span class="glyphicon glyphicon-remove"></span> Удалить
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <form id="form-delete" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/delete"></form>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+
+    <p style="margin: 10px 0">
+        <a href="?" class="btn btn-warning btn-xs">Добавить задачу</a>
+    </p>
+{% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block tail %}
+<script type="text/javascript" src="/static/tasks.js"></script>
+{% if options.sort.data == 'custom' %}
+<script type="text/javascript">
+    $('ul.tasks-list').sortable({
+        forcePlaceholderSize: true,
+        handle: '.handle',
+    }).bind('sortupdate', function(e, ui) {
+        order = [];
+        $('ul.tasks-list > li').each(function(i) {
+            order.push($(this).data('id'));
+        })
+        $.post(location.pathname + 'reorder', {order: order.join(',')}, function(data) {
+            if(data != 'ok') alert(data);
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

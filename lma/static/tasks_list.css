@@ -1,0 +1,26 @@
+.show-options {}
+.show-options select { padding: 2px 0px; font-size: 10px; line-height: 1; height: 22px; }
+.show-options .max-deadline { font-size: 12px; }
+
+.tasks-list { list-style: none; margin: 0; padding: 0; }
+.tasks-list li { margin: 2px 0; padding: 5px; }
+.tasks-list li:hover { background-color: #eee; }
+
+.tasks-list li.active { background-color: #ffefb1; }
+.tasks-list li.li-done .subj a { color: #999; text-decoration: line-through; }
+.tasks-list li.li-canceled .subj a { color: #444; text-decoration: line-through; }
+
+.tasks-list .handle { font-size: 9px; opacity: .5; cursor: pointer; }
+.tasks-list .handle:hover { opacity: 1; }
+
+.tasks-list .subj { }
+
+.tasks-list .description { font-size: 11px; margin: 5px 0 0 16px; }
+
+.tasks-list .deadline { float:right; width: 40px; text-align: right; overflow: hidden; white-space: nowrap;}
+.tasks-list .deadline:after {content:'.'; visibility: hidden; font-size:1px;}
+
+.tasks-list .users { float: right; width: 150px; overflow: hidden; white-space: nowrap; }
+.tasks-list li.my .users a.user { font-weight: bold; color: #3d8c2d; }
+
+.deadline.late { color: #f00; }

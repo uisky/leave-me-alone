@@ -25,12 +25,9 @@ li.collapsed > ul { display: none; }
 .tasks-tree > ul > li:first-child > .task { border-top: none; }
 
 .tasks-tree .task.active { background-color: #ffefb1; }
-.tasks-tree .task:hover { background-color: #e0e0e0; }
+.tasks-tree .task:hover { background-color: #eee; }
 
 .tasks-tree .task .subj { }
-
-.tasks-tree .task .handle { font-size: 9px; opacity: .5; }
-.tasks-tree .task .handle:hover { opacity: 1; }
 
 .tasks-tree .task .users { float: right; width: 150px; overflow: hidden; white-space: nowrap; }
 .tasks-tree .task.my .users a.user { font-weight: bold; color: #3d8c2d; }

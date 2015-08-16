@@ -1,6 +1,6 @@
-import markdown
+import markdown, json
 from . import app
-from .projects.models import IMPORTANCE, CHARACTERS
+from .projects.models import IMPORTANCE, CHARACTERS, TaskJSONEncoder
 
 
 _importance_icons = {x['id']: x['icon'] for x in IMPORTANCE}
@@ -43,3 +43,8 @@ def importance_icon(x):
 @app.template_filter('character_icon')
 def character_icon(x):
     return _character_icons.get(x, '')
+
+
+@app.template_filter('taskjson')
+def taskjson(task):
+    return json.dumps(task, cls=TaskJSONEncoder, ensure_ascii=False)
