@@ -257,12 +257,14 @@ class TaskJSONEncoder(json.JSONEncoder):
             if o.assigned_id is None:
                 dct['assignee'] = None
             else:
-                dct['assignee'] = {'id': o.assigned_id, 'username': o.assignee.name}
+                dct['assignee'] = {'id': o.assigned_id, 'name': o.assignee.name}
 
             if o.user_id is None:
                 dct['user'] = None
             else:
-                dct['user'] = {'id': o.user_id, 'username': o.user.name}
+                dct['user'] = {'id': o.user_id, 'name': o.user.name}
+
+            # dct['allowed_statuses'] = o.allowed_statuses(current_user, membership)
 
             return dct
         else:

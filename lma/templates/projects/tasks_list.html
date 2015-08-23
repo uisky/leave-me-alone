@@ -19,6 +19,7 @@ var Tasks = {
     {%- if not loop.last %},{% endif %}
 {%- endfor %}
 }
+var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
 </script>
 
 <div class="container">
@@ -80,20 +81,18 @@ var Tasks = {
             'canceled': ('fa-close', 'Отменить'),
         }
     %}
-    {% for task in tasks %}
-        <li data-id="{{ task.id }}" class="
-            li-{{ task.status }}
-            {%- if task.id == selected.id %} active {% endif %}
-            {%- if task.assigned_id == current_user.id %} my {% endif %}
-        ">
+    </ul>
+
+    <p style="margin: 10px 0">
+        <a href="?" class="btn btn-warning btn-xs">Добавить задачу</a>
+    </p>
+{% endif %}
+
+</div>
+{% endblock %}
+{#
             <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
                 {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
-            </div>
-
-            <div class="users">
-                {% if task.assigned_id %}
-                    <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
-                {% endif %}
             </div>
 
             <div class="subj">
@@ -114,44 +113,54 @@ var Tasks = {
             </div>
 
             <div class="description">{{ task.description|markdown|safe }}</div>
-
-            {% if task.id == selected.id %}
-                <form id="form-edit" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
-                    {% set edit_form = form_edit %}
-                    {% set edit_task = selected %}
-                    {% include 'projects/_task_edit.html' %}
-                    <div class="form-group">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <button type="submit" class="btn btn-success">
-                                <span class="glyphicon glyphicon-ok"></span> Сохранить
-                            </button>
-                            <button type="button" class="btn btn-danger" id="btn-task-delete">
-                                <span class="glyphicon glyphicon-remove"></span> Удалить
-                            </button>
-                        </div>
-                    </div>
-                </form>
-
-                <form id="form-delete" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/delete"></form>
             {% endif %}
         </li>
-    {% endfor %}
-    </ul>
-
-    <p style="margin: 10px 0">
-        <a href="?" class="btn btn-warning btn-xs">Добавить задачу</a>
-    </p>
-{% endif %}
-
-</div>
-{% endblock %}
-
+#}
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
-{% if options.sort.data == 'custom' %}
 <script type="text/javascript">
-    $('ul.tasks-list').sortable({
+(function() {
+    var $ul = $('ul.tasks-list'), selected = null, task;
+
+    function renderTaskLI(task) {
+        var $deadline, $users, $subj, $description, $a;
+
+        $li = $('<li>').data('id', task.id).addClass('li-' + task.status);
+        if(selected == task.id) {
+            $li.addClass('active')
+        }
+        if(task.assignee && task.assignee.id == current_user.id) {
+            $li.addClass('my')
+        }
+
+        $deadline = $('<div class="deadline">');
+        $deadline.append(task.deadline)
+
+        $users = $('<div class="users">');
+        if(task.assignee) {
+            $a = $('<a>').attr('href', 'members/' + task.assignee.id + '/').html(task.assignee.name)
+            $users.append($a);
+        }
+
+        $subj = $('<div class="subj">');
+        $subj.append(task.subject);
+
+        $li.append($deadline).append($users).append($subj);
+
+        return $li;
+    }
+
+    for(var id in Tasks) {
+        task = Tasks[id];
+
+        $li = renderTaskLI(task);
+
+        $ul.append($li);
+    }
+
+{% if options.sort.data == 'custom' %}
+    $ul.sortable({
         forcePlaceholderSize: true,
         handle: '.handle',
     }).bind('sortupdate', function(e, ui) {
@@ -163,6 +172,8 @@ var Tasks = {
             if(data != 'ok') alert(data);
         });
     });
-</script>
 {% endif %}
+
+})();
+</script>
 {% endblock %}
