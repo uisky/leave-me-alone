@@ -2,6 +2,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, ENUM
 from .. import db
 from flask_login import current_user
 import json
+import markdown
 
 
 IMPORTANCE = [
@@ -173,7 +174,7 @@ class Task(db.Model):
             return []
 
         if user.id == self.user_id or (membership and 'lead' in membership.roles):
-            # Владелец задачи. Права ограничены здравым смыслом.
+            # Владелец задачи или вождь. Права ограничены здравым смыслом.
             variants = {
                 'open': ('progress', 'done', 'canceled'),
                 'progress': ('open', 'pause', 'review', 'done', 'canceled'),
@@ -193,7 +194,7 @@ class Task(db.Model):
                 'canceled': ('open',)
             }
         else:
-            return ()
+            return {}
 
         return variants[self.status]
 
@@ -245,7 +246,7 @@ class TaskJSONEncoder(json.JSONEncoder):
     def _serialize_date(d):
         if d is None:
             return None
-        return d.strftime('%Y-%m-%d %H:%M:%S')
+        return d.strftime('%Y-%m-%dT%H:%M:%S.000+03:00')
 
     def default(self, o):
         if type(o) is Task:
@@ -253,6 +254,7 @@ class TaskJSONEncoder(json.JSONEncoder):
 
             dct['created'] = self._serialize_date(o.created)
             dct['deadline'] = self._serialize_date(o.deadline)
+            dct['description_md'] = markdown.markdown(o.description, output_format='html5')
 
             if o.assigned_id is None:
                 dct['assignee'] = None

@@ -16,15 +16,11 @@
         <span class="caret"></span>
     </a>
     <ul class="dropdown-menu">
-        {% for prj in g.my_projects %}
-            <li><a href="{{ prj.url_for() }}">
-                {% if project and prj.id == project.id %}
-                    <strong>{{ prj.name }}</strong>
-                {% else %}
-                    {{ prj.name }}
-                {% endif %}
-            </a></li>
-        {% endfor %}
+    {%- for prj in g.my_projects %}
+        <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ prj.url_for() }}">
+            {{- prj.name -}}
+        </a></li>
+    {%- endfor -%}
         <li><a href="/projects">Создать проект</a></li>
     </ul>
 </div>
@@ -32,10 +28,8 @@
 
 {% block menu_main %}
 <ul class="nav navbar-nav">
-{% for item in menu %}
-    <li {% if menu_current == item.id %} class="active" {% endif %}>
-        <a href="{{ item.url }}">{{ item.title }}</a>
-    </li>
-{% endfor %}
+{%- for item in menu %}
+    <li {%- if menu_current == item.id %} class="active" {%- endif -%}><a href="{{ item.url }}">{{ item.title }}</a></li>
+{%- endfor -%}
 </ul>
 {% endblock %}

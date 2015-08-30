@@ -16,10 +16,25 @@
 var Tasks = {
 {% for task in tasks %}
     {{ task.id }}: {{ task|taskjson|safe }}
-    {%- if not loop.last %},{% endif %}
+    {%- if not loop.last %},{% endif -%}
 {%- endfor %}
 }
+
 var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
+
+var IMPORTANCE = {
+{%- for i in g.IMPORTANCE %}
+    '{{ i.id }}': {{ i|safe }}
+    {%- if not loop.last %},{% endif -%}
+{%- endfor %}
+}
+
+var CHARACTERS = {
+{%- for i in g.CHARACTERS %}
+    {{ i.id }}: {{ i|safe }}
+    {%- if not loop.last %},{% endif -%}
+{%- endfor %}
+}
 </script>
 
 <div class="container">
@@ -27,7 +42,7 @@ var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}
  # Панель управления
  #}
 <div class="row">
-    <form method="get">
+    <form method="get" id="form-options">
         <div class="row show-options">
             <div class="col-sm-2">
                 <input type="hidden" name="task" value="{{ request.args.get('task', '') }}">
@@ -63,7 +78,6 @@ var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}
     </form>
 </div>
 </div>
-
 <div class="container tasks-containter">
 {% if not tasks %}
     <div class="alert alert-box alert-info">
@@ -89,12 +103,87 @@ var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}
 {% endif %}
 
 </div>
-{% endblock %}
-{#
-            <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
-                {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
+
+<div class="modal" id="modal-edit"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        <h4 class="modal-title">Modal title</h4>
+    </div>
+    <div class="modal-body">
+        <form method="post" class="form-horizontal" id="form-edit">
+        <div class="form-group">
+            <label class="control-label col-sm-2">Создал</label>
+            <div class="col-sm-4">
+                <p class="form-control-static edit-owner"></p>
+            </div>
+            <label class="control-label col-sm-2">Статус</label>
+            <div class="col-sm-4">
+                <p class="form-control-static edit-status"></p>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12"><input type="text" name="subject" class="form-control" placeholder="Задача"></div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <textarea name="description" class="form-control" rows="8" placeholder="Детали (можно использовать markdown)"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">Дедлайн</label>
+            <div class="col-sm-4">
+                <div class='input-group date'>
+                    <input type="text" name="deadline" class="form-control" id="edit-deadline">
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-remove" id="edit-deadline-clear"></span>
+                    </span>
+                </div>
+                <script type="text/javascript">
+                    $('#edit-deadline').datetimepicker({
+                        'sideBySide': true,
+                        'showTodayButton': true,
+                        'stepping': 10,
+                        'locale': 'ru'
+                    });
+                    $('#edit-deadline-clear').click(function(e) { $('#edit-deadline').val(''); });
+                </script>
             </div>
 
+            <label class="control-label col-sm-2">Исполнитель</label>
+            <div class="col-sm-4">
+                <select name="assigned_id" class="form-control">
+                    <option value="">Никто</option>
+                    {% for member in project.members %}
+                        <option value="{{ member.user_id }}">
+                            {{ member.user.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">Важность</label>
+            <div class="col-sm-4">
+                {{ form_empty.importance(class='form-control') }}
+            </div>
+            <label class="control-label col-sm-2">Характер</label>
+            <div class="col-sm-4">
+                {{ form_empty.character(class='form-control') }}
+            </div>
+        </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary">Сохранить</button>
+    </div>
+</div></div></div>
+
+
+
+{% endblock %}
+
+{#
             <div class="subj">
                 {% if options.sort.data == 'custom' %}
                     <i class="fa fa-bars handle"></i>
@@ -105,60 +194,16 @@ var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}
                     <i class="fa {{ status_btn_icons.get(status)[0] }}"></i>
                 </button>
                 {% endfor %}
-
-                <a href="?task={{ task.id }}&sort={{ options.sort.data }}">{{ task.subject }}</a>
-
-                {{ task.importance|importance_icon|safe }}
-                {{ task.character|character_icon|safe }}
             </div>
 
             <div class="description">{{ task.description|markdown|safe }}</div>
-            {% endif %}
-        </li>
 #}
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
+<script type="text/javascript" src="/static/tasks_list.js"></script>
 <script type="text/javascript">
 (function() {
-    var $ul = $('ul.tasks-list'), selected = null, task;
-
-    function renderTaskLI(task) {
-        var $deadline, $users, $subj, $description, $a;
-
-        $li = $('<li>').data('id', task.id).addClass('li-' + task.status);
-        if(selected == task.id) {
-            $li.addClass('active')
-        }
-        if(task.assignee && task.assignee.id == current_user.id) {
-            $li.addClass('my')
-        }
-
-        $deadline = $('<div class="deadline">');
-        $deadline.append(task.deadline)
-
-        $users = $('<div class="users">');
-        if(task.assignee) {
-            $a = $('<a>').attr('href', 'members/' + task.assignee.id + '/').html(task.assignee.name)
-            $users.append($a);
-        }
-
-        $subj = $('<div class="subj">');
-        $subj.append(task.subject);
-
-        $li.append($deadline).append($users).append($subj);
-
-        return $li;
-    }
-
-    for(var id in Tasks) {
-        task = Tasks[id];
-
-        $li = renderTaskLI(task);
-
-        $ul.append($li);
-    }
-
 {% if options.sort.data == 'custom' %}
     $ul.sortable({
         forcePlaceholderSize: true,
@@ -173,7 +218,6 @@ var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}
         });
     });
 {% endif %}
-
 })();
 </script>
 {% endblock %}
