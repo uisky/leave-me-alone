@@ -6,21 +6,21 @@
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
 <link rel="stylesheet" href="/static/tasks_list.css">
 <script type="text/javascript" src="/static/js.cookie.js"></script>
+<script type="text/javascript" src="http://yastatic.net/jquery/form/3.14/jquery.form.min.js"></script>
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
 <script type="text/javascript" src="/static/html.sortable.min.js"></script>
-{% endblock %}
-
-{% block content %}
 <script type="text/javascript">
-var Tasks = {
+var Tasks = [
 {% for task in tasks %}
-    {{ task.id }}: {{ task|taskjson|safe }}
+    {{ task|taskjson|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
-}
+]
 
 var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
+
+var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
 var IMPORTANCE = {
 {%- for i in g.IMPORTANCE %}
@@ -36,7 +36,11 @@ var CHARACTERS = {
 {%- endfor %}
 }
 </script>
+{% endblock %}
 
+
+
+{% block content %}
 <div class="container">
 {#
  # Панель управления
@@ -78,6 +82,7 @@ var CHARACTERS = {
     </form>
 </div>
 </div>
+
 <div class="container tasks-containter">
 {% if not tasks %}
     <div class="alert alert-box alert-info">
@@ -98,19 +103,20 @@ var CHARACTERS = {
     </ul>
 
     <p style="margin: 10px 0">
-        <a href="?" class="btn btn-warning btn-xs">Добавить задачу</a>
+        <button class="btn btn-warning btn-xs" id="btn-task-new">Добавить задачу</button>
     </p>
 {% endif %}
 
 </div>
 
 <div class="modal" id="modal-edit"><div class="modal-dialog"><div class="modal-content">
+<form method="post" class="form-horizontal" id="form-edit">
+    {{ form_empty.csrf_token() }}
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
         <h4 class="modal-title">Modal title</h4>
     </div>
     <div class="modal-body">
-        <form method="post" class="form-horizontal" id="form-edit">
         <div class="form-group">
             <label class="control-label col-sm-2">Создал</label>
             <div class="col-sm-4">
@@ -171,12 +177,13 @@ var CHARACTERS = {
                 {{ form_empty.character(class='form-control') }}
             </div>
         </div>
-        </form>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-        <button type="button" class="btn btn-primary">Сохранить</button>
+        <button type="button" class="btn btn-danger action-delete">Удалить</button>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
     </div>
+</form>
 </div></div></div>
 
 

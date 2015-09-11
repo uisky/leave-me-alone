@@ -1,12 +1,13 @@
-from flask import render_template, request, redirect, flash, url_for, g, abort, make_response
+from flask import render_template, request, redirect, flash, url_for, g, abort, make_response, jsonify
 from datetime import datetime
 import pytz
+import json
 
 from . import mod, forms, load_project
 from .models import *
 from .mail import *
 from .. import db
-from ..utils import flash_errors
+from ..utils import flash_errors, form_json_errors
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
@@ -98,7 +99,7 @@ def tasks(project_id):
     return resp
 
 
-@mod.route('/<int:project_id>/<int:task_id>/edit', methods=('POST',))
+@mod.route('/<int:project_id>/<int:task_id>/edit/', methods=('POST',))
 def task_edit(project_id, task_id):
     project, _ = load_project(project_id)
     task = Task.query.get_or_404(task_id)
@@ -126,16 +127,20 @@ def task_edit(project_id, task_id):
                 mail_changed(project, task, hist)
 
         db.session.commit()
-    else:
-        flash_errors(form)
 
-    kw = {'project_id': task.project_id, 'task': task.id}
+    if request.form.get('ajax'):
+        if form.errors:
+            return jsonify({'errors': form_json_errors(form)})
+        return json.dumps(task, cls=TaskJSONEncoder, ensure_ascii=False)
+
+    flash_errors(form)
+    view_data = {'project_id': task.project_id, 'task': task.id}
     if project.has_sprints:
-        kw['sprint'] = task.sprint_id
-    return redirect(url_for('.tasks', **kw))
+        view_data['sprint'] = task.sprint_id
+    return redirect(url_for('.tasks', **view_data))
 
 
-@mod.route('/<int:project_id>/<int:task_id>/delete', methods=('POST',))
+@mod.route('/<int:project_id>/<int:task_id>/delete/', methods=('POST',))
 def task_delete(project_id, task_id):
     project, _ = load_project(project_id)
     task = Task.query.get_or_404(task_id)
@@ -157,11 +162,14 @@ def task_delete(project_id, task_id):
 
     db.session.commit()
 
+    if request.form.get('ajax'):
+        return json.dumps({'id': task_id}, ensure_ascii=False)
+
     return redirect(redirect_url)
 
 
-@mod.route('/<int:project_id>/<parent_id>/subtask', methods=('POST',))
-@mod.route('/<int:project_id>/subtask', methods=('POST',))
+@mod.route('/<int:project_id>/<parent_id>/subtask/', methods=('POST',))
+@mod.route('/<int:project_id>/subtask/', methods=('POST',))
 def task_subtask(project_id, parent_id=None):
     project, _ = load_project(project_id)
     if parent_id:
@@ -196,7 +204,10 @@ def task_subtask(project_id, parent_id=None):
         # Оповещаем assignee
         mail_assigned(project, task)
 
-        return redirect(redirect_url)
+    if request.form.get('ajax'):
+        if form.errors:
+            return jsonify({'errors': form_json_errors(form)})
+        return json.dumps(task, cls=TaskJSONEncoder, ensure_ascii=False)
 
     flash_errors(form)
     return redirect(redirect_url)
