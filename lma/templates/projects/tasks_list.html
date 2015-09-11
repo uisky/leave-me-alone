@@ -50,7 +50,7 @@ var CHARACTERS = {
         <div class="row show-options">
             <div class="col-sm-2">
                 <input type="hidden" name="task" value="{{ request.args.get('task', '') }}">
-                {{ options.sort(class='form-control', onchange='this.form.submit()') }}
+                {{ options.sort(class='form-control') }}
             </div>
             <div class="col-sm-1">
                 <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>

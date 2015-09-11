@@ -13,6 +13,7 @@
 .tasks-list li .subj strong { color: #07c; text-decoration: underline; font-weight: normal; cursor: pointer; }
 .tasks-list li.li-done .subj strong { color: #999; text-decoration: line-through; }
 .tasks-list li.li-canceled .subj strong { color: #444; text-decoration: line-through; }
+.tasks-list li .subj .importance { margin-left: 6px; }
 
 .tasks-list .handle { font-size: 9px; opacity: .5; cursor: pointer; }
 .tasks-list .handle:hover { opacity: 1; }

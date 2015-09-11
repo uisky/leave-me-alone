@@ -40,7 +40,7 @@
         }
 
         $subj = $('<div class="subj">');
-        $subj.append('<small>[' + task.status + ',' + task.importance + ']</small> ');
+        $subj.append('<small>[' + task.status + ']</small> ');
         $subj.append($('<strong>').append(task.subject));
         if(task.importance in IMPORTANCE) $subj.append(IMPORTANCE[task.importance].icon);
         if(task.character in CHARACTERS) $subj.append(CHARACTERS[task.character].icon)
@@ -70,6 +70,25 @@
         return -1;
     }
 
+    // Сортировка списка
+    function sortTasks() {
+        // created, deadline, importance, custom
+        var sortby = $options.find('[name=sort]').val();
+        function createSorter(param) {
+            if(param == 'custom') {
+                return function(a, b) {
+                    return a.mp[0] - b.mp[0];
+                }
+            } else {
+                return function(a, b) {
+                    return b[param] - a[param]
+                }
+            }
+        }
+        Tasks.sort(createSorter(sortby));
+        console.log('Sort by %s', sortby);
+    }
+
     // Рендер списка
     function renderList() {
         $ul.empty();
@@ -90,7 +109,10 @@
 
         sanitizeTask(data);
         Tasks[findTaskIndex(data.id)] = data;
-        $ul.find('[data-id=' + data.id + ']').replaceWith(renderTaskLI(data));
+
+        sortTasks();
+        renderList();
+//        $ul.find('[data-id=' + data.id + ']').replaceWith(renderTaskLI(data));
 
         $modal_edit.modal('hide');
     }
@@ -104,6 +126,8 @@
 
         sanitizeTask(data);
         Tasks.push(data);
+
+        sortTasks();
         renderList();
 
         $modal_edit.modal('hide');
@@ -186,5 +210,11 @@
 
     $form_edit.find('.action-delete').click(taskDeleteHandler);
 
+    $options.find('[name=sort]').change(function() {
+        sortTasks();
+        renderList();
+    });
+
+    sortTasks();
     renderList();
 })();
