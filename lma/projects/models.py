@@ -177,7 +177,7 @@ class Task(db.Model):
             # Владелец задачи или вождь. Права ограничены здравым смыслом.
             variants = {
                 'open': ('progress', 'done', 'canceled'),
-                'progress': ('open', 'pause', 'review', 'done', 'canceled'),
+                'progress': ('done', 'review', 'pause', 'open', 'canceled'),
                 'pause': ('open', 'progress', 'canceled'),
                 'review': ('open', 'done', 'canceled'),
                 'done': ('open',),
@@ -239,6 +239,35 @@ class Task(db.Model):
         if not withme:
             query = query.filter(Task.id != self.id)
         return query
+
+    def json(self, membership, user):
+        def _serialize_date(d):
+            if d is None:
+                return None
+            return d.strftime('%Y-%m-%dT%H:%M:%S.000+03:00')
+
+        dct = {
+            x: getattr(self, x) for x in
+            ('id', 'project_id', 'mp', 'parent_id', 'status', 'subject', 'description', 'character', 'importance', 'sprint_id')
+        }
+
+        dct['created'] = _serialize_date(self.created)
+        dct['deadline'] = _serialize_date(self.deadline)
+        dct['description_md'] = markdown.markdown(self.description, output_format='html5')
+
+        if self.assigned_id is None:
+            dct['assignee'] = None
+        else:
+            dct['assignee'] = {'id': self.assigned_id, 'name': self.assignee.name}
+
+        if self.user_id is None:
+            dct['user'] = None
+        else:
+            dct['user'] = {'id': self.user_id, 'name': self.user.name}
+
+        dct['allowed_statuses'] = self.allowed_statuses(user, membership)
+
+        return json.dumps(dct, ensure_ascii=False)
 
 
 class TaskJSONEncoder(json.JSONEncoder):

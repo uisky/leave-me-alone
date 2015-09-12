@@ -13,7 +13,7 @@
 <script type="text/javascript">
 var Tasks = [
 {% for task in tasks %}
-    {{ task|taskjson|safe }}
+    {{ task.json(membership, current_user)|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
 ]
@@ -54,6 +54,7 @@ var CHARACTERS = {
             </div>
             <div class="col-sm-1">
                 <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+                <button class="btn btn-success btn-xs" id="btn-task-new" title="Добавить задачу"><i class="fa fa-plus"></i></button>
             </div>
             <div class="col-sm-2">
                 {% if project.has_sprints %}
@@ -89,22 +90,7 @@ var CHARACTERS = {
         {% if project.has_sprints %}Спринт{% else %}Проект{% endif %} пуст.
     </div>
 {% else %}
-    <ul class="tasks-list">
-    {%
-        set status_btn_icons = {
-            'open': ('fa-refresh', 'Начать заново'),
-            'progress': ('fa-play', 'Начать выполнение'),
-            'pause': ('fa-pause', 'Поставить на паузу'),
-            'review': ('fa-eye', 'Отправить на проверку'),
-            'done': ('fa-check', 'Готово'),
-            'canceled': ('fa-close', 'Отменить'),
-        }
-    %}
-    </ul>
-
-    <p style="margin: 10px 0">
-        <button class="btn btn-warning btn-xs" id="btn-task-new">Добавить задачу</button>
-    </p>
+    <ul class="tasks-list"></ul>
 {% endif %}
 
 </div>

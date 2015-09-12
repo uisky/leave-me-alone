@@ -24,4 +24,4 @@ a.user:before {
 .status-pause { background-color: #f0ad4e; }
 .status-review { background-color: #AA4FAD; color: #ff0; }
 .status-done { background-color: #888; }
-.status-canceled { background-color: #555; color: #fff; }
+.status-canceled { background-color: #333; color: #fff; }

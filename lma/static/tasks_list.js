@@ -12,8 +12,31 @@
     }
 
     function renderTaskLI(task) {
-        var $deadline, $users, $subj, $description, $a;
-
+        var $deadline, $users, $subj, $status, $more, $description, $a;
+        var STATUS_BUTTONS = {
+            'open':     '<button class="btn btn-xs" title="Начать заново"><i class="fa fa-refresh"></i></button>',
+            'progress': '<button class="btn btn-xs" title="Начать выполнение"><i class="fa fa-play"></i></button>',
+            'pause':    '<button class="btn btn-xs" title="Поставить на паузу"><i class="fa fa-pause"></i></button>',
+            'review':   '<button class="btn btn-xs" title="Отправить на проверку"><i class="fa fa-eye"></i></button>',
+            'done':     '<button class="btn btn-xs" title="Готово"><i class="fa fa-check"></i></button>',
+            'canceled': '<button class="btn btn-xs" title="Отменить"><i class="fa fa-close"></i></button>'
+        }
+        /*
+        Элемента списка DOM родной. Схема структуры.
+        li[data-id].li-{{status}}.my
+            .deadline
+            .users
+            .subj
+                .status
+                strong
+                span.importance
+                span.character
+            .more
+                button.edit
+                .description
+                .debug
+        */
+        // li
         $li = $('<li>').attr('data-id', task.id).addClass('li-' + task.status);
         if(selected == task.id) {
             $li.addClass('active')
@@ -22,6 +45,7 @@
             $li.addClass('my')
         }
 
+        // .deadline
         $deadline = $('<div class="deadline">');
         var now = new Date();
         if(task.deadline) {
@@ -33,26 +57,53 @@
             }
         }
 
+        // .users
         $users = $('<div class="users">');
         if(task.assignee) {
             $a = $('<a>').attr('href', 'members/' + task.assignee.id + '/').html(task.assignee.name)
             $users.append($a);
         }
 
+        // .subj
+        function makeStatusButton(status, current_status) {
+            return $(STATUS_BUTTONS[status]).data('set-status', status).addClass('action-status status-' + current_status);
+        }
         $subj = $('<div class="subj">');
-        $subj.append('<small>[' + task.status + ']</small> ');
+        if(task.allowed_statuses.length) {
+            $subj.append(makeStatusButton(task.allowed_statuses[0], task.status))
+        }
+
         $subj.append($('<strong>').append(task.subject));
         if(task.importance in IMPORTANCE) $subj.append(IMPORTANCE[task.importance].icon);
         if(task.character in CHARACTERS) $subj.append(CHARACTERS[task.character].icon)
 
-        $subj.append(' <a href="#" class="action-edit" title="Редактировать"><i class="fa fa-pencil-square-o"></i></a>');
-
-        $li.append($deadline).append($users).append($subj);
-
+        // .more
+        $more = $('<div class="more">');
+        // .more .description
         if(task.description) {
             $description = $('<div class="description">').html(task.description_md);
-            $li.append($description)
+            $more.append($description)
         }
+
+        // .more .info
+        var $info = $('<div class="info">');
+        $info.append(sprintf('Поставлено: %s %s Статус: %s', task.created.toLocaleString(), task.user.name, task.status));
+        $more.append($info);
+
+        // .more .actions
+        var $actions = $('<div class="actions">');
+        if(task.allowed_statuses.length > 1) {
+            for(i = 1; i < task.allowed_statuses.length; i++) {
+                $actions.append(makeStatusButton(task.allowed_statuses[i], task.allowed_statuses[i])/* .append('ТАЙТЛ СТАТУСА') */)
+            }
+        }
+        if(current_user.id == task.user.id) {
+            $actions.append('<a href="#" class="action-edit btn btn-xs btn-warning pull-right"><i class="fa fa-pencil-square-o"></i> Редактировать</a>');
+        }
+        if($actions.children().length) $more.append($actions);
+
+        // Собираем всё говно в кучу, уиии!
+        $li.append($deadline).append($users).append($subj).append($more);
 
         return $li;
     }
@@ -112,7 +163,6 @@
 
         sortTasks();
         renderList();
-//        $ul.find('[data-id=' + data.id + ']').replaceWith(renderTaskLI(data));
 
         $modal_edit.modal('hide');
     }
@@ -151,7 +201,15 @@
     }
 
     // События в списке
-    $ul.on('click', '.action-edit', function(e) {
+    $ul
+    .on('click', '.subj strong', function(e) {
+        console.log('Click on subj');
+        killSelection();
+        $(this).parents('li').find('.more').toggle();
+    }).on('dblclick', '.subj strong', function(e) {
+        console.log('DblClick on subj');
+        killSelection();
+    }).on('click', '.action-edit', function(e) {
         e.preventDefault();
         var id = $(this).parents('li').data('id'), task = Tasks[findTaskIndex(id)];
 
@@ -177,6 +235,23 @@
         $form_edit.find('.action-delete').data('id', id).show();
 
         $modal_edit.modal('show');
+    }).on('click', 'button.action-status', function(e) {
+        var $this = $(this), $li = $this.parents('li'),
+            status = $this.data('set-status'), id = $li.data('id');
+        console.log('Set status %s to id %d', status, id);
+        $.post(
+            '/projects/' + project.id + '/' + id + '/status/',
+            {status: status, ajax: 1},
+            function(data) {
+                if(data.errors) {
+                    alert(data.errors);
+                    return;
+                }
+                sanitizeTask(data);
+                Tasks[findTaskIndex(data.id)] = data;
+                $ul.find('[data-id=' + data.id + ']').replaceWith(renderTaskLI(data));
+            }
+        )
     });
 
     // Добавить задачу

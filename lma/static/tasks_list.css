@@ -6,21 +6,24 @@
 .tasks-list li { margin: 2px 0; padding: 5px; }
 .tasks-list li:hover { background-color: #eee; }
 
-.tasks-list li .action-edit { display: none; }
-.tasks-list li:hover .action-edit { display: inline-block; }
-
 .tasks-list li.active { background-color: #ffefb1; }
-.tasks-list li .subj strong { color: #07c; text-decoration: underline; font-weight: normal; cursor: pointer; }
+.tasks-list li .subj strong {
+    color: #07c; text-decoration: underline; font-weight: normal; cursor: pointer;
+}
 .tasks-list li.li-done .subj strong { color: #999; text-decoration: line-through; }
 .tasks-list li.li-canceled .subj strong { color: #444; text-decoration: line-through; }
-.tasks-list li .subj .importance { margin-left: 6px; }
 
 .tasks-list .handle { font-size: 9px; opacity: .5; cursor: pointer; }
 .tasks-list .handle:hover { opacity: 1; }
 
-.tasks-list .subj { }
+.tasks-list .action-status { margin-right: 6px; width: 26px; }
 
-.tasks-list .description { font-size: 11px; margin: 5px 0 0 16px; }
+.tasks-list .subj { }
+.tasks-list .subj .importance { margin-left: 6px; }
+
+.tasks-list .more { display: none; margin: 0 0 10px 32px; border-left: 1px dotted #ccc; padding: 5px 0 0 10px; }
+.tasks-list .more .description { font-size: 11px; margin: 0 0 5px 0; }
+.tasks-list .more .info { font-size: 11px; margin: 5px 0; color: #088; }
 
 .tasks-list .deadline { float:right; width: 40px; text-align: right; overflow: hidden; white-space: nowrap;}
 .tasks-list .deadline:after {content:'.'; visibility: hidden; font-size:1px;}

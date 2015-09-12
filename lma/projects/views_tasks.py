@@ -213,7 +213,7 @@ def task_subtask(project_id, parent_id=None):
     return redirect(redirect_url)
 
 
-@mod.route('/<int:project_id>/<int:task_id>/status', methods=('POST',))
+@mod.route('/<int:project_id>/<int:task_id>/status/', methods=('POST',))
 def task_status(project_id, task_id):
     def check():
         if status not in task.allowed_statuses(current_user, membership):
@@ -237,6 +237,12 @@ def task_status(project_id, task_id):
     kw = {'project_id': task.project_id, 'task': task.id}
     if project.has_sprints:
         kw['sprint'] = task.sprint_id
+
+    if request.form.get('ajax'):
+        resp = make_response(task.json(membership, current_user))
+        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return resp
+
     return redirect(url_for('.tasks', **kw))
 
 
