@@ -23,6 +23,7 @@
 
 .tasks-list .more { display: none; margin: 0 0 10px 32px; border-left: 1px dotted #ccc; padding: 5px 0 0 10px; }
 .tasks-list .more .description { font-size: 11px; margin: 0 0 5px 0; }
+.tasks-list .more .actions:after { content: '.'; font-size: 0px; clear: both; }
 .tasks-list .more .info { font-size: 11px; margin: 5px 0; color: #088; }
 
 .tasks-list .deadline { float:right; width: 40px; text-align: right; overflow: hidden; white-space: nowrap;}
