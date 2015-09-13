@@ -1,0 +1,43 @@
+html { width: 100%; height: 100%; }
+body { margin: 0; padding: 0; height: 100%; }
+
+#westeros { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+#westeros > div { position: absolute; overflow: hidden; }
+
+#stark, #targaryen, #martell { padding: 10px 10px 10px 40px; left: 0; right: 300px; box-shadow: inset -13px 0px 20px -9px rgba(0,0,0,.4); }
+#stark     { background: #52310F; top: 0;   height: 40%; color: #fff; }
+#targaryen { background: #806942; top: 40%; height: 30%; }
+#martell   { background: #1E1C21; top: 70%; height: 30%; }
+
+#lannister, #tyrell { right: 0; width: 300px; padding: 10px; }
+#lannister { background: #E0995F; top: 0; height: 40%; }
+#tyrell    { background: #E1D7EF; top: 40%; height: 60%; }
+
+
+#stark h1 sup { font-size: 0.5em; opacity: .5; }
+#stark p { font-family: serif;  font-style: italic; }
+
+#targaryen { padding: 0; }
+#targaryen ul {
+    position: relative;
+    list-style: none; height: 100px;
+    margin-top: 40px; padding: 0; white-space: nowrap; font-size: 0;
+}
+#targaryen ul li {
+    display: inline-block;
+    margin: 0 15px 0 0; width: 200px; height: 100%;
+    text-align: center; white-space: normal; font-size: 13px;
+    padding: 10px; border-radius: 20px;
+    background: #D08D1B;
+}
+#targaryen ul li h2 { font-size: 1.2em; margin: 0 0 10px; color: #ffa; }
+#targaryen ul li p {}
+
+
+#lannister {}
+#lannister input { margin: 10px 0; text-align: center;}
+
+
+#tyrell { padding: 0; }
+#tyrell h4 { margin: 0; background: #A8A2B1; padding: 15px 10px 5px; }
+#tyrell ul { list-style-type: 0; padding: 10px; }

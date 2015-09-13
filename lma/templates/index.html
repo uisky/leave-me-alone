@@ -1,8 +1,77 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Leave Me Alone</title>
+    <link rel="stylesheet" href="http://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/landing.css">
+    <script type="text/javascript" src="http://yastatic.net/jquery/2.1.3/jquery.js"></script>
+    <script type="text/javascript" src="http://yastatic.net/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
 
-{% block content %}
-<h1>Leave Me Alone!</h1>
+<div id="westeros">
+    <div id="stark">
+        <h1>Leave Me Alone<sup>*</sup></h1>
+        <p>
+            Очередной трекер задач, проходите мимо, тут нет ничего интересного.
+            Подходит для организации списка покупок вместе с женой, для управления небольшим отделом программистов,
+            для планирования разных сложных дел. Ключевая фишка — иерархические задачи.
+        </p>
+    </div>
 
+    <div id="targaryen">
+        <ul>
+            <li>
+                <h2>Иерархические задачи</h2>
+                <p>Любую задачу можно разбить на подзадачи.</p>
+            </li>
+            <li>
+                <h2>Организация командного труда</h2>
+                <p>Добавляйте в проект любых людей, раздавайте им роли.</p>
+            </li>
+            <li>
+                <h2>Комментарии к задачам</h2>
+                <p>Радость человеческого общения.</p>
+            </li>
+            <li>
+                <h2>Диаграммы Ганта</h2>
+                <p>Врём, конечно, ещё диаграмм Ганта нам тут не хватало.</p>
+            </li>
+            <li>
+                <h2>Кастомизация workflow</h2>
+                <p>Можно настроить, как изменяются статусы задач в проекте.</p>
+            </li>
+            <li>
+                <h2>Markdown</h2>
+                <p>В описаниях задач и комментариях.</p>
+            </li>
+        </ul>
+    </div>
 
+    <div id="martell">MARTELL</div>
 
-{% endblock %}
+    <div id="lannister">
+        <form method="post" action="{{ url_for('users.login') }}">
+            <input type="text" name="email" placeholder="E-mail" class="form-control">
+            <input type="password" name="password" placeholder="Пароль" class="form-control">
+            <button type="submit" class="btn btn-success">Войти</button>
+            <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
+        </form>
+    </div>
+
+    <div id="tyrell">
+        <h4>Новости</h4>
+        <ul>
+            <li>
+                <strong>13 сентября.</strong>
+                Появились проекты типа &laquo;Список&raquo; — обычные линейные тудушки, ебать их в голову.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

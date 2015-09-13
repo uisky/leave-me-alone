@@ -3,6 +3,7 @@ from .. import db
 from flask_login import current_user
 import json
 import markdown
+from collections import OrderedDict
 
 
 IMPORTANCE = [
@@ -20,8 +21,8 @@ CHARACTERS = [
 ]
 
 
-PROJECT_TYPES = ('tree', 'list', 'stickers', 'bubbles')
-ENUM_PROJECT_TYPE = ENUM(*PROJECT_TYPES, name='project_type')
+PROJECT_TYPES = OrderedDict([('tree', 'Дерево'), ('list', 'Список')])
+ENUM_PROJECT_TYPE = ENUM(*PROJECT_TYPES.keys(), name='project_type')
 
 
 class Project(db.Model):

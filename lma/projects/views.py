@@ -40,6 +40,9 @@ def project_edit(project_id=None):
 
     if form.validate_on_submit():
         form.populate_obj(project)
+        print(project.__dict__)
+        return 'Ok'
+
         db.session.add(project)
         db.session.commit()
 
@@ -107,7 +110,7 @@ def set_type(project_id):
     project, membership = load_project(project_id)
 
     type_ = request.form.get('type')
-    if type_ not in PROJECT_TYPES:
+    if type_ not in PROJECT_TYPES.keys():
         abort(400)
 
     project.type = type_

@@ -1,6 +1,6 @@
 from flask_wtf import Form
 from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DateField, \
-    HiddenField
+    HiddenField, RadioField
 from wtforms import validators as v
 from .models import IMPORTANCE, CHARACTERS, PROJECT_TYPES
 
@@ -12,6 +12,7 @@ def strip_field(s):
 
 class ProjectPropertiesForm(Form):
     name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[strip_field])
+    type = RadioField('Тип', [v.required()], choices=PROJECT_TYPES)
     has_sprints = BooleanField('Использровать спринты')
 
 
