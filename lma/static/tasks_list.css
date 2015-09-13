@@ -5,6 +5,8 @@
 .tasks-list { list-style: none; margin: 0; padding: 0; }
 .tasks-list li { margin: 2px 0; padding: 5px; }
 .tasks-list li:hover { background-color: #eee; }
+.tasks-list.hide-done li.li-done,
+.tasks-list.hide-done li.li-canceled { display: none; }
 
 .tasks-list li.active { background-color: #ffefb1; }
 .tasks-list li .subj strong {

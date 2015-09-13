@@ -11,16 +11,16 @@
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
 <script type="text/javascript" src="/static/html.sortable.min.js"></script>
 <script type="text/javascript">
+var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
+
+var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
+
 var Tasks = [
 {% for task in tasks %}
     {{ task.json(membership, current_user)|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
 ]
-
-var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
-
-var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
 var IMPORTANCE = {
 {%- for i in g.IMPORTANCE %}
@@ -54,7 +54,7 @@ var CHARACTERS = {
             </div>
             <div class="col-sm-1">
                 <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
-                <button class="btn btn-success btn-xs" id="btn-task-new" title="Добавить задачу"><i class="fa fa-plus"></i></button>
+                <button type="button" class="btn btn-xs btn-success" id="btn-task-new" title="Добавить задачу"><i class="fa fa-plus"></i></button>
             </div>
             <div class="col-sm-2">
                 {% if project.has_sprints %}
@@ -65,10 +65,10 @@ var CHARACTERS = {
                 <div class="progress">
                     {% for status in g.TASK_STATUSES if status in stats %}
                         <div
-                                class="progress-bar {{ status | status_class }}"
-                                style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
-                                title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
-                                ></div>
+                            class="progress-bar {{ status | status_class }}"
+                            style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
+                            title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
+                        ></div>
                     {% endfor %}
                 </div>
             </div>

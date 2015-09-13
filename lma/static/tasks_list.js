@@ -137,7 +137,6 @@
             }
         }
         Tasks.sort(createSorter(sortby));
-        console.log('Sort by %s', sortby);
     }
 
     // Рендер списка
@@ -203,11 +202,9 @@
     // События в списке
     $ul
     .on('click', '.subj strong', function(e) {
-        console.log('Click on subj');
         killSelection();
         $(this).parents('li').find('.more').toggle();
     }).on('dblclick', '.subj strong', function(e) {
-        console.log('DblClick on subj');
         killSelection();
     }).on('click', '.action-edit', function(e) {
         e.preventDefault();
@@ -238,7 +235,6 @@
     }).on('click', 'button.action-status', function(e) {
         var $this = $(this), $li = $this.parents('li'),
             status = $this.data('set-status'), id = $li.data('id');
-        console.log('Set status %s to id %d', status, id);
         $.post(
             '/projects/' + project.id + '/' + id + '/status/',
             {status: status, ajax: 1},

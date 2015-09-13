@@ -8,6 +8,10 @@
 <script type="text/javascript" src="/static/js.cookie.js"></script>
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript">
+var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
+var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
+</script>
 {% endblock %}
 
 {% block content %}
@@ -282,4 +286,5 @@
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
+<script type="text/javascript" src="/static/tasks_tree.js"></script>
 {% endblock %}
