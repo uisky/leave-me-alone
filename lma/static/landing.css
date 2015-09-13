@@ -10,8 +10,8 @@ body { margin: 0; padding: 0; height: 100%; }
 #martell   { background: #1E1C21; top: 70%; height: 30%; }
 
 #lannister, #tyrell { right: 0; width: 300px; padding: 10px; }
-#lannister { background: #E0995F; top: 0; height: 40%; }
-#tyrell    { background: #E1D7EF; top: 40%; height: 60%; }
+#lannister { background: #E0995F; top: 0; height: 160px; }
+#tyrell    { background: #E1D7EF; top: 160px; bottom: 0; }
 
 
 #stark h1 sup { font-size: 0.5em; opacity: .5; }
