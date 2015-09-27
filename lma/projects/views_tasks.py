@@ -101,7 +101,7 @@ def tasks(project_id):
 
 @mod.route('/<int:project_id>/<int:task_id>/edit/', methods=('POST',))
 def task_edit(project_id, task_id):
-    project, _ = load_project(project_id)
+    project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
     form = forms.TaskForm(obj=task)
 
@@ -131,7 +131,10 @@ def task_edit(project_id, task_id):
     if request.form.get('ajax'):
         if form.errors:
             return jsonify({'errors': form_json_errors(form)})
-        return json.dumps(task, cls=TaskJSONEncoder, ensure_ascii=False)
+
+        resp = make_response(task.json(membership, current_user))
+        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return resp
 
     flash_errors(form)
     view_data = {'project_id': task.project_id, 'task': task.id}
@@ -142,7 +145,7 @@ def task_edit(project_id, task_id):
 
 @mod.route('/<int:project_id>/<int:task_id>/delete/', methods=('POST',))
 def task_delete(project_id, task_id):
-    project, _ = load_project(project_id)
+    project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
 
     kw = {'project_id': task.project_id}
@@ -163,7 +166,9 @@ def task_delete(project_id, task_id):
     db.session.commit()
 
     if request.form.get('ajax'):
-        return json.dumps({'id': task_id}, ensure_ascii=False)
+        resp = make_response(json.dumps({'id': task_id}))
+        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return resp
 
     return redirect(redirect_url)
 
