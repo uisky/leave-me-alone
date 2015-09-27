@@ -66,7 +66,9 @@
 
         // .subj
         function makeStatusButton(status, current_status) {
-            return $(STATUS_BUTTONS[status]).data('set-status', status).addClass('action-status status-' + current_status);
+            return $(STATUS_BUTTONS[status])
+                   .data('set-status', status)
+                   .addClass('action-status status-' + current_status);
         }
         $subj = $('<div class="subj">');
         if(task.allowed_statuses.length) {
@@ -150,6 +152,28 @@
         }
     }
 
+    // Рендер прогресс-бара
+    function renderProgressBar() {
+        var $bar = $('#progress-bar'), stats = {}, i, status, prc,
+            statuses = ['open', 'progress', 'pause', 'review', 'done', 'canceled'];
+        $bar.empty();
+        for(i in Tasks) {
+            status = Tasks[i].status
+            stats[status] = (stats[status] || 0) + 1;
+        }
+        for(i in statuses) {
+            status = statuses[i];
+            if(status in stats) {
+                prc = stats[status] / Tasks.length * 100;
+                $('<div class="progress-bar">')
+                    .addClass('status-' + status)
+                    .css('width', prc + '%')
+                    .attr('title', sprintf('%s: %d (%d%%)', status, stats[status], prc))
+                    .appendTo($bar);
+            }
+        }
+    }
+
     // jquery.forms callback для редактирования задачи
     function taskSaveCallback(data) {
         if(data.errors) {
@@ -162,6 +186,7 @@
 
         sortTasks();
         renderList();
+        renderProgressBar();
 
         $modal_edit.modal('hide');
     }
@@ -178,6 +203,7 @@
 
         sortTasks();
         renderList();
+        renderProgressBar();
 
         $modal_edit.modal('hide');
     }
@@ -195,6 +221,7 @@
                 $ul.find('[data-id=' + data.id + ']').remove();
                 Tasks.splice(i, 1);
                 $modal_edit.modal('hide');
+                renderProgressBar();
             }
         });
     }
@@ -246,6 +273,7 @@
                 sanitizeTask(data);
                 Tasks[findTaskIndex(data.id)] = data;
                 $ul.find('[data-id=' + data.id + ']').replaceWith(renderTaskLI(data));
+                renderProgressBar();
             }
         )
     });
@@ -288,4 +316,5 @@
 
     sortTasks();
     renderList();
+    renderProgressBar();
 })();

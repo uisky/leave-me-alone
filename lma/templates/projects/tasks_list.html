@@ -62,15 +62,7 @@ var CHARACTERS = {
                 {% endif %}
             </div>
             <div class="col-sm-5">
-                <div class="progress">
-                    {% for status in g.TASK_STATUSES if status in stats %}
-                        <div
-                            class="progress-bar {{ status | status_class }}"
-                            style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
-                            title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
-                        ></div>
-                    {% endfor %}
-                </div>
+                <div class="progress" id="progress-bar"></div>
             </div>
             <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
                 {% if stats['max_deadline'] %}

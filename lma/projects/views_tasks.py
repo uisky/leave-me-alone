@@ -171,7 +171,7 @@ def task_delete(project_id, task_id):
 @mod.route('/<int:project_id>/<parent_id>/subtask/', methods=('POST',))
 @mod.route('/<int:project_id>/subtask/', methods=('POST',))
 def task_subtask(project_id, parent_id=None):
-    project, _ = load_project(project_id)
+    project, membership = load_project(project_id)
     if parent_id:
         parent = Task.query.get_or_404(parent_id)
     else:
@@ -207,7 +207,9 @@ def task_subtask(project_id, parent_id=None):
     if request.form.get('ajax'):
         if form.errors:
             return jsonify({'errors': form_json_errors(form)})
-        return json.dumps(task, cls=TaskJSONEncoder, ensure_ascii=False)
+        resp = make_response(task.json(membership, current_user))
+        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return resp
 
     flash_errors(form)
     return redirect(redirect_url)
