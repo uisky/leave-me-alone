@@ -108,12 +108,12 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                     </div>
                 {% set prev_depth = task.depth %}
             {% endfor %}
-            {{ ('</li></ul>' * tasks[-1].depth) | safe }}
-            <p style="margin: 10px 0">
-                <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
-            </p>
-            </div>
+            {{ ('</li></ul>' * (tasks[-1].depth + 1)) | safe }}
+        </div>
         {% endif %}
+        <p style="margin: 10px 0">
+            <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
+        </p>
     </div>
 
 
@@ -203,7 +203,12 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {% if (project.type == 'list' and not selected) or (project.type == 'tree' and ('lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id)) %}
                 <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                     <h2>Создать подзадачу</h2>
-                    <form id="form-subtask" method="post" action="/projects/{{ project.id }}{% if selected %}/{{ selected.id }}{% endif %}/subtask" class="form-horizontal">
+                    {% if selected %}
+                        {% set url = url_for('.task_subtask', project_id=project.id, parent_id=selected.id) %}
+                    {% else %}
+                        {% set url = url_for('.task_subtask', project_id=project.id) %}
+                    {% endif %}
+                    <form id="form-subtask" method="post" action="{{ url }}" class="form-horizontal">
                         {% if project.has_sprints %}
                             <input type="hidden" name="sprint_id" value="{{ options.sprint.data }}">
                         {% endif %}
