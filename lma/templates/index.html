@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Leave Me Alone</title>
+    <link href='https://fonts.googleapis.com/css?family=PT+Serif' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="http://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="/static/landing.css">
@@ -14,44 +15,11 @@
 
 <div id="westeros">
     <div id="stark">
-        <h1>Leave Me Alone<sup>*</sup></h1>
+        <h1>Leave Me Alone</h1>
         <p>
-            Очередной трекер задач, проходите мимо, тут нет ничего интересного.
-            Подходит для организации списка покупок вместе с женой, для управления небольшим отделом программистов,
-            для планирования разных сложных дел. Ключевая фишка — иерархические задачи.
+            Трекер задач.
         </p>
     </div>
-
-    <div id="targaryen">
-        <ul>
-            <li>
-                <h2>Иерархические задачи</h2>
-                <p>Любую задачу можно разбить на подзадачи.</p>
-            </li>
-            <li>
-                <h2>Организация командного труда</h2>
-                <p>Добавляйте в проект любых людей, раздавайте им роли.</p>
-            </li>
-            <li>
-                <h2>Комментарии к задачам</h2>
-                <p>Радость человеческого общения.</p>
-            </li>
-            <li>
-                <h2>Диаграммы Ганта</h2>
-                <p>Врём, конечно, ещё диаграмм Ганта нам тут не хватало.</p>
-            </li>
-            <li>
-                <h2>Кастомизация workflow</h2>
-                <p>Можно настроить, как изменяются статусы задач в проекте.</p>
-            </li>
-            <li>
-                <h2>Markdown</h2>
-                <p>В описаниях задач и комментариях.</p>
-            </li>
-        </ul>
-    </div>
-
-    <div id="martell">MARTELL</div>
 
     <div id="lannister">
         <form method="post" action="{{ url_for('users.login') }}">
@@ -61,16 +29,8 @@
             <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
         </form>
     </div>
+</div>
 
-    <div id="tyrell">
-        <h4>Новости</h4>
-        <ul>
-            <li>
-                <strong>13 сентября.</strong>
-                Появились проекты типа &laquo;Список&raquo; — обычные линейные тудушки, ебать их в голову.
-            </li>
-        </ul>
-    </div>
 </div>
 
 </body>
