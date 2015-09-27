@@ -8,16 +8,6 @@ from ..utils import flash_errors
 from ..users.models import User
 
 
-@mod.before_request
-def load_projects():
-    if not current_user.is_authenticated():
-        return
-
-    projects = db.session.query(Project).join(ProjectMember) \
-        .filter(ProjectMember.user_id == current_user.id) \
-        .order_by(Project.created.desc()) \
-        .all()
-    g.my_projects = projects
 
 
 @mod.route('/')
@@ -114,10 +104,10 @@ def sprint_edit(project_id, sprint_id=None):
 def project_delete(project_id):
     project, membership = load_project(project_id)
 
-    project.delete()
+    db.session.delete(project)
     db.session.commit()
 
-    return redirect('/projects')
+    return redirect(url_for('.index'))
 
 
 @mod.route('/<int:project_id>/type', methods=('POST',))

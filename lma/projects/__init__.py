@@ -24,4 +24,16 @@ def set_globals():
     g.TASK_STATUSES = TASK_STATUSES
 
 
+@mod.before_request
+def load_projects():
+    if not current_user.is_authenticated():
+        return
+
+    projects = db.session.query(Project).join(ProjectMember) \
+        .filter(ProjectMember.user_id == current_user.id) \
+        .order_by(Project.created.desc()) \
+        .all()
+    g.my_projects = projects
+
+
 from . import views, views_members, views_tasks, views_history

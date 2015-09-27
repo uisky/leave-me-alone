@@ -37,8 +37,8 @@ class Project(db.Model):
     name = db.Column(db.String(64), nullable=False)
     has_sprints = db.Column(db.Boolean, nullable=False, server_default='false')
 
-    tasks = db.relationship('Task', backref='project')
-    members = db.relationship('ProjectMember', backref='project')
+    tasks = db.relationship('Task', backref='project', passive_deletes=True)
+    members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
 
     def __repr__(self):
         return '<Project %d:%s>' % (self.id or 0, self.name)
@@ -83,7 +83,7 @@ class Sprint(db.Model):
     start = db.Column(db.Date(), nullable=False, server_default=db.text('current_date'))
     finish = db.Column(db.Date(), nullable=False, server_default=db.text('current_date + 7'))
 
-    project = db.relationship('Project', backref='sprints')
+    project = db.relationship('Project', backref='sprints', passive_deletes=True)
 
 
 class ProjectMember(db.Model):
@@ -140,11 +140,11 @@ class Task(db.Model):
     description = db.Column(db.Text(), nullable=False)
     deadline = db.Column(db.DateTime(timezone=True))
 
-    user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
+    user = db.relationship('User', backref='tasks', foreign_keys=[user_id], passive_deletes=True)
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
     children = db.relationship('Task', backref=db.backref('parent', remote_side=id))
     # parent = db.relation('Task', foreign_keys=[parent_id])
-    history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created')
+    history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created', passive_deletes=True)
 
     def __str__(self):
         return '<Task %d: %s - %s>' % (self.id, self.mp, self.subject)

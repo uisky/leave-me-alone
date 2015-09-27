@@ -26,14 +26,17 @@
     <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
             <button type="submit" class="btn btn-success">
-                <span class="glyphicon glyphicon-ok"></span>
-                Сохранить
+                <span class="glyphicon glyphicon-ok"></span> Сохранить
+            </button>
+            <button type="button" class="btn btn-danger" id="btn-delete">
+                <span class="glyphicon glyphicon-ok"></span> Удалить
             </button>
         </div>
     </div>
 </form>
 
-
+<form method="post" action="{{ url_for('.project_delete', project_id=project.id) }}" id="form-delete">
+</form>
 
 
 <div class="row">
@@ -96,4 +99,17 @@
         Вы не можете изменять свойства проекта.
     </div>
 {% endif %}
+{% endblock %}
+
+
+
+{% block tail %}
+<script type="text/javascript">
+(function() {
+    $('#btn-delete').click(function(e) {
+        if(!confirm('Вы это серьёзно? Назад дороги не будет.')) return;
+        $('#form-delete').submit();
+    });
+})();
+</script>
 {% endblock %}
