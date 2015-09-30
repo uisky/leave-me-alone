@@ -13,25 +13,62 @@
 </head>
 <body>
 
-<div id="westeros">
-    <div id="stark">
-        <h1>Leave Me Alone</h1>
-        <p>
-            Трекер задач.
-        </p>
-    </div>
+<h1>Leave Me Alone</h1>
+<p>
+    Трекер задач.
+</p>
 
-    <div id="lannister">
-        <form method="post" action="{{ url_for('users.login') }}">
-            <input type="text" name="email" placeholder="E-mail" class="form-control">
-            <input type="password" name="password" placeholder="Пароль" class="form-control">
-            <button type="submit" class="btn btn-success">Войти</button>
-            <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
-        </form>
-    </div>
-</div>
+<form method="post" action="{{ url_for('users.login') }}" id="form-login">
+    <input type="text" name="email" placeholder="E-mail" class="form-control">
+    <input type="password" name="password" placeholder="Пароль" class="form-control">
+    <button type="submit" class="btn btn-success">Войти</button>
+    <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
+</form>
 
-</div>
+<div id="life"></div>
 
+<script type="text/javascript">
+(function() {
+    var $field = $('#life'), World, worldWidth = 100, worldHeight = 50;
+
+    function initWorld() {
+        World = [];
+        $field.empty();
+    }
+
+    function findCell(x, y) {
+        for(var i = 0; i < World.length; i++) {
+            if(World[i].x == x && World[i].y == y) return World[i];
+        }
+        return false;
+    }
+
+    function createCell(x, y) {
+        World.push({x: x, y: y});
+        $field.append($('<div>').css('top', y * 10).css('left', x * 10).click(cellClick));
+    }
+
+    function cellClick(e) {
+        e.stopPropagation();
+        console.log('CLICK ON CELL');
+    }
+
+    initWorld();
+
+    $field.on('click', function(e) {
+        console.log(e.target);
+
+        var x = Math.floor(e.offsetX / 10), y = Math.floor(e.offsetY / 10);
+        cell = findCell(x, y);
+        console.log('Click on cell (%d : %d) -> %s', x, y, cell);
+        if(!cell) {
+            createCell(x, y);
+        } else {
+            console.log('Remove cell');
+        }
+
+    });
+})();
+</script>
 </body>
 </html>
