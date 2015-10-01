@@ -27,48 +27,13 @@
 
 <div id="life"></div>
 
-<script type="text/javascript">
-(function() {
-    var $field = $('#life'), World, worldWidth = 100, worldHeight = 50;
+<div id="life-control">
+    <strong id="life-age"></strong>
+    <button id="btn-play-pause" type="button" class="btn btn-success"><i class="fa fa-play"></i></button>
+    <button id="btn-clear" type="button" class="btn btn-danger" title="Начать заново"><i class="fa fa-recycle"></i></button>
+    <button id="btn-dump-field" type="button" class="btn btn-success"><i class="fa fa-eye"></i></button>
+</div>
 
-    function initWorld() {
-        World = [];
-        $field.empty();
-    }
-
-    function findCell(x, y) {
-        for(var i = 0; i < World.length; i++) {
-            if(World[i].x == x && World[i].y == y) return World[i];
-        }
-        return false;
-    }
-
-    function createCell(x, y) {
-        World.push({x: x, y: y});
-        $field.append($('<div>').css('top', y * 10).css('left', x * 10).click(cellClick));
-    }
-
-    function cellClick(e) {
-        e.stopPropagation();
-        console.log('CLICK ON CELL');
-    }
-
-    initWorld();
-
-    $field.on('click', function(e) {
-        console.log(e.target);
-
-        var x = Math.floor(e.offsetX / 10), y = Math.floor(e.offsetY / 10);
-        cell = findCell(x, y);
-        console.log('Click on cell (%d : %d) -> %s', x, y, cell);
-        if(!cell) {
-            createCell(x, y);
-        } else {
-            console.log('Remove cell');
-        }
-
-    });
-})();
-</script>
+<script type="text/javascript" src="/static/life.js"></script>
 </body>
 </html>
