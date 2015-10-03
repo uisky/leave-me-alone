@@ -167,7 +167,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
                 <form id="form-setstatus"
                       method="post"
-                      action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">req
+                      action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                     <input type="hidden" name="status">
                     {% for status in selected.allowed_statuses(current_user, membership) %}
                         <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}">
