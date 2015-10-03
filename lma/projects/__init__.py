@@ -15,7 +15,7 @@ def load_project(project_id):
 
 @mod.before_request
 def check_login():
-    if not current_user.is_authenticated():
+    if not current_user.is_authenticated:
         abort(403)
 
 
@@ -26,7 +26,7 @@ def set_globals():
 
 @mod.before_request
 def load_projects():
-    if not current_user.is_authenticated():
+    if not current_user.is_authenticated:
         return
 
     projects = db.session.query(Project).join(ProjectMember) \

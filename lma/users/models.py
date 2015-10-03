@@ -22,12 +22,15 @@ class User(db.Model):
     def hash_password(data):
         return hashlib.md5((data + app.config['SECRET_KEY_PASSWORD']).encode()).digest()
 
+    @property
     def is_active(self):
         return True
 
+    @property
     def is_authenticated(self):
         return True
 
+    @property
     def is_anonymous(self):
         return False
 

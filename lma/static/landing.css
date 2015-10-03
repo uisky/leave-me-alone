@@ -22,9 +22,11 @@ p { font-family: serif;  font-style: italic; margin: 20px 0 50px; }
 #life .guide.x { width: 10px; height: 100%; border-left: 1px dotted #707; border-right: 1px dotted #707;}
 #life .guide.y { width: 100%; height: 10px; border-top: 1px dotted #707; border-bottom: 1px dotted #707; }
 
-#life table { width: 100%; height: 100%; }
+#life table { width: 100%; height: 100%; border-collapse: collapse; }
 #life table td { border: 1px solid #eee; }
+#life table td:hover { background: #ff7; }
 #life table td.alive { background: #468; }
+#life table td.alive:hover { background: #8cf; }
 
 #life-control {
     margin: 10px auto 50px;

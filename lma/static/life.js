@@ -81,18 +81,29 @@
         for(i in kill) {
             World.deleteCell(kill[i].x, kill[i].y);
         }
+        if(yield.length == 0 && kill.length == 0) {
+            stop();
+        }
+    }
+
+    function start() {
+        $btnPlayPause.removeClass('btn-success').addClass('btn-warning').html('<i class="fa fa-pause"></i>');
+        ticker = setInterval(heartbeat, 200);
+        live = true;
+    }
+
+    function stop() {
+        $btnPlayPause.removeClass('btn-warning').addClass('btn-success').html('<i class="fa fa-play"></i>');
+        clearInterval(ticker);
+        live = false;
     }
 
     // Тулбар
     $btnPlayPause.click(function(e) {
         if(live) {
-            $btnPlayPause.removeClass('btn-warning').addClass('btn-success').html('<i class="fa fa-play"></i>');
-            clearInterval(ticker);
-            live = false;
+            stop();
         } else {
-            $btnPlayPause.removeClass('btn-success').addClass('btn-warning').html('<i class="fa fa-pause"></i>');
-            ticker = setInterval(heartbeat, 200);
-            live = true;
+            start();
         }
     });
 

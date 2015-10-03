@@ -6,7 +6,7 @@ from . import app, mail
 
 @app.route('/')
 def index():
-    if current_user.is_authenticated():
+    if current_user.is_authenticated:
         return redirect(url_for('projects.index'))
     else:
         return render_template('index.html')
