@@ -143,72 +143,71 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
         <div class="tab-content">
             {# Описание задачи #}
             {% if selected %}
-            <div id="task-details" class="tab-pane active task-details">
-                <h1>{{ selected.subject }}</h1>
-                <p>
-                    Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
-                    {{ selected.user.link|safe }}
-                    {% if selected.assigned_id %}
-                        &rarr; {{ selected.assignee.link|safe }}
-                    {% endif %}
-                    {{ selected.status|status_label|safe }}
-                    {% if selected.deadline %}
-                        <p>
-                            Дедлайн:
-                            {% if selected.deadline <= g.now %}<span class="deadline late">{% endif %}
-                                {{ selected.deadline.strftime('%d.%m.%Y %H:%M') }}
-                            {% if selected.deadline <= g.now %}</span>{% endif %}
-                        </p>
-                    {% endif %}
-                </p>
-                <div class="description">
-                    {{ selected.description|markdown|safe }}
+                <div id="task-details" class="tab-pane active task-details">
+                    <h1>{{ selected.subject }}</h1>
+                    <p>
+                        Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
+                        {{ selected.user.link|safe }}
+                        {% if selected.assigned_id %}
+                            &rarr; {{ selected.assignee.link|safe }}
+                        {% endif %}
+                        {{ selected.status|status_label|safe }}
+                        {% if selected.deadline %}
+                            <p>
+                                Дедлайн:
+                                {% if selected.deadline <= g.now %}<span class="deadline late">{% endif %}
+                                    {{ selected.deadline.strftime('%d.%m.%Y %H:%M') }}
+                                {% if selected.deadline <= g.now %}</span>{% endif %}
+                            </p>
+                        {% endif %}
+                    </p>
+                    <div class="description">
+                        {{ selected.description|markdown|safe }}
+                    </div>
+
+                    <form id="form-setstatus"
+                          method="post"
+                          action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
+                        <input type="hidden" name="status">
+                        {% for status in selected.allowed_statuses(current_user, membership) %}
+                            <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}">
+                                {{ status|status_rus }}
+                            </button>
+                        {% endfor %}
+                    </form>
                 </div>
 
-                <form id="form-setstatus"
-                      method="post"
-                      action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
-                    <input type="hidden" name="status">
-                    {% for status in selected.allowed_statuses(current_user, membership) %}
-                        <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}">
-                            {{ status|status_rus }}
-                        </button>
+                {# История #}
+                <div id="task-history" class="tab-pane">
+                    <h1>История задачи</h1>
+                    <ul>
+                        <li>
+                            {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
+                            {{ selected.user.link|safe }}:
+                            Создал задачу
+                        </li>
+                    {% for hist in selected.history %}
+                        <li>
+                            {{ hist.created.strftime('%d.%m.%Y %H:%M') }}
+                            {{ hist.user.link|safe }}:
+                            {{ hist.text()|safe }}
+                        </li>
                     {% endfor %}
-                </form>
-            </div>
-
-            {# История #}
-            <div id="task-history" class="tab-pane">
-                <h1>История задачи</h1>
-                <ul>
-                    <li>
-                        {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
-                        {{ selected.user.link|safe }}:
-                        Создал задачу
-                    </li>
-                {% for hist in selected.history %}
-                    <li>
-                        {{ hist.created.strftime('%d.%m.%Y %H:%M') }}
-                        {{ hist.user.link|safe }}:
-                        {{ hist.text()|safe }}
-                    </li>
-                {% endfor %}
-                </ul>
-            </div>
-
+                    </ul>
+                </div>
             {% endif %}
 
             {# Создать подзадачу #}
             {% if 'lead' in membership.roles or 'developer' in membership.roles %}
-            {% if (project.type == 'list' and not selected) or (project.type == 'tree' and ('lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id)) %}
+            {% if 'lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id %}
                 <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
-                    <h2>Создать подзадачу</h2>
                     {% if selected %}
                         {% set url = url_for('.task_subtask', project_id=project.id, parent_id=selected.id) %}
                     {% else %}
                         {% set url = url_for('.task_subtask', project_id=project.id) %}
                     {% endif %}
                     <form id="form-subtask" method="post" action="{{ url }}" class="form-horizontal">
+                        <h2>Создать подзадачу</h2>
                         {% if project.has_sprints %}
                             <input type="hidden" name="sprint_id" value="{{ options.sprint.data }}">
                         {% endif %}
@@ -229,7 +228,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {# Редактор задачи #}
             {% if selected and 'lead' in membership.roles or selected.user_id == current_user.id %}
             <div id="task-edit" class="tab-pane">
-                <form id="form-edit" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/edit" class="form-horizontal">
+                <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal">
                     <h2>Редактировать задачу</h2>
                     {% set edit_form = form_edit %}
                     {% set edit_task = selected %}
@@ -252,7 +251,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                     </div>
                 </form>
 
-                <form id="form-delete" method="post" action="/projects/{{ project.id }}/{{ selected.id }}/delete"></form>
+                <form id="form-delete" method="post" action="{{ url_for('.task_delete', project_id=project.id, task_id=selected.id) }}"></form>
 
                 <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, task_id=selected.id) }}">
                     <h2>Переместить ветку</h2>
