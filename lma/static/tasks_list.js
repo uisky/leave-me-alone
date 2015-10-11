@@ -132,9 +132,15 @@
                 return function(a, b) {
                     return a.mp[0] - b.mp[0];
                 }
+            } else if(param == 'deadline') {
+                return function(a, b) {
+                    if(a[param] == null && b[param] != null) return 1;
+                    else if(a[param] != null && b[param] == null) return -1;
+                    return a[param] - b[param];
+                }
             } else {
                 return function(a, b) {
-                    return b[param] - a[param]
+                    return b[param] - a[param];
                 }
             }
         }
