@@ -111,9 +111,11 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {{ ('</li></ul>' * (tasks[-1].depth + 1)) | safe }}
         </div>
         {% endif %}
+        {% if membership.can('subtask') %}
         <p style="margin: 10px 0">
             <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
         </p>
+        {% endif %}
     </div>
 
 
@@ -130,10 +132,10 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                 <li><a href="#task-history" data-toggle="tab">История</a></li>
             {% endif %}
             {% if 'lead' in membership.roles or 'developer' in membership.roles %}
-                {% if project.type == 'tree' and ('lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id) %}
+                {% if membership.can('subtask', selected) %}
                     <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
                 {% endif %}
-                {% if selected and 'lead' in membership.roles or selected.user_id == current_user.id %}
+                {% if membership.can('edit', selected) %}
                     <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
                 {% endif %}
             {% endif %}
@@ -198,8 +200,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {% endif %}
 
             {# Создать подзадачу #}
-            {% if 'lead' in membership.roles or 'developer' in membership.roles %}
-            {% if 'lead' in membership.roles or selected.user_id == current_user.id or selected.assigned_id == current_user.id %}
+            {% if membership.can('subtask', selected) %}
                 <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                     {% if selected %}
                         {% set url = url_for('.task_subtask', project_id=project.id, parent_id=selected.id) %}
@@ -226,7 +227,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {% endif %}
 
             {# Редактор задачи #}
-            {% if selected and 'lead' in membership.roles or selected.user_id == current_user.id %}
+            {% if membership.can('edit', selected) %}
             <div id="task-edit" class="tab-pane">
                 <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal">
                     <h2>Редактировать задачу</h2>
@@ -280,7 +281,6 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                     </button>
                 </form>
             </div>
-            {% endif %}
             {% endif %}
         </div>
     </div>

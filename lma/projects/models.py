@@ -83,7 +83,7 @@ class Sprint(db.Model):
     start = db.Column(db.Date(), nullable=False, server_default=db.text('current_date'))
     finish = db.Column(db.Date(), nullable=False, server_default=db.text('current_date + 7'))
 
-    project = db.relationship('Project', backref='sprints', passive_deletes=True)
+    project = db.relationship('Project', backref='sprints')
 
 
 class ProjectMember(db.Model):
@@ -107,6 +107,26 @@ class ProjectMember(db.Model):
 
     # last_seen = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
     # seen_tasks = int, seen_my_tasks = int  - для отслеживания количества новых тасков
+
+    def can(self, what, task=None):
+        print('\033[35mProjectMember.can("%s")\033[0m' % what)
+
+        if what == 'subtask':
+            if 'lead' in self.roles:
+                return True
+            if 'developer' in self.roles and task and \
+                    (task.assigned_id == self.user.id or task.assigned_id == self.user.id):
+                return True
+
+        if what == 'edit':
+            if task is None:
+                return False
+            if 'lead' in self.roles:
+                return True
+            if 'developer' in self.roles and task and task.user_id == self.user.id:
+                return True
+
+        return False
 
 
 TASK_STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')

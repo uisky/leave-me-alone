@@ -103,6 +103,10 @@ def tasks(project_id):
 def task_edit(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
+
+    if not membership.can('edit', task):
+        abort(403, 'Вы не можете редактировать эту задачу.')
+
     form = forms.TaskForm(obj=task)
 
     if form.validate_on_submit():
@@ -181,8 +185,11 @@ def task_subtask(project_id, parent_id=None):
         parent = Task.query.get_or_404(parent_id)
     else:
         parent = None
-    task = Task(project_id=project.id, user_id=current_user.id, status='open')
 
+    if not membership.can('subtask', parent):
+        abort(403, 'Вы не можете создавать подзадачи к этой задаче.')
+
+    task = Task(project_id=project.id, user_id=current_user.id, status='open')
     form = forms.TaskForm(obj=task)
 
     # Строим URL, куда пойти после добавления задачи
@@ -367,3 +374,11 @@ def reorder_tasks(project_id):
     db.session.commit()
 
     return 'ok'
+
+
+@mod.route('/<int:project_id>/<int:task_id>/history')
+def task_history(project_id, task_id):
+    project, membership = load_project(project_id)
+    task = Task.query.get_or_404(task_id)
+
+    return 'History for %s' % task.subject
