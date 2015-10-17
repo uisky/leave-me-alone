@@ -33,7 +33,7 @@ def tasks(project_id):
         if status:
             while task.parent_id:
                 if task.parent_id not in tasks:
-                    print('\033[31mСтранно, у задачи %d не найден родитель (%d)' % (task.id, task.parent_id))
+                    print('\033[31mСтранно, у задачи %d не найден родитель (%d)\033[0m' % (task.id, task.parent_id))
                     continue
 
                 parent = tasks[task.parent_id]
@@ -258,6 +258,33 @@ def task_status(project_id, task_id):
         return resp
 
     return redirect(url_for('.tasks', **kw))
+
+
+@mod.route('/<int:project_id>/<int:task_id>/sprint/', methods=('POST',))
+def task_sprint(project_id, task_id):
+    def check():
+        if 'lead' in membership.roles and task.parent_id is None:
+            return True
+        return False
+
+    project, membership = load_project(project_id)
+    task = Task.query.get_or_404(task_id)
+
+    if check():
+        task.sprint_id = request.form.get('sprint_id', type=int)
+        if task.sprint_id == 0:
+            task.sprint_id = None
+        db.session.execute(
+            'UPDATE tasks SET sprint_id = :sprint_id WHERE project_id = :project_id AND mp[1] = :mp',
+            {
+                'sprint_id': task.sprint_id,
+                'project_id': project.id,
+                'mp': task.mp[0]
+            }
+        )
+        db.session.commit()
+
+    return redirect(url_for('.tasks', **{'project_id': task.project_id, 'task': task.id, 'sprint': task.sprint_id}))
 
 
 @mod.route('/<int:project_id>/<int:task_id>/chparent', methods=('POST',))

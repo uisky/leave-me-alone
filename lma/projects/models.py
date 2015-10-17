@@ -109,8 +109,6 @@ class ProjectMember(db.Model):
     # seen_tasks = int, seen_my_tasks = int  - для отслеживания количества новых тасков
 
     def can(self, what, task=None):
-        print('\033[35mProjectMember.can("%s")\033[0m' % what)
-
         if what == 'subtask':
             if 'lead' in self.roles:
                 return True

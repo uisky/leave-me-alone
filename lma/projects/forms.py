@@ -34,7 +34,7 @@ class TaskForm(Form):
     subject = StringField('Пароль', [v.required(message='Опишите задачу.')], filters=[strip_field])
     description = TextAreaField('Ник', [v.optional()])
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
-    assigned_id = IntegerField('исполнитель', [v.optional()])
+    assigned_id = IntegerField('Исполнитель', [v.optional()])
     importance = SelectField('Важность', [v.optional()],
                              choices=[(x['id'], x['name']) for x in IMPORTANCE],
                              coerce=int)

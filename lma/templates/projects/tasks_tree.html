@@ -234,6 +234,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                     {% set edit_form = form_edit %}
                     {% set edit_task = selected %}
                     {% include 'projects/_task_edit.html' %}
+
                     <div class="form-group">
                         <div class="col-sm-offset-1 col-sm-11">
                             <button type="submit" class="btn btn-success">
@@ -243,11 +244,17 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                                 <span class="glyphicon glyphicon-remove"></span> Удалить
                             </button>
                             <button type="button" class="btn btn-info" id="btn-chparent">
-                                <span class="glyphicon glyphicon-share-alt"></span> Сменить надзадачу
+                                <span class="fa fa-share-alt"></span> Сменить надзадачу
                             </button>
                             <button type="button" class="btn btn-info" id="btn-swap">
-                                <span class="glyphicon glyphicon-random"></span> Поменять местами
+                                <span class="fa fa-random"></span> Поменять местами
                             </button>
+
+                            {% if project.has_sprints and selected.parent_id == None %}
+                            <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint">
+                                <span class="fa fa-map"></span> В другой спринт
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
                 </form>
@@ -280,6 +287,29 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         <span class="glyphicon glyphicon-remove"></span> Отмена
                     </button>
                 </form>
+
+                {% if project.has_sprints %}
+                <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
+                            <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title" id="myModalLabel">Перенести ветку в другой спринт</h4>
+                            </div>
+                            <div class="modal-body">
+                                <select name="sprint_id" class="form-control">
+                                    {% for id, name in options.sprint.choices %}
+                                    <option value="{{ id }}" {% if selected.sprint_id|default(0, true) == id %} selected {% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                                <button type="submit" class="btn btn-primary">Ok</button>
+                            </div>
+                            </div></div></div>
+                            </form>
+                {% endif %}
+
             </div>
             {% endif %}
         </div>
