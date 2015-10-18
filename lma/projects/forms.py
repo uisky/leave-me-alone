@@ -47,3 +47,10 @@ class SprintPropertiesForm(Form):
     name = StringField('Название', [v.required(message='У спринта должно быть название')], filters=[strip_field])
     start = DateField('Начало', [v.optional()], format='%d.%m.%Y')
     finish = DateField('Конец', [v.optional()], format='%d.%m.%Y')
+
+
+class KarmaRecordForm(Form):
+    value = SelectField('Оценка', [v.required(message='Поставьте оценку')],
+                        choices=[(-2, '-2'), (-1, '-1'), (0, ''), (1, '+1'), (2, '+2')],
+                        coerce=int)
+    comment = TextAreaField('Обоснование', [v.required(message='Обоснуйте.')], filters=[strip_field])

@@ -95,3 +95,34 @@ def member(project_id, member_id):
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
     return render_template('projects/member.html', project=project, member=member, tasks=tasks, statuses=TASK_STATUSES)
+
+
+@mod.route('/<int:project_id>/members/<int:member_id>/karma', methods=('GET', 'POST'))
+def karma(project_id, member_id):
+    project, membership = load_project(project_id)
+    member = ProjectMember.query.get_or_404((member_id, project_id))
+    karma = KarmaRecord.query\
+        .filter_by(project_id=project.id, to_id=member.user_id)\
+        .order_by(KarmaRecord.created.desc())\
+        .paginate(request.args.get('page', 1), 20)
+
+    form = forms.KarmaRecordForm(value=0)
+
+    if form.validate_on_submit():
+        rec = KarmaRecord(project_id=project.id, from_id=current_user.id, to_id=member.user_id)
+        form.populate_obj(rec)
+        db.session.add(rec)
+
+        db.session.execute(
+            'UPDATE project_members SET karma = karma + :value WHERE project_id = :project_id and user_id = :member_id',
+            {'value': rec.value, 'project_id': project.id, 'member_id': member.user_id}
+        )
+
+        db.session.commit()
+        flash('Ваша оценка юзеру %s навеки впечатана в его репутацию.' % member.user.name, 'success')
+        return redirect(url_for('.members', project_id=project.id))
+    else:
+        flash_errors(form)
+
+    return render_template('projects/karma.html',
+                           project=project, membership=membership, member=member, karma=karma, form=form)

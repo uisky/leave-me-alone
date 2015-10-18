@@ -24,6 +24,9 @@ CHARACTERS = [
 PROJECT_TYPES = OrderedDict([('tree', 'Дерево'), ('list', 'Список')])
 ENUM_PROJECT_TYPE = ENUM(*PROJECT_TYPES.keys(), name='project_type')
 
+TASK_STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
+ENUM_TASK_STATUS = ENUM(*TASK_STATUSES, name='task_status')
+
 
 class Project(db.Model):
     __tablename__ = 'projects'
@@ -102,6 +105,7 @@ class ProjectMember(db.Model):
                            nullable=False, primary_key=True, index=True)
     added = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
     roles = db.Column(ARRAY(db.String(16), zero_indexes=True))
+    karma = db.Column(db.Integer, nullable=False, default=0, server_default='0')
 
     user = db.relationship('User', backref='membership')
 
@@ -127,8 +131,21 @@ class ProjectMember(db.Model):
         return False
 
 
-TASK_STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
-ENUM_TASK_STATUS = ENUM(*TASK_STATUSES, name='task_status')
+class KarmaRecord(db.Model):
+    __tablename__ = 'karma_records'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+    project_id = db.Column(db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
+                           nullable=False, index=True)
+    from_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False, index=True)
+    to_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+                      nullable=False, index=True)
+    comment = db.Column(db.Text, nullable=False)
+    value = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+
+    from_user = db.relationship('User', backref='karma_records', foreign_keys=[from_id])
 
 
 class Task(db.Model):
@@ -158,7 +175,7 @@ class Task(db.Model):
     description = db.Column(db.Text(), nullable=False)
     deadline = db.Column(db.DateTime(timezone=True))
 
-    user = db.relationship('User', backref='tasks', foreign_keys=[user_id], passive_deletes=True)
+    user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
     children = db.relationship('Task', backref=db.backref('parent', remote_side=id))
     # parent = db.relation('Task', foreign_keys=[parent_id])
@@ -368,14 +385,16 @@ class TaskHistory(db.Model):
         )
 
 
-class TaskComment(db.Model):
-    __tablename__ = 'task_comments'
+# class TaskComment(db.Model):
+#     __tablename__ = 'task_comments'
+#
+#     id = db.Column(db.Integer(), primary_key=True)
+#     created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+#
+#     task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
+#                         nullable=False, index=True)
+#     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+#                         nullable=False, index=True)
+#     body = db.Column(db.Text, nullable=False)
 
-    id = db.Column(db.Integer(), primary_key=True)
-    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
 
-    task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False, index=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False, index=True)
-    body = db.Column(db.Text, nullable=False)

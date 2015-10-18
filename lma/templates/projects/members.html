@@ -2,6 +2,12 @@
 
 {% extends 'project.html' %}
 
+{% block head %}
+<style type="text/css">
+    td.karma-col, th.karma-col { background: #e0e0e0; }
+</style>
+{% endblock %}
+
 {% block content %}
 <h1>Команда</h1>
 
@@ -11,6 +17,10 @@
         <th></th>
         <th>Добавлен</th>
         <th>Участник</th>
+        <th class="karma-col">
+            Карма
+            <a href="#modal-help-karma" data-toggle="modal" title="WTF is karma?"><i class="fa fa-question-circle"></i></a>
+        </th>
         <th>Роли</th>
         {% if project.user_id == current_user.id %}<th></th>{% endif %}
     </tr>
@@ -21,7 +31,12 @@
     <tr>
         <td>{{ loop.index }}</td>
         <td>{{ member.added.strftime('%d.%m.%Y %H:%M') }}</td>
-        <td><a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a></td>
+        <td>
+            <a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a>
+        </td>
+        <td class="karma-col">
+            <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma }}</a>
+        </td>
         <td>
             {% for role in member.roles %}
                 <span class="label label-{{ role_classes.get(role, 'default') }}">
@@ -92,5 +107,21 @@
 {% endif %}
 
 {% endif %}
+
+<div class="modal fade" id="modal-help-karma" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4 class="modal-title" id="myModalLabel">Что такое карма?</h4>
+</div>
+<div class="modal-body">
+    <p>
+        Правила игры просты. Вождь проекта может ставить остальным участникам аргументированные оценки: -2, -1, 1 или 2.
+        Остальные участники могут также аргументированно срать в карму вождю.
+    </p>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+</div>
+</div></div></div>
 
 {% endblock %}

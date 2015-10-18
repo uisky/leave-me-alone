@@ -1,0 +1,63 @@
+{% extends 'project.html' %}
+
+{% block head %}
+<style type="text/css">
+    .karma-list { padding: 0; margin: 40px 0; list-style: none; }
+    .karma-list li { clear: both; }
+    .karma-list .karma-value { float: left; width: 50px; height: 100px; margin: 0 20px 0 0; font-size: 30px;}
+    .karma-list .karma-comment {}
+    .karma-list .karma-meta {}
+    .karma--2 { color: #f00; }
+    .karma--1 { color: #700; }
+    .karma-1 { color: #070; }
+    .karma-2 { color: #0f0; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<h1>Карма {{ member.user.name }} в {{ project.name }} = {{ member.karma }}</h1>
+
+{% if karma.total == 0 %}
+<div class="alert alert-info">
+    {{ member.user.name }} ещё не получал оценок в карму в этом проекте.
+</div>
+{% else %}
+<ul class="karma-list">
+{% for row in karma.items %}
+    <li>
+        <p class="karma-value karma-{{ row.value }}">{{ row.value }}</p>
+        <p class="karma-comment">{{ row.comment }}</p>
+        <p class="karma-meta">
+            {{ row.created.strftime('%d.%m.%Y %H:%M') }} — {{ row.from_user.name }}
+        </p>
+    </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if 'lead' in membership.roles and member.user_id != current_user.id %}
+<p>Раз вы — вождь проекта, можете насрать в карму этому работнику.</p>
+<form method="post" class="form-horizontal">
+    {{ form.csrf_token() }}
+    <div class="col-sm-2">
+        {{ form.value(class='form-control') }}
+        <i>оценка</i>
+    </div>
+    <div class="col-sm-9">
+        {{ form.comment(class='form-control', rows=4) }}
+    </div>
+    <div class="col-sm-1">
+        <button type="submit" class="btn btn-primary">Ok</button>
+    </div>
+</form>
+{% endif %}
+{% endblock %}
+
+
+{% block tail %}
+<script type="text/javascript">
+(function() {
+})();
+</script>
+{% endblock %}
