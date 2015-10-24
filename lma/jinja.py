@@ -1,10 +1,13 @@
-import markdown, json
+import markdown
+import json
+from flask import Markup
 from . import app
 from .projects.models import IMPORTANCE, CHARACTERS, TaskJSONEncoder
 
 
 _importance_icons = {x['id']: x['icon'] for x in IMPORTANCE}
 _character_icons = {x['id']: x['icon'] for x in CHARACTERS}
+
 
 @app.template_filter('markdown')
 def jinja_markdown(x):
@@ -13,11 +16,6 @@ def jinja_markdown(x):
 
 @app.template_filter('status_class')
 def jinja_status_class(x):
-    # classes = {
-    #     'open': 'info', 'progress': 'success', 'pause': 'warning',
-    #     'review': 'primary', 'done': 'default', 'canceled': 'default'
-    # }
-    # return classes.get(x, 'default')
     return 'status-%s' % x
 
 
@@ -32,7 +30,7 @@ def jinja_status_rus(x):
 
 @app.template_filter('status_label')
 def jinga_status_label(x):
-    return '<label class="label %s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x))
+    return Markup('<label class="label %s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x)))
 
 
 @app.template_filter('importance_icon')
@@ -48,3 +46,13 @@ def character_icon(x):
 @app.template_filter('taskjson')
 def taskjson(task):
     return json.dumps(task, cls=TaskJSONEncoder, ensure_ascii=False)
+
+
+@app.template_filter('minus')
+def minus(x):
+    return str(x).replace('-', '−')
+
+
+@app.template_filter('nl2br')
+def nl2br(x):
+    return Markup(x.replace('\n', '<br>'))

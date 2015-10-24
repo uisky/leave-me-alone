@@ -4,14 +4,18 @@
 
 {% block head %}
 <style type="text/css">
-    td.karma-col, th.karma-col { background: #e0e0e0; }
+    .table-members td, .table-members th { white-space: nowrap; }
+    .table-members td.name { width: 100%; white-space: normal; }
+    .table-members td.karma-col, th.karma-col { background: #e0e0e0; text-align: center; }
+    .table-members td.karma-col a { text-decoration: none; }
+    .table-members td.karma-col a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
 {% block content %}
 <h1>Команда</h1>
 
-<table class="table table-bordered">
+<table class="table table-bordered table-members">
     <thead>
     <tr>
         <th></th>
@@ -27,21 +31,22 @@
     </thead>
     <tbody>
     {% set role_classes = {'lead': 'warning', 'developer': 'info', 'tester': 'success' } %}
-    {% for member in project.members %}
+    {% for member in members %}
     <tr>
         <td>{{ loop.index }}</td>
         <td>{{ member.added.strftime('%d.%m.%Y %H:%M') }}</td>
-        <td>
+        <td class="name">
             <a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a>
         </td>
         <td class="karma-col">
-            <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma }}</a>
+            <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma|minus }}</a>
         </td>
         <td>
             {% for role in member.roles %}
                 <span class="label label-{{ role_classes.get(role, 'default') }}">
                     {{ g.role_meanings.get(role, role) }}
                 </span>
+                &nbsp;
             {% endfor %}
         </td>
         {% if project.user_id == current_user.id %}
@@ -57,7 +62,6 @@
 </table>
 
 {% if project.user_id == current_user.id %}
-
 <form method="post">
     {% if editing.user_id %}
         <h2>{{ editing.user.name }}</h2>

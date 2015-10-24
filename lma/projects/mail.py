@@ -57,3 +57,13 @@ def mail_changed(project, task, hist):
     )
 
 
+def mail_karma(record):
+    msg_text = """Здравствуйте!
+
+Некто %s поставил вам в карму оценку "%d", прокомментировав свой поступок так: "%s"
+    """ % (record.from_user.name, record.value, record.comment)
+    mail.send_message(
+        subject='Оценка в карму (%d) от %s' % (record.value, record.from_user.name),
+        recipients=[record.to_user.email],
+        body=msg_text
+    )

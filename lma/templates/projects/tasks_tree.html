@@ -81,7 +81,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         {% if task.children_statuses %}
                             <small>{{ task.children_statuses['complete'] }}%</small>
                         {% else %}
-                            {{ task.status|status_label|safe }}
+                            {{ task.status|status_label }}
                         {% endif %}
                     </div>
 
@@ -153,7 +153,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         {% if selected.assigned_id %}
                             &rarr; {{ selected.assignee.link|safe }}
                         {% endif %}
-                        {{ selected.status|status_label|safe }}
+                        {{ selected.status|status_label }}
                         {% if selected.deadline %}
                             <p>
                                 Дедлайн:

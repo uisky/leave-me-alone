@@ -1,12 +1,14 @@
 {% extends 'project.html' %}
+{% set menu_current = 'members' %}
 
 {% block head %}
 <style type="text/css">
-    .karma-list { padding: 0; margin: 40px 0; list-style: none; }
-    .karma-list li { clear: both; }
-    .karma-list .karma-value { float: left; width: 50px; height: 100px; margin: 0 20px 0 0; font-size: 30px;}
-    .karma-list .karma-comment {}
-    .karma-list .karma-meta {}
+    .karma-list { padding: 0; margin: 40px 0;}
+    .karma-list .karma-row { border-bottom: 1px dashed #ccc; margin-bottom: 10px; }
+    .karma-list .karma-value { font-size: 30px; text-align: center; }
+    .karma-list .karma-info {}
+    .karma-list .karma-info .meta { font-size: .8em;}
+    .karma-list .karma-info .comment {}
     .karma--2 { color: #f00; }
     .karma--1 { color: #700; }
     .karma-1 { color: #070; }
@@ -16,28 +18,41 @@
 
 
 {% block content %}
-<h1>Карма {{ member.user.name }} в {{ project.name }} = {{ member.karma }}</h1>
+<h1>
+    Карма {{ member.user.name }} в {{ project.name }} =
+    <span class="karma-{{ member.karma }}">{{ member.karma|minus }}</span>
+</h1>
 
 {% if karma.total == 0 %}
 <div class="alert alert-info">
     {{ member.user.name }} ещё не получал оценок в карму в этом проекте.
 </div>
 {% else %}
-<ul class="karma-list">
+<div class="karma-list">
 {% for row in karma.items %}
-    <li>
-        <p class="karma-value karma-{{ row.value }}">{{ row.value }}</p>
-        <p class="karma-comment">{{ row.comment }}</p>
-        <p class="karma-meta">
-            {{ row.created.strftime('%d.%m.%Y %H:%M') }} — {{ row.from_user.name }}
-        </p>
-    </li>
+    <div class="row karma-row">
+        <div class="col-sm-1 karma-value karma-{{ row.value }}">{{ row.value }}</div>
+        <div class="col-sm-11 karma-info">
+            <p class="meta">
+                {{ row.created.strftime('%d.%m.%Y %H:%M') }} — от {{ row.from_user.name }}
+            </p>
+            <p class="comment">{{ row.comment|nl2br }}</p>
+        </div>
+    </div>
 {% endfor %}
-</ul>
+</div>
 {% endif %}
 
-{% if 'lead' in membership.roles and member.user_id != current_user.id %}
+{%
+    if member.user_id != current_user.id and
+        ('lead' in membership.roles or 'lead' in member.roles)
+%}
+{% if 'lead' in membership.roles %}
 <p>Раз вы — вождь проекта, можете насрать в карму этому работнику.</p>
+{% else %}
+<p>Вы можете насрать в карму вождю.</p>
+{% endif %}
+
 <form method="post" class="form-horizontal">
     {{ form.csrf_token() }}
     <div class="col-sm-2">

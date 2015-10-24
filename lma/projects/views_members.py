@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from datetime import datetime
 import pytz
 
-from . import mod, forms, load_project
+from . import mod, forms, load_project, mail
 from .models import *
 from .. import app, db
 from ..utils import flash_errors
@@ -55,7 +55,13 @@ def members(project_id):
 
     g.role_meanings = ProjectMember.role_meanings
 
-    return render_template('projects/members.html', project=project, editing=editing)
+    members = ProjectMember.query\
+        .filter(ProjectMember.project_id == project.id)\
+        .order_by(ProjectMember.karma.desc(), ProjectMember.added)\
+        .options(db.joinedload('user'))\
+        .all()
+
+    return render_template('projects/members.html', project=project, members=members, editing=editing)
 
 
 @mod.route('/<int:project_id>/members/delete/', methods=['POST'])
@@ -88,13 +94,18 @@ def member(project_id, member_id):
 
     if request.args.get('status'):
         statuses = request.args.get('status').split(',')
-        tasks = tasks.filter(Task.status.in_(statuses))
+    else:
+        statuses = ['open', 'progress', 'pause', 'review']
+    tasks = tasks.filter(Task.status.in_(statuses))
 
     tasks = tasks.all()
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
-    return render_template('projects/member.html', project=project, member=member, tasks=tasks, statuses=TASK_STATUSES)
+    return render_template(
+        'projects/member.html',
+        project=project, member=member, tasks=tasks, statuses=statuses, TASK_STATUSES=TASK_STATUSES
+    )
 
 
 @mod.route('/<int:project_id>/members/<int:member_id>/karma', methods=('GET', 'POST'))
@@ -119,6 +130,9 @@ def karma(project_id, member_id):
         )
 
         db.session.commit()
+
+        mail.mail_karma(rec)
+
         flash('Ваша оценка юзеру %s навеки впечатана в его репутацию.' % member.user.name, 'success')
         return redirect(url_for('.members', project_id=project.id))
     else:

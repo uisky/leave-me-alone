@@ -16,10 +16,9 @@
     </a>
     <div class="form-group">
         <input type="hidden" name="status" value="{{ request.args.get('status') }}">
-        {% set selected = request.args.get('status', '').split(',') %}
-        {% for st in statuses %}
+        {% for st in TASK_STATUSES %}
             <button type="button"
-                    class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
+                    class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in statuses %}active{% endif %}"
                     data-status="{{ st }}">
                 {{ st|status_rus }}
             </button>
@@ -43,7 +42,7 @@
     {% for task in tasks %}
     <tr>
         <td>{{ task.created.strftime('%d.%m.%Y %H:%M') }}</td>
-        <td>{{ task.status|status_label|safe }}</td>
+        <td>{{ task.status|status_label }}</td>
         <td>
             <a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.path }}</a>
             {{ task.importance|importance_icon|safe }}

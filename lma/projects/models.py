@@ -145,7 +145,8 @@ class KarmaRecord(db.Model):
     comment = db.Column(db.Text, nullable=False)
     value = db.Column(db.Integer, nullable=False, default=0, server_default='0')
 
-    from_user = db.relationship('User', backref='karma_records', foreign_keys=[from_id])
+    from_user = db.relationship('User', backref='karma_given', foreign_keys=[from_id])
+    to_user = db.relationship('User', backref='karma_received', foreign_keys=[to_id])
 
 
 class Task(db.Model):
