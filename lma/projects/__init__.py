@@ -10,6 +10,24 @@ def load_project(project_id):
     membership = ProjectMember.query.filter_by(project_id=project.id, user_id=current_user.id).first()
     if not membership:
         abort(403)
+
+    g.my_tasks_count = {}
+    r = db.session.execute(
+        """
+        SELECT status, count(*) FROM tasks
+        WHERE
+            project_id = :project_id AND
+            (assigned_id = :me OR assigned_id is null and user_id = :me) AND
+            status in ('open', 'progress', 'pause', 'review')
+        GROUP BY status
+        """,
+        {'project_id': project.id, 'me': current_user.id}
+    )
+    for status, count in r:
+        g.my_tasks_count[status] = count
+
+    print(g.my_tasks_count)
+
     return project, membership
 
 

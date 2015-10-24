@@ -56,3 +56,16 @@ def minus(x):
 @app.template_filter('nl2br')
 def nl2br(x):
     return Markup(x.replace('\n', '<br>'))
+
+
+@app.template_filter('my_tasks_count')
+def my_tasks_count(data):
+    x = []
+    for status, count in data.items():
+        if status in ('open', 'progress', 'pause', 'review'):
+            x.append('<span class="label %s">%d</span>' % (jinja_status_class(status), count))
+    if x:
+        return Markup(' ' + ' '.join(x))
+    else:
+        return ''
+
