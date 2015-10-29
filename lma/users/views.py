@@ -17,9 +17,6 @@ def index():
 def login():
     user = User.query.filter_by(email=request.form.get('email', '')).first()
 
-    if user:
-        print('%r == %r' % (User.hash_password(request.form.get('password', '')), user.password_hash))
-
     if user and User.hash_password(request.form.get('password', '')) == user.password_hash:
         login_user(user)
         return redirect('/projects')

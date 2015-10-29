@@ -20,12 +20,13 @@
     <tr>
         <th></th>
         <th>Добавлен</th>
+        <th>Роли</th>
         <th>Участник</th>
+        <th>Задачи</th>
         <th class="karma-col">
             Карма
             <a href="#modal-help-karma" data-toggle="modal" title="WTF is karma?"><i class="fa fa-question-circle"></i></a>
         </th>
-        <th>Роли</th>
         {% if project.user_id == current_user.id %}<th></th>{% endif %}
     </tr>
     </thead>
@@ -35,12 +36,6 @@
     <tr>
         <td>{{ loop.index }}</td>
         <td>{{ member.added.strftime('%d.%m.%Y %H:%M') }}</td>
-        <td class="name">
-            <a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a>
-        </td>
-        <td class="karma-col">
-            <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma|minus }}</a>
-        </td>
         <td>
             {% for role in member.roles %}
                 <span class="label label-{{ role_classes.get(role, 'default') }}">
@@ -48,6 +43,19 @@
                 </span>
                 &nbsp;
             {% endfor %}
+        </td>
+        <td class="name">
+            <a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a>
+        </td>
+        <td>
+            {% if stat[member.user_id] %}
+            {% for status, count in stat[member.user_id]|dictsort %}
+                <span class="label {{ status|status_class }}" title="{{ status|status_rus }}">{{ count }}</span>
+            {% endfor %}
+            {% endif %}
+        </td>
+        <td class="karma-col">
+            <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma|minus }}</a>
         </td>
         {% if project.user_id == current_user.id %}
         <td>

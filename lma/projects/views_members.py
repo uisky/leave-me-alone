@@ -61,7 +61,16 @@ def members(project_id):
         .options(db.joinedload('user'))\
         .all()
 
-    return render_template('projects/members.html', project=project, members=members, editing=editing)
+    stat = {}
+    r = db.session.execute(
+        "SELECT coalesce(assigned_id, user_id) worker_id, status, count(*) n FROM tasks WHERE project_id = :project_id AND status is not null GROUP BY worker_id, status",
+        {'project_id': project.id}
+    )
+    for row in r:
+        stat.setdefault(row['worker_id'], {})
+        stat[row['worker_id']][row['status']] = row['n']
+
+    return render_template('projects/members.html', project=project, members=members, editing=editing, stat=stat)
 
 
 @mod.route('/<int:project_id>/members/delete/', methods=['POST'])
