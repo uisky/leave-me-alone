@@ -45,7 +45,7 @@ def project_add():
 @mod.route('/<int:project_id>/edit/', methods=('GET', 'POST'), endpoint='project_edit')
 def project_edit(project_id=None):
     if project_id:
-        project = Project.query.get_or_404(project_id)
+        project, membership = load_project(project_id)
         if project.user_id != current_user.id:
             abort(403)
     else:
