@@ -26,8 +26,6 @@ def load_project(project_id):
     for status, count in r:
         g.my_tasks_count[status] = count
 
-    print(g.my_tasks_count)
-
     return project, membership
 
 
