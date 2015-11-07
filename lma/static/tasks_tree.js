@@ -102,4 +102,35 @@
     // Разворачиваем ветку с текущей задачей
     $tree.find('.active').parents('li.collapsed').children('.toggler').click();
 
+    // Комменты
+    $('#tabs-task a[href=#task-comments]').on('shown.bs.tab', function() {
+        var $tab = $('#task-comments');
+
+        function init_comments() {
+            $tab.find('#form-comment').ajaxForm({
+                success: function(data) {
+                    $tab.find('ul.comments').append(data);
+                    $tab.find('div.comments-empty-message').hide();
+                },
+                clearForm: true
+            }).keypress(function(e) {
+                if(e.ctrlKey && (e.which == 10 || e.which == 13)) {
+                    $(this).submit();
+                }
+            });
+
+            // Убираем мигающий значок о новых комментариях
+            $tree.find('.task.active .cnt-comments').remove()
+        }
+
+        var LOAD_COMMENTS_ONLY_ONCE = false;
+        if(LOAD_COMMENTS_ONLY_ONCE) {
+            if($tab.find('.wait-stub').length) {
+                $tab.load($tab.data('url'), init_comments);
+            }
+        } else {
+            $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
+            $tab.load($tab.data('url'), init_comments);
+        }
+    });
 })();

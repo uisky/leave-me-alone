@@ -1,0 +1,19 @@
+{% from '_macros.html' import render_comment %}
+
+<h2>Комментарии</h2>
+
+{% if not comments %}
+    <div class="alert alert-info comments-empty-message">Комментариев пока нет.</div>
+{% endif %}
+
+<ul class="comments">
+    {% for comment in comments %}
+        {{ render_comment(comment, lastseen, current_user) }}
+    {% endfor %}
+</ul>
+
+<h2>Написать комментарий</h2>
+<form method="post" action="{{ url_for('.task_comments', project_id=project.id, task_id=task.id) }}" id="form-comment">
+    <p><textarea name="body" rows="4" class="form-control"></textarea></p>
+    <p><button type="submit" class="btn btn-primary" title="Можно просто нажать Ctrl+Enter">Отправить</button></p>
+</form>

@@ -67,3 +67,27 @@ def mail_karma(record):
         recipients=[record.to_user.email],
         body=msg_text
     )
+
+
+def mail_comment(comment):
+    msg_text = """Комментируя задачу <a href="http://leave-me-alone.ru%s#task-comments">%s</a>, %s сказал следующее:
+
+%s
+    """ % (
+        url_for('.tasks', project_id=comment.task.project_id, task=comment.task.id),
+        comment.task.subject,
+        current_user.name,
+        comment.body
+    )
+    receivers = set()
+    if comment.task.user_id != current_user.id:
+        receivers.add(comment.task.user.email)
+    if comment.task.assigned_id and comment.task.assigned_id != current_user.id:
+        receivers.add(comment.task.assignee.email)
+
+    for receiver in receivers:
+        mail.send_message(
+            subject='Комментарий к задаче %s' % comment.task.subject,
+            recipients=[receiver],
+            body=msg_text
+        )

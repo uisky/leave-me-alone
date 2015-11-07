@@ -1,7 +1,6 @@
-from flask import render_template, request, redirect, flash, url_for, g, abort, make_response, jsonify
+from flask import render_template, render_template_string, request, redirect, flash, g, abort, make_response, jsonify
 from datetime import datetime
 import pytz
-import json
 
 from . import mod, forms, load_project
 from .models import *
@@ -25,7 +24,11 @@ def tasks(project_id):
 
     # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
     tasks = OrderedDict()
-    for task in project.get_tasks_query(options).all():
+    seen = {}
+
+    for task, seen_ in project.get_tasks_query(options):
+        if seen_:
+            seen[task.id] = seen_
         task.children_statuses = {}
         tasks[task.id] = task
 
@@ -34,7 +37,7 @@ def tasks(project_id):
             while task.parent_id:
                 if task.parent_id not in tasks:
                     print('\033[31mСтранно, у задачи %d не найден родитель (%d)\033[0m' % (task.id, task.parent_id))
-                    continue
+                    break
 
                 parent = tasks[task.parent_id]
 
@@ -86,7 +89,8 @@ def tasks(project_id):
         'projects/tasks_%s.html' % project.type,
         project=project, membership=membership, options=options,
         tasks=list(tasks.values()), stats=stats,
-        selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit
+        selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit,
+        seen=seen
     )
     resp = make_response(page)
     if project.has_sprints:
@@ -287,7 +291,7 @@ def task_sprint(project_id, task_id):
     return redirect(url_for('.tasks', **{'project_id': task.project_id, 'task': task.id, 'sprint': task.sprint_id}))
 
 
-@mod.route('/<int:project_id>/<int:task_id>/chparent', methods=('POST',))
+@mod.route('/<int:project_id>/<int:task_id>/chparent/', methods=('POST',))
 def task_chparent(project_id, task_id):
     def check_parent():
         if task.id == parent.id:
@@ -352,7 +356,7 @@ def task_chparent(project_id, task_id):
     return redirect(url_for('.tasks', **kw))
 
 
-@mod.route('/<int:project_id>/<int:task_id>/swap', methods=('POST',))
+@mod.route('/<int:project_id>/<int:task_id>/swap/', methods=('POST',))
 def task_swap(project_id, task_id):
     project, membership = load_project(project_id)
     sisters = (
@@ -386,7 +390,7 @@ def task_swap(project_id, task_id):
     return redirect(url_for('.tasks', **kw))
 
 
-@mod.route('/<int:project_id>/reorder', methods=('POST',))
+@mod.route('/<int:project_id>/reorder/', methods=('POST',))
 def reorder_tasks(project_id):
     project, membership = load_project(project_id)
     if project.type != 'list':
@@ -403,9 +407,45 @@ def reorder_tasks(project_id):
     return 'ok'
 
 
-@mod.route('/<int:project_id>/<int:task_id>/history')
-def task_history(project_id, task_id):
+@mod.route('/<int:project_id>/<int:task_id>/comments/', methods=('GET', 'POST'))
+def task_comments(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.get_or_404(task_id)
 
-    return 'History for %s' % task.subject
+    seen = TaskCommentsSeen.query.filter_by(task_id=task.id, user_id=current_user.id).first()
+    if not seen:
+        seen = TaskCommentsSeen(
+            task_id=task.id, user_id=current_user.id,
+            cnt_comments=0, seen=datetime(1981, 8, 8, tzinfo=pytz.timezone('Europe/Moscow'))
+        )
+        db.session.add(seen)
+
+    if request.method == 'POST':
+        comment = TaskComment(task_id=task.id, user_id=current_user.id)
+        comment.body = request.form.get('body', '').strip()
+        comment.task = task
+        if comment.body != '':
+            db.session.add(comment)
+
+            task.cnt_comments += 1
+            seen.cnt_comments += 1
+
+            mail_comment(comment)
+
+            db.session.commit()
+            return render_template_string("""
+                {% from '_macros.html' import render_comment %}
+                {{ render_comment(comment, lastseen, current_user) }}
+            """, comment=comment, lastseen=seen.seen)
+        else:
+            return jsonify({'error': 'Давайте обойдёмся без дзенских реплик.'})
+    else:
+        seen.cnt_comments = task.cnt_comments
+        lastseen = seen.seen
+        seen.seen = datetime.now()
+        db.session.commit()
+
+        comments = TaskComment.query.filter_by(task_id=task.id).order_by(TaskComment.created).all()
+
+        return render_template('projects/_comments.html', project=project, task=task, comments=comments, lastseen=lastseen)
+

@@ -11,7 +11,7 @@ _character_icons = {x['id']: x['icon'] for x in CHARACTERS}
 
 @app.template_filter('markdown')
 def jinja_markdown(x):
-    return markdown.markdown(x, output_format='html5')
+    return Markup(markdown.markdown(x, output_format='html5'))
 
 
 @app.template_filter('status_class')
@@ -69,3 +69,7 @@ def my_tasks_count(data):
     else:
         return ''
 
+
+@app.template_filter('humantime')
+def humantime(d):
+    return d.strftime('%d.%m.%Y %H:%M')

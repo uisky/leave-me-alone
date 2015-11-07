@@ -57,19 +57,25 @@ class Project(db.Model):
         return False
 
     def get_tasks_query(self, options):
+        query = db.session.query(Task, TaskCommentsSeen).filter_by(project_id=self.id)
         if self.type == 'tree':
-            query = Task.query.filter_by(project_id=self.id).order_by(Task.mp)
+            query = query.order_by(Task.mp)
             query = query.options(db.joinedload('user'), db.joinedload('assignee'))
         else:
-            query = Task.query.filter_by(project_id=self.id)
             sort = {'created': 'created', 'deadline': 'deadline', 'importance': 'importance desc', 'custom': 'mp[1]'}
             query = query.order_by(sort.get(options.sort.data, 'created'))
+
+        query = query.outerjoin(
+            TaskCommentsSeen,
+            db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id)
+        )
 
         if self.has_sprints:
             if options.sprint.data is not None and options.sprint.data != 0:
                 query = query.filter_by(sprint_id=options.sprint.data)
             else:
                 query = query.filter(Task.sprint_id == None)
+
         return query
 
 
@@ -182,8 +188,10 @@ class Task(db.Model):
     # parent = db.relation('Task', foreign_keys=[parent_id])
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created', passive_deletes=True)
 
+    cnt_comments = db.Column(db.Integer, nullable=False, server_default='0', default=0)
+
     def __str__(self):
-        return '<Task %d: %s - %s>' % (self.id, self.mp, self.subject)
+        return '<Task %d: %s - "%s">' % (self.id, self.mp, self.subject)
 
     def __repr__(self):
         return self.__str__()
@@ -386,16 +394,56 @@ class TaskHistory(db.Model):
         )
 
 
-# class TaskComment(db.Model):
-#     __tablename__ = 'task_comments'
-#
-#     id = db.Column(db.Integer(), primary_key=True)
-#     created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-#
-#     task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
-#                         nullable=False, index=True)
-#     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-#                         nullable=False, index=True)
-#     body = db.Column(db.Text, nullable=False)
+class TaskComment(db.Model):
+    __tablename__ = 'task_comments'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
+
+    task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False, index=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False)
+    body = db.Column(db.Text, nullable=False)
+
+    user = db.relationship('User', backref='comments')
+    task = db.relationship('Task', backref='comments')
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
+class TaskCommentsSeen(db.Model):
+    __tablename__ = 'task_comments_seen'
+
+    task_id = db.Column(
+        db.Integer(),
+        db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
+        nullable=False,
+        primary_key=True
+    )
+    user_id = db.Column(
+        db.Integer(),
+        db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+        nullable=False,
+        primary_key=True
+    )
+    seen = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        server_default=db.text('now()')
+    )
+    cnt_comments = db.Column(
+        db.Integer(),
+        nullable=False,
+        server_default='0',
+        default=0
+    )
+
+    task = db.relationship('Task', backref='seen')
+
+    def __str__(self):
+        return '<Seen task %d by user %d: %d comments>' % (self.task_id, self.user_id, self.cnt_comments)
+
+    def __repr__(self):
+        return self.__str__()

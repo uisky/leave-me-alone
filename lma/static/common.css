@@ -25,3 +25,28 @@ a.user:before {
 .status-review { background-color: #AA4FAD; color: #ff0; }
 .status-done { background-color: #888; }
 .status-canceled { background-color: #333; color: #fff; }
+
+.wait-stub { text-align: center; margin: 50px 0; font-size: 3em; }
+
+@keyframes blink {
+    from { opacity: 1; }
+    to { opacity: .3; }
+}
+
+.cnt-comments { font-size: 0.8em; }
+.cnt-comments i { color: red; font-size: 1.2em; animation: blink .5s infinite ease alternate; }
+
+
+.task-comments ul.comments { list-style: none; padding: 0; margin: 0; }
+.task-comments ul.comments > li { margin: 10px 0 20px; }
+.task-comments ul.comments > li > .body { padding: 5px 5px 0; }
+.task-comments ul.comments > li > .meta { padding: 2px 5px; font-size: 0.8em; background: #eee; border-bottom: 1px solid #bbb; }
+.task-comments ul.comments > li.new { background-color: #BFF1C2; }
+.task-comments ul.comments > li.new > .meta { background-color: #99CE9C; }
+.task-comments ul.comments > li.new > .meta:after {
+    content: 'NEW!'; font-size: 9px; font-weight: bold;
+    display: block; float: right; padding: 1px 3px;
+    border-radius: 4px;
+    background-color: #ff0; color: #f00;
+}
+

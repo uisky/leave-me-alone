@@ -1,0 +1,10 @@
+{% macro render_comment(c, lastseen, current_user) %}
+    <li {% if c.created > lastseen and c.user_id != current_user.id %} class="new" {% endif %}>
+        <div class="body">
+            {{ c.body|markdown }}
+        </div>
+        <div class="meta">
+            {{ c.created|humantime }} — {{ c.user.name }}
+        </div>
+    </li>
+{% endmacro %}

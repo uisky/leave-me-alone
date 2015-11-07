@@ -104,6 +104,15 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         #}
                         {{ task.importance|importance_icon|safe }}
                         {{ task.character|character_icon|safe }}
+
+                        {# Обожаю тебя, жинжа ёбаная! #}
+                        {% set new_comments = task.cnt_comments - seen.get(task.id, {'cnt_comments': 0}).cnt_comments %}
+                        {% if new_comments %}
+                            <span class="cnt-comments">
+                                <i class="fa fa-comment"></i>
+                                +{{ new_comments }}
+                            </span>
+                        {% endif %}
                     </div>
                     </div>
                 {% set prev_depth = task.depth %}
@@ -129,15 +138,17 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
         <ul class="nav nav-tabs" id="tabs-task">
             {% if selected %}
                 <li class="active"><a href="#task-details" data-toggle="tab">Задача</a></li>
+                <li><a href="#task-comments" data-toggle="tab">
+                    Комментарии
+                    {% if selected.cnt_comments %}({{ selected.cnt_comments }}){% endif %}
+                </a></li>
                 <li><a href="#task-history" data-toggle="tab">История</a></li>
             {% endif %}
-            {% if 'lead' in membership.roles or 'developer' in membership.roles %}
-                {% if membership.can('subtask', selected) %}
-                    <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
-                {% endif %}
-                {% if membership.can('edit', selected) %}
-                    <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
-                {% endif %}
+            {% if membership.can('subtask', selected) %}
+                <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
+            {% endif %}
+            {% if membership.can('edit', selected) %}
+                <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
             {% endif %}
         </ul>
 
@@ -177,6 +188,10 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                             </button>
                         {% endfor %}
                     </form>
+                </div>
+
+                <div id="task-comments" class="tab-pane task-comments"
+                     data-url="{{ url_for('.task_comments', project_id=project.id, task_id=selected.id) }}">
                 </div>
 
                 {# История #}
