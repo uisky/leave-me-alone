@@ -72,7 +72,7 @@ class Project(db.Model):
 
         if self.has_sprints:
             if options.sprint.data is not None and options.sprint.data != 0:
-                query = query.filter_by(sprint_id=options.sprint.data)
+                query = query.filter(Task.sprint_id == options.sprint.data)
             else:
                 query = query.filter(Task.sprint_id == None)
 
