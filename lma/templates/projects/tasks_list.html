@@ -20,21 +20,21 @@ var Tasks = [
     {{ task.json(membership, current_user)|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
-]
+];
 
 var IMPORTANCE = {
 {%- for i in g.IMPORTANCE %}
     '{{ i.id }}': {{ i|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
-}
+};
 
 var CHARACTERS = {
 {%- for i in g.CHARACTERS %}
     {{ i.id }}: {{ i|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
-}
+};
 </script>
 {% endblock %}
 

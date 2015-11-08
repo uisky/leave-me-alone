@@ -21,9 +21,9 @@ class OutputOptions(Form):
         'Сортировка',
         [v.optional()],
         choices=[
-            ('created', 'По дате создания'),
             ('deadline', 'По дедлайну'),
             ('importance', 'По важности'),
+            ('created', 'По дате создания'),
             ('custom', 'Как сам расставил'),
         ])
 

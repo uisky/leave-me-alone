@@ -63,7 +63,7 @@ class Project(db.Model):
             query = query.options(db.joinedload('user'), db.joinedload('assignee'))
         else:
             sort = {'created': 'created', 'deadline': 'deadline', 'importance': 'importance desc', 'custom': 'mp[1]'}
-            query = query.order_by(sort.get(options.sort.data, 'created'))
+            query = query.order_by(sort.get(options.sort.data, 'deadline'))
 
         query = query.outerjoin(
             TaskCommentsSeen,

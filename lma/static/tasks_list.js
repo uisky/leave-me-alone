@@ -127,13 +127,17 @@
     function sortTasks() {
         // created, deadline, importance, custom
         var sortby = $options.find('[name=sort]').val();
+        console.log('Sort by %s', sortby);
         function createSorter(param) {
+            console.log('createSorter(%s)', param);
+            console.log(Tasks)
             if(param == 'custom') {
                 return function(a, b) {
                     return a.mp[0] - b.mp[0];
                 }
             } else if(param == 'deadline') {
                 return function(a, b) {
+                    console.log(a[param], b[param]);
                     if(a[param] == null && b[param] != null) return 1;
                     else if(a[param] != null && b[param] == null) return -1;
                     return a[param] - b[param];
@@ -316,9 +320,10 @@
     $form_edit.find('.action-delete').click(taskDeleteHandler);
 
     $options.find('[name=sort]').change(function() {
+        Cookies.set('sort', $(this).val(), {expires: 888, path: ''})
         sortTasks();
         renderList();
-    });
+    }).val(Cookies.get('sort') || 'created');
 
     sortTasks();
     renderList();
