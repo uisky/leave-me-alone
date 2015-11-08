@@ -218,30 +218,39 @@ class Task(db.Model):
         if self.status is None:
             return []
 
-        if user.id == self.user_id or (membership and 'lead' in membership.roles):
-            # Владелец задачи или вождь. Права ограничены здравым смыслом.
+        if self.project.type == 'tree':
+            if user.id == self.user_id or (membership and 'lead' in membership.roles):
+                # Владелец задачи или вождь. Права ограничены здравым смыслом.
+                variants = {
+                    'open': ('progress', 'done', 'canceled'),
+                    'progress': ('done', 'review', 'pause', 'open', 'canceled'),
+                    'pause': ('open', 'progress', 'canceled'),
+                    'review': ('open', 'done', 'canceled'),
+                    'done': ('open',),
+                    'canceled': ('open',)
+                }
+            elif user.id == self.assigned_id:
+                # Назначенный исполнитель
+                variants = {
+                    'open': ('progress', 'review'),
+                    'progress': ('open', 'pause', 'review', 'done', 'canceled'),
+                    'pause': ('progress',),
+                    'review': ('open', 'progress'),
+                    'done': ('open', 'review', 'canceled'),
+                    'canceled': ('open',)
+                }
+            else:
+                return ()
+        elif self.project.type == 'list':
             variants = {
-                'open': ('progress', 'done', 'canceled'),
-                'progress': ('done', 'review', 'pause', 'open', 'canceled'),
-                'pause': ('open', 'progress', 'canceled'),
-                'review': ('open', 'done', 'canceled'),
+                'open': ('done', 'canceled'),
                 'done': ('open',),
                 'canceled': ('open',)
             }
-        elif user.id == self.assigned_id:
-            # Назначенный исполнитель
-            variants = {
-                'open': ('progress', 'review'),
-                'progress': ('open', 'pause', 'review', 'done', 'canceled'),
-                'pause': ('progress',),
-                'review': ('open', 'progress'),
-                'done': ('open', 'review', 'canceled'),
-                'canceled': ('open',)
-            }
         else:
-            return {}
+            return ()
 
-        return variants[self.status]
+        return variants.get(self.status, ())
 
     def setparent(self, parent):
         """
