@@ -78,7 +78,7 @@ def project_edit(project_id=None):
 @mod.route('/<int:project_id>/sprints/add', methods=('GET', 'POST'))
 @mod.route('/<int:project_id>/sprints/<int:sprint_id>/edit', methods=('GET', 'POST'))
 def sprint_edit(project_id, sprint_id=None):
-    project = Project.query.get_or_404(project_id)
+    project, membership = load_project(project_id)
     if project.user_id != current_user.id:
         abort(403)
 
