@@ -36,6 +36,7 @@
     <tr>
         <th>Поставлено</th>
         <th>Статус</th>
+        {% if project.has_sprints %}<th>Спринт</th>{% endif %}
         <th>Задача</th>
         <th>Дедлайн</th>
     </tr>
@@ -43,8 +44,17 @@
     <tr>
         <td>{{ task.created.strftime('%d.%m.%Y %H:%M') }}</td>
         <td>{{ task.status|status_label }}</td>
+        {% if project.has_sprints %}
+            <td>
+                {% if task.sprint_id %}
+                    {{ task.sprint.name }}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        {% endif %}
         <td>
-            <a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ task.id }}">{{ task.path }}</a>
+            <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id or '') }}">{{ task.path }}</a>
             {{ task.importance|importance_icon|safe }}
             {{ task.character|character_icon|safe }}
         </td>

@@ -190,6 +190,7 @@ class Task(db.Model):
     children = db.relationship('Task', backref=db.backref('parent', remote_side=id))
     # parent = db.relation('Task', foreign_keys=[parent_id])
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created', passive_deletes=True)
+    sprint = db.relationship('Sprint', backref='tasks')
 
     cnt_comments = db.Column(db.Integer, nullable=False, server_default='0', default=0)
 
