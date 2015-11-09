@@ -53,6 +53,7 @@ def members(project_id):
 @mod.route('/<int:project_id>/members/add/', methods=['POST'])
 def members_add(project_id):
     project, membership = load_project(project_id)
+
     if not project.can('members'):
         abort(403, 'Вы недостаточно круты, чтобы управлять членством в этой команде.')
 
@@ -103,6 +104,7 @@ def members_add(project_id):
 @mod.route('/<int:project_id>/members/<int:member_id>/edit/', methods=['GET', 'POST'])
 def member_edit(project_id, member_id):
     project, membership = load_project(project_id)
+
     if not project.can('members'):
         abort(403, 'Вы не имеете права!')
 
@@ -121,14 +123,16 @@ def member_edit(project_id, member_id):
 def member_delete(project_id, member_id):
     project = Project.query.get_or_404(project_id)
 
-    if project.can('members'):
-        member = ProjectMember.query.get_or_404((member_id, project.id))
+    if not project.can('members'):
+        abort(403, 'Не позволено вам выгонять людей отсюда!')
 
-        if member.user_id == project.user_id:
-            flash('Владелец проекта невыгоняем.', 'danger')
-        else:
-            db.session.delete(member)
-            db.session.commit()
+    member = ProjectMember.query.get_or_404((member_id, project.id))
+
+    if member.user_id == project.user_id:
+        flash('Владелец проекта невыгоняем.', 'danger')
+    else:
+        db.session.delete(member)
+        db.session.commit()
 
     return redirect(url_for('.members', project_id=project.id))
 
