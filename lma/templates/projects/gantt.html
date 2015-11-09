@@ -1,0 +1,67 @@
+{% set menu_current = 'tasks' %}
+
+{% extends 'project.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" href="/static/tasks_tree.css">
+<script type="text/javascript" src="/static/js.cookie.js"></script>
+<script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript">
+var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
+var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
+</script>
+<style type="text/css">
+.table-gantt { white-space: nowrap; }
+.table-gantt td.status { text-align: right; }
+.table-gantt td.subj { max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+.table-gantt td.bars {  }
+.table-gantt .bar { padding: 4px; height: 20px; font-size: 10px; margin-top: -20px; }
+.table-gantt .bar:first-child { margin-top: 0; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Диаграмма Ганта</h1>
+<p>
+    Проект создан {{ project.created.strftime('%d.%m %H:%M') }}
+</p>
+<table class="table table-bordered table-hover table-gantt">
+<thead>
+<tr>
+    <th>Статус</th>
+    <th>Задача</th>
+    <th>Исполнитель</th>
+    <th></th>
+</tr>
+</thead>
+<tbody>
+{% for task in tasks %}
+    <tr>
+        <td class="status">{{ task.status | status_label }}</td>
+        <td class="subj">
+            <a style="margin-left: {{ task.depth * 32 }}px" href="?task={{ task.id }}{% if project.has_sprints %}&sprint={{ options.sprint.data }}{% endif %}">{{ task.subject }}</a>
+            {{ task.importance|importance_icon|safe }}
+            {{ task.character|character_icon|safe }}
+        </td>
+        <td class="user">
+            {% if task.assigned_id %}
+                <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
+            {% endif %}
+        </td>
+        <td class="bars">
+            {{ history[task.id] }}
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}
+
+
+{% block tail %}
+{% endblock %}
+
