@@ -136,6 +136,9 @@ class ProjectMember(db.Model):
 
         return False
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class KarmaRecord(db.Model):
     __tablename__ = 'karma_records'

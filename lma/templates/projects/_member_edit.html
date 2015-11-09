@@ -1,0 +1,41 @@
+<form method="post" action="{{ url_for('.member_edit', project_id=project.id, member_id=member.user_id) }}" id='form-edit' class="form-horizontal">
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4 class="modal-title">{{ member.user.name }}</h4>
+</div>
+
+{% set role_classes = {'lead': 'warning', 'developer': 'info', 'tester': 'success' } %}
+<div class="modal-body">
+    <div class="form-group">
+        <label class="control-label col-sm-2">Роли:</label>
+        <div class="col-sm-10">
+            {% for role, title in g.role_meanings.items() %}
+                <label class="checkbox">
+                    <input type="checkbox" name="roles" value="{{ role }}" {% if role in (member.roles or []) %} checked {% endif %}>
+                    <span class="label label-{{ role_classes.get(role, 'default') }}">
+                        {{ title }}
+                    </span>
+                </label>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <button type="button" class="btn btn-danger action-delete">Выгнать</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+</div>
+</form>
+
+<form method="post" action="{{ url_for('.member_delete', project_id=project.id, member_id=member.user_id) }}" id="form-delete"></form>
+
+<script type="text/javascript">
+(function() {
+    $('#form-edit .action-delete').click(function() {
+        if(confirm('Вы это серьёзно, вообще?!')) {
+            $('#form-delete').submit();
+        }
+    });
+})();
+</script>

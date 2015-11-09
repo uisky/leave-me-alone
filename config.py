@@ -10,3 +10,5 @@ WTF_CSRF_ENABLED = True
 WTF_CSRF_TIME_LIMIT = 60 * 60 * 24
 
 MAIL_DEFAULT_SENDER = 'no-reply@leave-me-alone.ru'
+
+JSON_AS_ASCII = False

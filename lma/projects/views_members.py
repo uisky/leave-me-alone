@@ -1,8 +1,9 @@
-from flask import render_template, request, redirect, flash, url_for, g, Markup, abort
+from flask import render_template, request, redirect, flash, url_for, g, Markup, abort, jsonify
 from flask_login import login_required, current_user
 from datetime import datetime
 import pytz
 import re
+import json
 
 from . import mod, forms, load_project, mail
 from .models import *
@@ -30,8 +31,6 @@ def members(project_id):
     else:
         editing = ProjectMember()
 
-    g.role_meanings = ProjectMember.role_meanings
-
     members = ProjectMember.query\
         .filter(ProjectMember.project_id == project.id)\
         .order_by(ProjectMember.karma.desc(), ProjectMember.added)\
@@ -47,6 +46,7 @@ def members(project_id):
         stat.setdefault(row['worker_id'], {})
         stat[row['worker_id']][row['status']] = row['n']
 
+    g.role_meanings = ProjectMember.role_meanings
     return render_template('projects/members.html', project=project, members=members, editing=editing, stat=stat)
 
 
@@ -100,15 +100,32 @@ def members_add(project_id):
     return redirect(url_for('.members', project_id=project_id))
 
 
-@mod.route('/<int:project_id>/members/delete/', methods=['POST'])
-def member_delete(project_id):
+@mod.route('/<int:project_id>/members/<int:member_id>/edit/', methods=['GET', 'POST'])
+def member_edit(project_id, member_id):
+    project, membership = load_project(project_id)
+    if not project.can('members'):
+        abort(403, 'Вы не имеете права!')
+
+    member = ProjectMember.query.get_or_404((member_id, project_id))
+
+    if request.method == 'POST':
+        member.roles = request.form.getlist('roles')
+        db.session.commit()
+        return redirect(url_for('.members', project_id=project.id))
+
+    g.role_meanings = ProjectMember.role_meanings
+    return render_template('projects/_member_edit.html', project=project, member=member)
+
+
+@mod.route('/<int:project_id>/members/<int:member_id>/delete/', methods=['POST'])
+def member_delete(project_id, member_id):
     project = Project.query.get_or_404(project_id)
 
     if project.can('members'):
-        member = ProjectMember.query.get_or_404((request.form.get('user_id'), project.id))
+        member = ProjectMember.query.get_or_404((member_id, project.id))
 
         if member.user_id == project.user_id:
-            flash('Владелец проекта невыгоняем', 'danger')
+            flash('Владелец проекта невыгоняем.', 'danger')
         else:
             db.session.delete(member)
             db.session.commit()
