@@ -1,33 +1,40 @@
-{% set menu_current = 'members' %}
-
 {% extends 'project.html' %}
+
+{% set menu_current = 'members' %}
 
 {% block head %}
 <style type="text/css">
     .table-members td, .table-members th { white-space: nowrap; }
     .table-members td.name { width: 100%; white-space: normal; }
-    .table-members td.karma-col, th.karma-col { background: #e0e0e0; text-align: center; }
-    .table-members td.karma-col a { text-decoration: none; }
+    .table-members td.karma-col, .table-members th.karma-col { background: #e0e0e0; text-align: center; border-bottom-color: #aaa; }
+    .table-members td.karma-col { padding: 0; }
+    .table-members td.karma-col a { text-decoration: none; display: block; padding: 8px; }
     .table-members td.karma-col a:hover { text-decoration: underline; }
+    .table-members .status-cnt { min-width: 36px; }
 </style>
 {% endblock %}
 
 {% block content %}
+{% if project.can('members') %}
+    <button type="button" class="btn btn-success pull-right" data-toggle="modal" data-target="#modal-add-members">
+        <i class="fa fa-plus-circle"></i> Добавить участников
+    </button>
+{% endif %}
 <h1>Команда</h1>
 
-<table class="table table-bordered table-members">
+<table class="table table-bordered table-hover table-members">
     <thead>
     <tr>
         <th></th>
         <th>Добавлен</th>
         <th>Роли</th>
         <th>Участник</th>
-        <th>Задачи</th>
+        <th colspan="6">Задачи</th>
         <th class="karma-col">
             Карма
             <a href="#modal-help-karma" data-toggle="modal" title="WTF is karma?"><i class="fa fa-question-circle"></i></a>
         </th>
-        {% if project.user_id == current_user.id %}<th></th>{% endif %}
+        {% if project.can('members') %}<th></th>{% endif %}
     </tr>
     </thead>
     <tbody>
@@ -37,7 +44,7 @@
         <td>{{ loop.index }}</td>
         <td>{{ member.added.strftime('%d.%m.%Y %H:%M') }}</td>
         <td>
-            {% for role in member.roles %}
+            {% for role in member.roles or [] %}
                 <span class="label label-{{ role_classes.get(role, 'default') }}">
                     {{ g.role_meanings.get(role, role) }}
                 </span>
@@ -47,17 +54,22 @@
         <td class="name">
             <a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a>
         </td>
-        <td>
             {% if stat[member.user_id] %}
-            {% for status, count in stat[member.user_id]|dictsort %}
-                <span class="label {{ status|status_class }}" title="{{ status|status_rus }}">{{ count }}</span>
-            {% endfor %}
+                {% for status in ('open', 'progress', 'pause', 'review', 'done', 'canceled') %}
+                    {% set count = stat[member.user_id].get(status, 0) %}
+                    <td class="status-cnt">
+                    {% if count %}
+                        <span class="label {{ status|status_class }}" title="{{ status|status_rus }}">{{ count }}</span>
+                    {% endif %}
+                    </td>
+                {% endfor %}
+            {% else %}
+                {{ ('<td></td>' * 6) | safe }}
             {% endif %}
-        </td>
         <td class="karma-col">
             <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma|minus }}</a>
         </td>
-        {% if project.user_id == current_user.id %}
+        {% if project.can('members') %}
         <td>
             <a href="?edit={{ member.user_id }}">
                 <span class="glyphicon glyphicon-pencil"></span>
@@ -69,56 +81,6 @@
     </tbody>
 </table>
 
-{% if project.user_id == current_user.id %}
-<form method="post">
-    {% if editing.user_id %}
-        <h2>{{ editing.user.name }}</h2>
-    {% else %}
-        <h2>Добавить участника</h2>
-        <div class="form-group">
-            <input type="text" name="user" value="{{ request.form.get('name', '') }}" placeholder="Ник или e-mail пользователя" class="form-control" style="width:500px">
-        </div>
-    {% endif %}
-
-    <div class="form-group">
-        {% for role, title in g.role_meanings.items() %}
-            <label class="checkbox-inline">
-                <input type="checkbox" name="roles" value="{{ role }}" {% if editing.user_id and role in editing.roles %} checked {% endif %}>
-                {{ title }}
-            </label>
-        {% endfor %}
-    </div>
-    <button type="submit" class="btn btn-success">
-    {% if editing.user_id %}
-        <span class="glyphicon glyphicon-ok"></span> Сохранить
-    {% else %}
-        <span class="glyphicon glyphicon-plus-sign"></span> Добавить участника
-    {% endif %}
-    </button>
-    {% if editing.user_id %}
-        <button id="btn-remove" type="button" class="btn btn-danger">
-            <span class="glyphicon glyphicon-ban-circle"></span> Выгнать
-        </button>
-
-        <a href="{{ url_for('.members', project_id=project.id) }}" class="btn btn-warning">
-            <span class="glyphicon glyphicon-remove-sign"></span> Отмена
-        </a>
-    {% endif %}
-</form>
-
-{% if editing.user_id %}
-<form id="form-remove" method="post" action="{{ url_for('.member_delete', project_id=project.id) }}">
-    <input type="hidden" name="user_id" value="{{ editing.user_id }}">
-</form>
-<script type="text/javascript">
-    $('#btn-remove').click(function() {
-        if(!confirm('Вы уверены?')) return;
-        $('#form-remove').submit()
-    })
-</script>
-{% endif %}
-
-{% endif %}
 
 <div class="modal fade" id="modal-help-karma" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
 <div class="modal-header">
@@ -136,4 +98,47 @@
 </div>
 </div></div></div>
 
+
+{% if project.can('members') %}
+<form method="post" action="{{ url_for('.members_add', project_id=project.id) }}">
+<div class="modal" id="modal-add-members" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4 class="modal-title" id="myModalLabel">Добавить участников</h4>
+</div>
+<div class="modal-body">
+    <label>E-mail'ы новых пользователей:</label>
+    <textarea name="clues" rows="3" class="form-control"></textarea>
+    <p class="help-block">Через запятую или по одному на строку. Они должны быть зарегистрированы на leave-me-alone под этими адресами.</p>
+
+    <label>Выдать им роли:</label>
+    <p>
+    {% for role, title in g.role_meanings.items() %}
+        <label class="checkbox-inline">
+            <input type="checkbox" name="roles" value="{{ role }}">
+            {{ title }}
+        </label>
+    {% endfor %}
+    </p>
+</div>
+<div class="modal-footer">
+    <button type="submit" class="btn btn-primary">Добавить</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+</div>
+</div></div></div>
+</form>
+{% endif %}
+
+{% endblock %}
+
+
+
+{% block tail %}
+<script type="text/javascript">
+(function() {
+    $('#modal-add-members').on('shown.bs.modal', function() {
+        $(this).find('[name=clues]').focus();
+    });
+})();
+</script>
 {% endblock %}

@@ -1,7 +1,8 @@
-from flask import render_template, request, redirect, flash, url_for, g
+from flask import render_template, request, redirect, flash, url_for, g, Markup, abort
 from flask_login import login_required, current_user
 from datetime import datetime
 import pytz
+import re
 
 from . import mod, forms, load_project, mail
 from .models import *
@@ -19,7 +20,7 @@ def find_user(clue):
     return user
 
 
-@mod.route('/<project_id>/members/', methods=('GET', 'POST'))
+@mod.route('/<project_id>/members/')
 def members(project_id):
     project, membership = load_project(project_id)
 
@@ -28,30 +29,6 @@ def members(project_id):
         editing = ProjectMember.query.get_or_404((edit, project.id))
     else:
         editing = ProjectMember()
-
-    if request.method == 'POST' and project.can('members'):
-        # 1. Ищем юзера, если это добавление
-        if editing.user_id is None:
-            editing.project_id = project.id
-
-            clue = request.form.get('user', '').strip()
-            user = find_user(clue)
-            if not user:
-                flash('Пользователь с ником или почтой "%s" не обнаружен.' % clue, 'danger')
-            else:
-                if user.id in (m.user_id for m in project.members):
-                    flash('Пользователь %s уже есть в команде' % clue, 'danger')
-                else:
-                    editing.user_id = user.id
-
-        # 2. Составляем список ролей
-        if editing.user_id:
-            editing.roles = [role for role in request.form.getlist('roles')
-                             if role in ProjectMember.role_meanings.keys()]
-
-            db.session.add(editing)
-            db.session.commit()
-            return redirect(url_for('.members', project_id=project.id))
 
     g.role_meanings = ProjectMember.role_meanings
 
@@ -71,6 +48,56 @@ def members(project_id):
         stat[row['worker_id']][row['status']] = row['n']
 
     return render_template('projects/members.html', project=project, members=members, editing=editing, stat=stat)
+
+
+@mod.route('/<int:project_id>/members/add/', methods=['POST'])
+def members_add(project_id):
+    project, membership = load_project(project_id)
+    if not project.can('members'):
+        abort(403, 'Вы недостаточно круты, чтобы управлять членством в этой команде.')
+
+    clues = [x.strip() for x in re.split(r'[,\n]+', request.form.get('clues', ''))]
+    clues = [x for x in clues if x != '']
+
+    if len(clues) == 0:
+        flash('Введите e-mail\'ы пользователей, которых хотите добавить в команду.', 'danger')
+        return redirect(url_for('.members', project_id=project_id))
+
+    users = set()
+    already_ids = [x[0] for x in db.session.query(ProjectMember.user_id).filter_by(project_id=project.id).all()]
+    not_found, already = [], []
+
+    for clue in clues:
+        user = find_user(clue)
+        if not user:
+            not_found.append(Markup(clue).striptags())
+        elif user.id in already_ids:
+            already.append(user.name)
+        else:
+            users.add(user)
+
+    if not_found:
+        flash('Кое-кого не удалось найти среди пользователей leave-me-alone, а именно ' + ', '.join(not_found), 'warning')
+
+    if already:
+        flash(', '.join(not_found) + ' уже присутствуют в команде.', 'warning')
+
+    if len(users) == 0:
+        flash('Не удалось найти ни одного нового пользователя с указанными адресами. Наверное, есть смысл уточнить '
+              'у этих добрых людей, под какими почтами они здесь регистрировались.', 'danger')
+        return redirect(url_for('.members', project_id=project_id))
+
+    roles = [role for role in request.form.getlist('roles') if role in ProjectMember.role_meanings.keys()]
+
+    # Добавляем!
+    for user in users:
+        member = ProjectMember(project_id=project.id, user_id=user.id, roles=roles)
+        db.session.add(member)
+    db.session.commit()
+
+    flash('Встречайте новеньких: %s' % ', '.join([u.name for u in users]), 'success')
+
+    return redirect(url_for('.members', project_id=project_id))
 
 
 @mod.route('/<int:project_id>/members/delete/', methods=['POST'])
