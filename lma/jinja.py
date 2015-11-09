@@ -60,6 +60,9 @@ def nl2br(x):
 
 @app.template_filter('my_tasks_count')
 def my_tasks_count(data):
+    if not isinstance(data, dict):
+        return ''
+
     x = []
     for status, count in data.items():
         if status in ('open', 'progress', 'pause', 'review'):
