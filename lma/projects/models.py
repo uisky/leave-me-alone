@@ -39,6 +39,7 @@ class Project(db.Model):
 
     name = db.Column(db.String(64), nullable=False)
     has_sprints = db.Column(db.Boolean, nullable=False, server_default='false')
+    intro = db.Column(db.Text)
 
     tasks = db.relationship('Task', backref='project', passive_deletes=True)
     members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
@@ -112,6 +113,7 @@ class ProjectMember(db.Model):
     added = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
     roles = db.Column(ARRAY(db.String(16), zero_indexes=True))
     karma = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+    archived = db.Column(db.Boolean, nullable=False, default=False, server_default='f')
 
     user = db.relationship('User', backref='membership')
 
