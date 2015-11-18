@@ -39,8 +39,8 @@
                     <li><a href="/users/settings">Настройки</a></li>
                     <li><a href="/users/logout/?next={{ request.url }}">Выйти</a></li>
                 </ul>
-
             </div>
+            <div class="navbar-text pull-right" id="plugin-1"></div>
         {% else %}
             <form method="post" action="/users/login/?next={{ request.url }}" class="navbar-form navbar-right">
                 <div class="form-group">
@@ -76,5 +76,6 @@
 </div>
 
 {% block tail %}{% endblock %}
+<script type="text/javascript" src="/static/plugin-lunch.js"></script>
 </body>
 </html>
