@@ -6,7 +6,7 @@ from . import mod, forms, load_project
 from .models import *
 from .mail import *
 from .. import db
-from ..utils import flash_errors, form_json_errors
+from ..utils import flash_errors, form_json_errors, sanitize_html
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
@@ -123,6 +123,7 @@ def task_edit(project_id, task_id):
                 is_modified = True
 
         form.populate_obj(task)
+        # task.description = sanitize_html(task.description)
         if task.character == 0:
             task.character = None
 
@@ -206,6 +207,8 @@ def task_subtask(project_id, parent_id=None):
 
     if form.validate_on_submit():
         form.populate_obj(task)
+        # task.description = sanitize_html(task.description)
+
         if project.has_sprints and request.form.get('sprint_id', 0, type=int):
             task.sprint_id = request.form.get('sprint_id', type=int)
         task.setparent(parent)
@@ -422,7 +425,7 @@ def task_comments(project_id, task_id):
 
     if request.method == 'POST':
         comment = TaskComment(task_id=task.id, user_id=current_user.id)
-        comment.body = request.form.get('body', '').strip()
+        # comment.body = sanitize_html(request.form.get('body', '').strip())
         comment.task = task
         if comment.body != '':
             db.session.add(comment)

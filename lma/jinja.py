@@ -3,6 +3,7 @@ import json
 from flask import Markup
 from . import app
 from .projects.models import IMPORTANCE, CHARACTERS, TaskJSONEncoder
+from .utils import sanitize_html
 
 
 _importance_icons = {x['id']: x['icon'] for x in IMPORTANCE}
@@ -11,7 +12,7 @@ _character_icons = {x['id']: x['icon'] for x in CHARACTERS}
 
 @app.template_filter('markdown')
 def jinja_markdown(x):
-    return Markup(markdown.markdown(x, output_format='html5'))
+    return Markup(sanitize_html(markdown.markdown(x, output_format='html5')))
 
 
 @app.template_filter('status_class')

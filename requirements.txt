@@ -7,3 +7,4 @@ flask-login>=0.3.0
 markdown
 pytz
 flask-mail
+bleach

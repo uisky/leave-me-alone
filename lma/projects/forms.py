@@ -1,7 +1,10 @@
+from bs4 import BeautifulSoup
+
 from flask_wtf import Form
 from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DateField, \
     HiddenField, RadioField
 from wtforms import validators as v
+
 from .models import IMPORTANCE, CHARACTERS, PROJECT_TYPES
 
 
