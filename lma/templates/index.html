@@ -18,7 +18,26 @@
     Трекер задач.
 </p>
 
-<form method="post" action="{{ url_for('users.login') }}" id="form-login">
+<div class="container-fluid">
+    {% with messages = get_flashed_messages(with_categories=True, category_filter=['danger', 'warning', 'success', 'info']) %}
+        {% if messages %}
+            <div class="container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message[0] }}" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{ message[1] }}
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</div>
+
+<form method="post" action="{{ url_for('users.login', next=request.args.get('next', '/projects')) }}" id="form-login">
     <input type="text" name="email" placeholder="E-mail" class="form-control">
     <input type="password" name="password" placeholder="Пароль" class="form-control">
     <button type="submit" class="btn btn-success">Войти</button>

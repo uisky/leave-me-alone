@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<h1>Вход</h1>
+
+<form method="post" id="form-login">
+    <input type="text" name="email" placeholder="E-mail" class="form-control">
+    <input type="password" name="password" placeholder="Пароль" class="form-control">
+    <button type="submit" class="btn btn-success">Войти</button>
+    <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
+</form>
+</div>
+{% endblock %}

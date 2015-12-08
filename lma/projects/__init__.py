@@ -1,5 +1,5 @@
 from flask import Blueprint, abort, g
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, redirect, request, url_for
 from .models import *
 
 mod = Blueprint('projects', __name__, url_prefix='/projects')
@@ -32,6 +32,7 @@ def load_project(project_id):
 @mod.before_request
 def check_login():
     if not current_user.is_authenticated:
+        return redirect(url_for('index', next=request.path))
         abort(403)
 
 

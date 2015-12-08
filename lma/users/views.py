@@ -13,17 +13,18 @@ def index():
     return render_template('users/index.html')
 
 
-@mod.route('/login/', methods=['POST'])
+@mod.route('/login/', methods=('GET', 'POST'))
 def login():
-    user = User.query.filter_by(email=request.form.get('email', '')).first()
+    if request.method == 'POST':
+        user = User.query.filter_by(email=request.form.get('email', '')).first()
 
-    if user and User.hash_password(request.form.get('password', '')) == user.password_hash:
-        login_user(user)
-        return redirect('/projects')
-    else:
-        flash('Неправильный e-mail или пароль.', 'danger')
+        if user and User.hash_password(request.form.get('password', '')) == user.password_hash:
+            login_user(user)
+            return redirect(request.args.get('next', '/projects'))
+        else:
+            flash('Неправильный e-mail или пароль.', 'danger')
 
-    return redirect(request.args.get('next', '/'))
+    return render_template('users/login.html')
 
 
 @mod.route("/logout/")
