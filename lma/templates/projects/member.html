@@ -10,7 +10,7 @@
 <h1>Участие {{ member.user.name }} в {{ project.name }}</h1>
 
 <form id="form-filter" method="get" class="form-inline">
-    <a href="{{ url_for('.members', project_id=project.id) }}" class="btn btn-default btn-sm">
+    <a href="{{ url_for('.about', project_id=project.id) }}" class="btn btn-default btn-sm">
         <span class="glyphicon glyphicon-arrow-left"></span>
         Назад
     </a>

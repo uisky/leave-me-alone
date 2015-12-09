@@ -8,8 +8,6 @@ from ..utils import flash_errors
 from ..users.models import User
 
 
-
-
 @mod.route('/')
 def index():
     form = forms.ProjectPropertiesForm()
@@ -27,7 +25,7 @@ def project_add():
 
     project.type = request.form.get('type', 'tree')
     if project.type not in PROJECT_TYPES.keys():
-        project_type = 'tree'
+        project.type = 'tree'
 
     db.session.add(project)
     db.session.commit()
@@ -46,7 +44,7 @@ def project_add():
 def project_edit(project_id=None):
     if project_id:
         project, membership = load_project(project_id)
-        if project.user_id != current_user.id:
+        if not project.can('edit'):
             abort(403)
     else:
         project = Project(user_id=current_user.id)

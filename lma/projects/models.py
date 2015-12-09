@@ -1,9 +1,13 @@
-from sqlalchemy.dialects.postgresql import ARRAY, ENUM
-from .. import db
-from flask_login import current_user
+from collections import OrderedDict
 import json
 import markdown
-from collections import OrderedDict
+from datetime import datetime
+import pytz
+
+from sqlalchemy.dialects.postgresql import ARRAY, ENUM
+from flask_login import current_user
+
+from .. import db
 
 
 IMPORTANCE = [
@@ -43,6 +47,7 @@ class Project(db.Model):
 
     tasks = db.relationship('Task', backref='project', passive_deletes=True)
     members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
+    owner = db.relationship('User', backref='projects')
 
     def __repr__(self):
         return '<Project %d:%s>' % (self.id or 0, self.name)
@@ -54,6 +59,8 @@ class Project(db.Model):
         if user is None:
             user = current_user
         if what == 'members':
+            return user.id == self.user_id
+        elif what == 'edit':
             return user.id == self.user_id
         return False
 
@@ -78,6 +85,11 @@ class Project(db.Model):
                 query = query.filter(Task.sprint_id == None)
 
         return query
+
+    @property
+    def age(self):
+        """Возвращает возраст проекта в сутках"""
+        return pytz.utc.localize(datetime.now()) - self.created
 
 
 class Sprint(db.Model):

@@ -3,9 +3,8 @@
 {% set menu = (
     {'id': 'tasks', 'url': url_for('.tasks', project_id=project.id), 'title': 'Задачи'},
     {'id': 'my', 'url': url_for('.member', project_id=project.id, member_id=current_user.id), 'title': 'Мои задачи' + g.my_tasks_count|my_tasks_count},
-    {'id': 'members', 'url': url_for('.members', project_id=project.id), 'title': 'Команда'},
+    {'id': 'about', 'url': url_for('.about', project_id=project.id), 'title': 'О проекте'},
     {'id': 'history', 'url': url_for('.history', project_id=project.id), 'title': 'История'},
-    {'id': 'edit', 'url': url_for('.project_edit', project_id=project.id), 'title': 'Свойства'},
 )
 %}
 

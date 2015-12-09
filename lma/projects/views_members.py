@@ -21,8 +21,8 @@ def find_user(clue):
     return user
 
 
-@mod.route('/<project_id>/members/')
-def members(project_id):
+@mod.route('/<project_id>/about/')
+def about(project_id):
     project, membership = load_project(project_id)
 
     edit = request.args.get('edit')
@@ -62,7 +62,7 @@ def members_add(project_id):
 
     if len(clues) == 0:
         flash('Введите e-mail\'ы пользователей, которых хотите добавить в команду.', 'danger')
-        return redirect(url_for('.members', project_id=project_id))
+        return redirect(url_for('.about', project_id=project_id))
 
     users = set()
     already_ids = [x[0] for x in db.session.query(ProjectMember.user_id).filter_by(project_id=project.id).all()]
@@ -86,7 +86,7 @@ def members_add(project_id):
     if len(users) == 0:
         flash('Не удалось найти ни одного нового пользователя с указанными адресами. Наверное, есть смысл уточнить '
               'у этих добрых людей, под какими почтами они здесь регистрировались.', 'danger')
-        return redirect(url_for('.members', project_id=project_id))
+        return redirect(url_for('.about', project_id=project_id))
 
     roles = [role for role in request.form.getlist('roles') if role in ProjectMember.role_meanings.keys()]
 
@@ -98,7 +98,7 @@ def members_add(project_id):
 
     flash('Встречайте новеньких: %s' % ', '.join([u.name for u in users]), 'success')
 
-    return redirect(url_for('.members', project_id=project_id))
+    return redirect(url_for('.about', project_id=project_id))
 
 
 @mod.route('/<int:project_id>/members/<int:member_id>/edit/', methods=['GET', 'POST'])
@@ -113,7 +113,7 @@ def member_edit(project_id, member_id):
     if request.method == 'POST':
         member.roles = request.form.getlist('roles')
         db.session.commit()
-        return redirect(url_for('.members', project_id=project.id))
+        return redirect(url_for('.about', project_id=project.id))
 
     g.role_meanings = ProjectMember.role_meanings
     return render_template('projects/_member_edit.html', project=project, member=member)
@@ -134,7 +134,7 @@ def member_delete(project_id, member_id):
         db.session.delete(member)
         db.session.commit()
 
-    return redirect(url_for('.members', project_id=project.id))
+    return redirect(url_for('.about', project_id=project.id))
 
 
 @mod.route('/<int:project_id>/members/<int:member_id>/')
@@ -191,7 +191,7 @@ def karma(project_id, member_id):
         mail.mail_karma(rec)
 
         flash('Ваша оценка юзеру %s навеки впечатана в его репутацию.' % member.user.name, 'success')
-        return redirect(url_for('.members', project_id=project.id))
+        return redirect(url_for('.about', project_id=project.id))
     else:
         flash_errors(form)
 

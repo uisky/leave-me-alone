@@ -2,6 +2,9 @@ from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import flask_mail
+import locale
+
+locale.setlocale(locale.LC_ALL, '')
 
 # flask
 app = Flask(__name__)

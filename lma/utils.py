@@ -18,6 +18,27 @@ def flash_errors(form):
             flash(error, 'danger')
 
 
+def plural(x, var1, var2, var5):
+    """
+    Спряжение существительных после числительного. Например:
+    У вас в штанах {{ x }} {{ x|plural('енотик', 'енотика', 'енотиков') }}
+    :param x: количество
+    :param var1: 1, 21, 31, ...
+    :param var2: 2-4, 22-24, 33-34, ...
+    :param var5: 0, 5-9, 10-20, 25-30, 35-40, ...
+    :return:
+    """
+    x = abs(x)
+    if x == 0:
+        return var5
+    if x % 10 == 1 and x % 100 != 11:
+        return var1
+    elif 2 <= (x % 10) <= 4 and (x % 100 < 10 or x % 100 >= 20):
+        return var2
+    else:
+        return var5
+
+
 ALLOWED_TAGS = [
     'strong', 'em', 'del', 'b', 'i', 'u', 's', 'span', 'a',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',

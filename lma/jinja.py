@@ -1,9 +1,11 @@
 import markdown
 import json
-from flask import Markup
+import pytz
+from datetime import datetime
+from flask import Markup, get_flashed_messages
 from . import app
 from .projects.models import IMPORTANCE, CHARACTERS, TaskJSONEncoder
-from .utils import sanitize_html
+from .utils import sanitize_html, plural
 
 
 _importance_icons = {x['id']: x['icon'] for x in IMPORTANCE}
@@ -12,6 +14,8 @@ _character_icons = {x['id']: x['icon'] for x in CHARACTERS}
 
 @app.template_filter('markdown')
 def jinja_markdown(x):
+    if x is None:
+        return ''
     return Markup(sanitize_html(markdown.markdown(x, output_format='html5')))
 
 
@@ -55,8 +59,11 @@ def minus(x):
 
 
 @app.template_filter('nl2br')
-def nl2br(x):
-    return Markup(x.replace('\n', '<br>'))
+def nl2br(t):
+    if isinstance(t, str):
+        t = str(Markup.escape(t))
+        t = t.strip().replace('\r', '').replace('\n', '<br>')
+    return Markup(t)
 
 
 @app.template_filter('my_tasks_count')
@@ -74,6 +81,42 @@ def my_tasks_count(data):
         return ''
 
 
+@app.template_filter('datetime')
+def datetime_(x):
+    return x.strftime('%d.%m.%Y %H:%M')
+
+
 @app.template_filter('humantime')
-def humantime(d):
-    return d.strftime('%d.%m.%Y %H:%M')
+def humantime(ts):
+    months = [
+        '', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля',
+        'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ]
+    now = pytz.utc.localize(datetime.now())
+    if now.year == ts.year:
+        if now.month == ts.month:
+            if now.day == ts.day:
+                return ts.strftime('сегодня в %H:%M')
+            elif (now - ts).days == 1:
+                return ts.strftime('вчера в %H:%M')
+        return ('%d ' % ts.day) + months[ts.month] + ts.strftime(' %H:%M')
+    return ts.strftime('%d %b %Y %H:%M')
+
+
+@app.context_processor
+def flashes():
+    """
+    Возвращает flash-сообщения в виде [('error', [msg1, msg2, msg3]), ('success', [msg1, msg2]), ...]
+    :return:
+    """
+    def make_flashes():
+        result = {}
+        for cat, msg in get_flashed_messages(with_categories=True):
+            result.setdefault(cat, []).append(msg)
+        return result
+
+    return {'flashes': make_flashes}
+
+@app.template_filter('plural')
+def jinja_plural(x, var1, var2, var5):
+    return plural(x, var1, var2, var5)

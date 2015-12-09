@@ -1,6 +1,6 @@
 {% extends 'project.html' %}
+{% set menu_current = 'about' %}
 
-{% set menu_current = 'members' %}
 
 {% block head %}
 <style type="text/css">
@@ -15,13 +15,36 @@
 {% endblock %}
 
 {% block content %}
+{% if project.can('edit') %}
+    <a href="{{ url_for('.project_edit', project_id=project.id) }}" class="btn btn-primary btn-sm pull-right">
+        <i class="fa fa-edit"></i> Редактировать
+    </a>
+{% endif %}
+
+
+
+<h1>{{ project.name }}</h1>
+
+<p>
+    Создал <a href="{{ url_for('.member', project_id=project.id, member_id=project.user_id) }}">{{ project.owner.name }}</a>
+    {{ project.created|humantime }} ({{ project.age.days }} {{ project.age.days|plural('день', 'дня', 'дней') }} тому назад).
+</p>
+
+{% if project.intro %}
+<div class="peoject-about">
+    {{ project.intro|markdown }}
+</div>
+{% endif %}
+
+
+
+
 {% if project.can('members') %}
-    <button type="button" class="btn btn-success pull-right" data-toggle="modal" data-target="#modal-add">
+    <button type="button" class="btn btn-success btn-sm pull-right" data-toggle="modal" data-target="#modal-add">
         <i class="fa fa-plus-circle"></i> Добавить участников
     </button>
 {% endif %}
-<h1>Команда</h1>
-
+<h2>Команда</h2>
 <table class="table table-bordered table-hover table-members" id="simposium">
     <thead>
     <tr>
