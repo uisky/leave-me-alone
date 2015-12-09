@@ -1,4 +1,5 @@
 {% extends 'project.html' %}
+{% set container_class = 'container' %}
 {% set menu_current = 'about' %}
 
 
@@ -6,7 +7,12 @@
 {% block content %}
 <h1>Свойства проекта</h1>
 
-{% if project.user_id == current_user.id %}
+<ul class="nav nav-tabs" style="margin-bottom: 20px">
+    <li class="active"><a href="{{ url_for('.project_edit', project_id=project.id) }}">Свойства</a></li>
+    <li><a href="{{ url_for('.sprints', project_id=project.id) }}">Вехи</a></li>
+</ul>
+
+
 <form method="post" action="{{ url_for('.project_edit', project_id=project.id) }}" class="form-horizontal">
     {{ form.csrf_token }}
     <div class="form-group">
@@ -26,7 +32,7 @@
         <div class="col-sm-10 col-sm-offset-2">
             <label>
                 {{ form.has_sprints() }}
-                Использовать спринты
+                Использовать вехи
             </label>
         </div>
     </div>
@@ -45,7 +51,7 @@
 <form method="post" action="{{ url_for('.project_delete', project_id=project.id) }}" id="form-delete">
 </form>
 
-
+{#
 <div class="row">
     <div class="col-sm-offset-2 col-sm-10">
         <form method="post" action="{{ url_for('.set_type', project_id=project.id) }}">
@@ -63,48 +69,7 @@
         </form>
     </div>
 </div>
-
-
-
-
-{% if project.has_sprints %}
-    <h2>Спринты</h2>
-    {% if sprints %}
-        <table class="table table-bordered">
-        <thead>
-        <tr>
-            <th style="width:60%">Название</th>
-            <th>Сроки</th>
-            <th></th>
-        </tr>
-        </thead>
-        {% for sprint in sprints %}
-        <tr data-id="{{ sprint.id }}">
-            <td><a href="{{ url_for('.sprint_edit', project_id=project.id, sprint_id=sprint.id) }}">{{ sprint.name }}</a></td>
-            <td>{{ sprint.start.strftime('%d.%m.%Y') }} — {{ sprint.finish.strftime('%d.%m.%Y') }}</td>
-            <td>
-                <button type="button" class="btn btn-xs btn-danger">
-                    <i class="glyphicon glyphicon-remove"></i>
-                </button>
-            </td>
-        </tr>
-        {% endfor %}
-        </table>
-    {% else %}
-        <div class="alert alert-info">В проекте ещё нет ни одного спринта.</div>
-    {% endif %}
-    <a href="{{ url_for('.sprint_edit', project_id=project.id) }}" class="btn btn-success">
-        <i class="glyphicon glyphicon-plus-sign"></i> Добавить спринт
-    </a>
-{% endif %}
-
-
-
-{% else %}
-    <div class="alert alert-info">
-        Вы не можете изменять свойства проекта.
-    </div>
-{% endif %}
+ #}
 {% endblock %}
 
 

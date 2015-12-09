@@ -50,3 +50,21 @@ a.user:before {
     background-color: #ff0; color: #f00;
 }
 
+.table-list {}
+.table-list td, .table-list th { white-space: nowrap; }
+.table-list td.t, .table-list th.t { width: 100%; white-space: normal; }
+.table-list td.w, .table-list th.w { white-space: normal; }
+.table-list tr.status-hidden { background-color: #eee; text-decoration: line-through; }
+.table-list tr.hl { background-color: #ffa; }
+.table-list tr.placeholder { background-color: #999; }
+.table-list tr.placeholder td { height: 1em; }
+
+body.dragging, body.dragging * {
+  cursor: move !important;
+}
+
+.dragged {
+  position: absolute;
+  opacity: 0.5;
+  z-index: 2000;
+}

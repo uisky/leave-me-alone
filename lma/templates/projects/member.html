@@ -1,15 +1,16 @@
+{% extends 'project.html' %}
+{% set container_class = 'container' %}
 {% if member.user_id == current_user.id %}
     {% set menu_current = 'my' %}
 {% else %}
     {% set menu_current = 'members' %}
 {% endif %}
 
-{% extends 'project.html' %}
 {% block content %}
 
 <h1>Участие {{ member.user.name }} в {{ project.name }}</h1>
 
-<form id="form-filter" method="get" class="form-inline">
+<form id="form-filter" method="get" class="form-inline" style="margin-bottom: 20px;">
     <a href="{{ url_for('.about', project_id=project.id) }}" class="btn btn-default btn-sm">
         <span class="glyphicon glyphicon-arrow-left"></span>
         Назад
@@ -29,8 +30,11 @@
     </button>
 </form>
 
-<p>
-</p>
+{% if not tasks %}
+    <div class="alert alert-info">
+        Задач не обнаружено.
+    </div>
+{% else %}
 <table class="table table-bordered">
     <thead>
     <tr>
@@ -67,7 +71,7 @@
     {% endfor %}
     </thead>
 </table>
-
+{% endif %}
 {% endblock %}
 
 

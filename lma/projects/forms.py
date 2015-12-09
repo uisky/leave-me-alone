@@ -17,7 +17,7 @@ class ProjectPropertiesForm(Form):
     name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[strip_field])
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
     # type = RadioField('Тип', [v.required()], choices=PROJECT_TYPES)
-    has_sprints = BooleanField('Использовать спринты')
+    has_sprints = BooleanField('Использовать вехи')
 
 
 class OutputOptions(Form):
@@ -48,9 +48,7 @@ class TaskForm(Form):
 
 
 class SprintPropertiesForm(Form):
-    name = StringField('Название', [v.required(message='У спринта должно быть название')], filters=[strip_field])
-    start = DateField('Начало', [v.optional()], format='%d.%m.%Y')
-    finish = DateField('Конец', [v.optional()], format='%d.%m.%Y')
+    name = StringField('Название', [v.required(message='У вехи должно быть название')], filters=[strip_field])
 
 
 class KarmaRecordForm(Form):

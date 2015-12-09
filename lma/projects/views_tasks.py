@@ -17,8 +17,8 @@ def tasks(project_id):
 
     # Текущий спринт, если проект спринтованный
     if project.has_sprints:
-        sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.start.desc(), Sprint.created.desc()).all()
-        options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне спринтов')]
+        sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
+        options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне вех')]
         if 'sprint' not in request.args:
             options.sprint.data = int(request.cookies.get('sprint', '0'))
 

@@ -101,9 +101,8 @@ class Sprint(db.Model):
         db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
         nullable=True, index=True
     )
+    sort = db.Column(db.SmallInteger(), nullable=False, default=0, server_default='0')
     name = db.Column(db.String(255), nullable=False)
-    start = db.Column(db.Date(), nullable=False, server_default=db.text('current_date'))
-    finish = db.Column(db.Date(), nullable=False, server_default=db.text('current_date + 7'))
 
     project = db.relationship('Project', backref='sprints')
 

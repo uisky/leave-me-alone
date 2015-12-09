@@ -1,4 +1,5 @@
 {% extends 'project.html' %}
+{% set container_class = 'container' %}
 {% set menu_current = 'about' %}
 
 
@@ -15,17 +16,9 @@
 {% endblock %}
 
 {% block content %}
-{% if project.can('edit') %}
-    <a href="{{ url_for('.project_edit', project_id=project.id) }}" class="btn btn-primary btn-sm pull-right">
-        <i class="fa fa-edit"></i> Редактировать
-    </a>
-{% endif %}
 
-
-
-<h1>{{ project.name }}</h1>
-
-<p>
+<h1 class="text-center">{{ project.name }}</h1>
+<p class="text-center">
     Создал <a href="{{ url_for('.member', project_id=project.id, member_id=project.user_id) }}">{{ project.owner.name }}</a>
     {{ project.created|humantime }} ({{ project.age.days }} {{ project.age.days|plural('день', 'дня', 'дней') }} тому назад).
 </p>
@@ -106,6 +99,16 @@
     {% endfor %}
     </tbody>
 </table>
+
+
+
+{% if project.can('edit') %}
+<p class="text-center">
+    <a href="{{ url_for('.project_edit', project_id=project.id) }}" class="btn btn-primary btn-sm">
+        <i class="fa fa-edit"></i> Редактировать свойства проекта
+    </a>
+</p>
+{% endif %}
 
 
 <div class="modal fade" id="modal-help-karma" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
