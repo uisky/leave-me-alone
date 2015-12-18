@@ -5,6 +5,7 @@ from flask.ext.login import login_user, logout_user
 from . import mod, forms
 from .. import db, app
 from .models import User
+from ..projects.models import ProjectFolder
 from ..utils import flash_errors
 
 
@@ -53,6 +54,11 @@ def register():
             user.password_hash = User.hash_password(form.password.data)
 
             db.session.add(user)
+            db.session.flush()
+
+            archive_folder = ProjectFolder(user_id=user.id, name='Архив', in_menu=False)
+            db.session.add(archive_folder)
+
             db.session.commit()
 
             login_user(user)

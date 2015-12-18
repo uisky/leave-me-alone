@@ -107,6 +107,20 @@ class Sprint(db.Model):
     project = db.relationship('Project', backref='sprints')
 
 
+class ProjectFolder(db.Model):
+    __tablename__ = 'project_folders'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False, index=True)
+    name = db.Column(db.String(255), nullable=False)
+    in_menu = db.Column(db.Boolean, nullable=False, default=True, server_default='t')
+    bgcolor = db.Column(db.String(6), nullable=True)
+
+    def __repr__(self):
+        return '<Folder #%d: %d/%s>' % (self.id, self.user_id, self.name)
+
+
 class ProjectMember(db.Model):
     __tablename__ = 'project_members'
 
@@ -124,7 +138,8 @@ class ProjectMember(db.Model):
     added = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
     roles = db.Column(ARRAY(db.String(16), zero_indexes=True))
     karma = db.Column(db.Integer, nullable=False, default=0, server_default='0')
-    archived = db.Column(db.Boolean, nullable=False, default=False, server_default='f')
+    folder_id = db.Column(db.Integer, db.ForeignKey('project_folders.id', ondelete='SET NULL', onupdate='CASCADE'),
+                          nullable=True)
 
     user = db.relationship('User', backref='membership')
 
