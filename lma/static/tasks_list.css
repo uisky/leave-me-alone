@@ -35,3 +35,6 @@
 .tasks-list li.my .users a.user { font-weight: bold; color: #3d8c2d; }
 
 .deadline.late { color: #f00; }
+
+.deadline-preset { font-size: 11px; text-decoration: none; border-bottom: 1px dashed #337ab7; margin-right: 10px; }
+.deadline-preset:hover { text-decoration: none; }

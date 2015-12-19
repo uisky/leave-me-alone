@@ -79,7 +79,7 @@ var CHARACTERS = {
 <div class="container tasks-containter">
 {% if not tasks %}
     <div class="alert alert-box alert-info">
-        {% if project.has_sprints %}Спринт{% else %}Проект{% endif %} пуст.
+        {% if project.has_sprints %}Веха пуста{% else %}Проект пуст{% endif %}.
     </div>
 {% else %}
     <ul class="tasks-list"></ul>
@@ -122,6 +122,8 @@ var CHARACTERS = {
                         <span class="glyphicon glyphicon-remove" id="edit-deadline-clear"></span>
                     </span>
                 </div>
+                <a href="#" class="deadline-preset" data-deadline="today">сегодня</a>
+                <a href="#" class="deadline-preset" data-deadline="tomorrow">завтра</a>
                 <script type="text/javascript">
                     $('#edit-deadline').datetimepicker({
                         'sideBySide': true,
