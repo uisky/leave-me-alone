@@ -29,8 +29,13 @@ def index(folder_id=None):
     projects = query.all()
 
     form = forms.ProjectPropertiesForm()
+    form_folder_edit = forms.ProjectFolderForm(obj=folder)
 
-    return render_template('projects/index.html', form=form, folders=folders, folder=folder, projects=projects)
+    return render_template(
+        'projects/index.html',
+        folders=folders, folder=folder, projects=projects,
+        form=form, form_folder_edit=form_folder_edit
+    )
 
 
 @mod.route('/folder-set', methods=('POST',))
@@ -54,6 +59,40 @@ def folder_set():
 
     db.session.commit()
     return '{"project_id": %d, "folder_id": %d}' % (membership.project_id, folder_id)
+
+
+@mod.route('/folder-new', methods=('POST',))
+@mod.route('/<int:folder_id>/edit/', methods=('POST',))
+def folder_edit(folder_id=None):
+    if folder_id:
+        folder = ProjectFolder.query.filter_by(user_id=current_user.id, id=folder_id).first()
+        if not folder:
+            abort(404)
+    else:
+        folder = ProjectFolder(user_id=current_user.id)
+
+    form = forms.ProjectFolderForm(obj=folder)
+
+    if form.validate_on_submit():
+        form.populate_obj(folder)
+        db.session.add(folder)
+        db.session.commit()
+    else:
+        flash_errors(form)
+
+    return redirect(url_for('.index', folder_id=folder.id))
+
+
+@mod.route('/<int:folder_id>/delete/', methods=('POST',))
+def folder_delete(folder_id):
+    folder = ProjectFolder.query.filter_by(user_id=current_user.id, id=folder_id).first()
+    if not folder:
+        abort(404)
+
+    db.session.delete(folder)
+    db.session.commit()
+
+    return redirect(url_for('.index'))
 
 
 @mod.route('/<project_id>/about/')

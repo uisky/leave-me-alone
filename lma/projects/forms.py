@@ -18,6 +18,11 @@ class ProjectPropertiesForm(Form):
     has_sprints = BooleanField('Использовать вехи')
 
 
+class ProjectFolderForm(Form):
+    name = StringField('Название', [v.required(message='Имя забыли.')], filters=[strip_field])
+    in_menu = BooleanField('Показывать проекты из этой папки в меню', default=True)
+
+
 class OutputOptions(Form):
     sort = SelectField(
         'Сортировка',
