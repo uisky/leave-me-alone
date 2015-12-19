@@ -36,7 +36,6 @@ a.user:before {
 .cnt-comments { font-size: 0.8em; }
 .cnt-comments i { color: red; font-size: 1.2em; animation: blink .5s infinite ease alternate; }
 
-
 .task-comments ul.comments { list-style: none; padding: 0; margin: 0; }
 .task-comments ul.comments > li { margin: 10px 0 20px; }
 .task-comments ul.comments > li > .body { padding: 5px 5px 0; }
@@ -68,3 +67,6 @@ body.dragging, body.dragging * {
   opacity: 0.5;
   z-index: 2000;
 }
+
+ul.menu-projects li.folder { font-weight: bold; padding: 3px 20px 3px 6px; background: #eee; margin-top: 10px; }
+ul.menu-projects li.folder:first-child { margin-top: 0px; }

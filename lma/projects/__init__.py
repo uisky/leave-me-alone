@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from flask import Blueprint, abort, g
 from flask_login import login_required, current_user, redirect, request, url_for
 from .models import *
@@ -33,7 +35,6 @@ def load_project(project_id):
 def check_login():
     if not current_user.is_authenticated:
         return redirect(url_for('index', next=request.path))
-        abort(403)
 
 
 @mod.before_request
@@ -46,11 +47,19 @@ def load_projects():
     if not current_user.is_authenticated:
         return
 
-    projects = db.session.query(Project).join(ProjectMember) \
+    query = db.session.query(Project, ProjectMember, ProjectFolder) \
+        .join(ProjectMember) \
+        .outerjoin(ProjectFolder) \
         .filter(ProjectMember.user_id == current_user.id) \
-        .order_by(Project.created.desc()) \
-        .all()
-    g.my_projects = projects
+        .filter(db.or_(ProjectFolder.in_menu, ProjectMember.folder_id == None)) \
+        .order_by(ProjectMember.folder_id.desc(), ProjectMember.added.desc())
+
+    g.my_projects = OrderedDict()
+    for project, membership, folder in query.all():
+        g.my_projects.setdefault(folder, []).append(project)
+        print(membership, folder, project)
+
+    print(g.my_projects)
 
 
 from . import views, views_members, views_tasks, views_history

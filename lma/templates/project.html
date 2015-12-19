@@ -14,14 +14,25 @@
         LMA: {{ project.name }}
         <span class="caret"></span>
     </a>
-    <ul class="dropdown-menu">
-    {%- for prj in g.my_projects %}
-        <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ prj.url_for() }}">
-            {{- prj.name -}}
-        </a></li>
-    {%- endfor -%}
+    <ul class="dropdown-menu menu-projects">
+    {% if g.my_projects|length == 1 %}
+        {% for prj in g.my_projects.popitem()[1] %}
+            <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ prj.url_for() }}">
+                {{- prj.name -}}
+            </a></li>
+        {% endfor %}
+    {% else %}
+        {%- for folder, projects in g.my_projects.items() %}
+            <li class="folder">{{ folder.name|default('Основные') }}</li>
+            {% for prj in projects %}
+                <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ prj.url_for() }}">
+                    {{- prj.name -}}
+                </a></li>
+            {% endfor %}
+        {%- endfor -%}
+    {% endif %}
         <li role="separator" class="divider"></li>
-        <li><a href="/projects"><i class="fa fa-rocket"></i> Создать проект</a></li>
+        <li><a href="/projects" title="Центр Управления Проектами"><i class="fa fa-rocket"></i> ЦУП</a></li>
     </ul>
 </div>
 {% endblock %}

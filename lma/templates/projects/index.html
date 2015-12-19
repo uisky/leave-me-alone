@@ -68,10 +68,11 @@
 
 <div class="container">
 <form method="post" action="{{ url_for('.project_add') }}">
-    {{ form.csrf_token }}
+    <input type="hidden" name="folder_id" value="{{ folder.id }}">
+    {{ form_project_new.csrf_token }}
     <div class="row">
         <div class="col-sm-10">
-            <input type="text" name="name" value="{{ request.form.get('name', '') }}" class="form-control" placeholder="Название">
+            {{ form_project_new.name(class="form-control", placeholder="Название") }}
         </div>
         <div class="col-sm-2">
             <button type="submit" class="btn btn-success">
@@ -82,8 +83,8 @@
     </div>
     <div class="row" style="margin-top: 10px;">
         <div class="col-sm-10 text-center">
-            <label><input type="radio" name="type" value="list" checked> Список</label>
-            <label><input type="radio" name="type" value="tree"> Дерево</label>
+            <label><input type="radio" name="type" value="list"> Список</label>
+            <label><input type="radio" name="type" value="tree" checked> Дерево</label>
         </div>
     </div>
 </form>

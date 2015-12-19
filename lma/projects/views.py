@@ -7,7 +7,7 @@ from ..utils import flash_errors
 
 
 @mod.route('/')
-@mod.route('/<int:folder_id>/')
+@mod.route('/folder-<int:folder_id>/')
 def index(folder_id=None):
     folders = ProjectFolder.query.filter_by(user_id=current_user.id).order_by('id').all()
     if folder_id:
@@ -28,13 +28,13 @@ def index(folder_id=None):
         query = query.filter(ProjectMember.folder_id == None)
     projects = query.all()
 
-    form = forms.ProjectPropertiesForm()
+    form_project_new = forms.ProjectPropertiesForm()
     form_folder_edit = forms.ProjectFolderForm(obj=folder)
 
     return render_template(
         'projects/index.html',
         folders=folders, folder=folder, projects=projects,
-        form=form, form_folder_edit=form_folder_edit
+        form_project_new=form_project_new, form_folder_edit=form_folder_edit
     )
 
 
@@ -62,7 +62,7 @@ def folder_set():
 
 
 @mod.route('/folder-new', methods=('POST',))
-@mod.route('/<int:folder_id>/edit/', methods=('POST',))
+@mod.route('/folder-<int:folder_id>/edit/', methods=('POST',))
 def folder_edit(folder_id=None):
     if folder_id:
         folder = ProjectFolder.query.filter_by(user_id=current_user.id, id=folder_id).first()
@@ -83,7 +83,7 @@ def folder_edit(folder_id=None):
     return redirect(url_for('.index', folder_id=folder.id))
 
 
-@mod.route('/<int:folder_id>/delete/', methods=('POST',))
+@mod.route('/folder-<int:folder_id>/delete/', methods=('POST',))
 def folder_delete(folder_id):
     folder = ProjectFolder.query.filter_by(user_id=current_user.id, id=folder_id).first()
     if not folder:
@@ -137,12 +137,15 @@ def project_add():
         project.type = 'tree'
 
     db.session.add(project)
-    db.session.commit()
+    db.session.flush()
 
     # Вступаем в свой проект
-    membership = ProjectMember(user_id=current_user.id,
-                               project_id=project.id,
-                               roles=['lead'])
+    membership = ProjectMember(
+        user_id=current_user.id,
+        project_id=project.id,
+        roles=['lead'],
+        folder_id=request.form.get('folder_id', 0, type=int) or None
+    )
     db.session.add(membership)
     db.session.commit()
 
