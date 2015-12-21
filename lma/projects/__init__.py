@@ -57,9 +57,6 @@ def load_projects():
     g.my_projects = OrderedDict()
     for project, membership, folder in query.all():
         g.my_projects.setdefault(folder, []).append(project)
-        print(membership, folder, project)
-
-    print(g.my_projects)
 
 
 from . import views, views_members, views_tasks, views_history
