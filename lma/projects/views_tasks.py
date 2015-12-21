@@ -425,7 +425,7 @@ def task_comments(project_id, task_id):
 
     if request.method == 'POST':
         comment = TaskComment(task_id=task.id, user_id=current_user.id)
-        # comment.body = sanitize_html(request.form.get('body', '').strip())
+        comment.body = request.form.get('body', '').strip()
         comment.task = task
         if comment.body != '':
             db.session.add(comment)

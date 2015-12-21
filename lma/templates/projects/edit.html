@@ -9,7 +9,9 @@
 
 <ul class="nav nav-tabs" style="margin-bottom: 20px">
     <li class="active"><a href="{{ url_for('.project_edit', project_id=project.id) }}">Свойства</a></li>
-    <li><a href="{{ url_for('.sprints', project_id=project.id) }}">Вехи</a></li>
+    {% if project.has_sprints %}
+        <li><a href="{{ url_for('.sprints', project_id=project.id) }}">Вехи</a></li>
+    {% endif %}
 </ul>
 
 
