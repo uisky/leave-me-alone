@@ -208,17 +208,21 @@ def task_subtask(project_id, parent_id=None):
 
     if form.validate_on_submit():
         form.populate_obj(task)
-        # task.description = sanitize_html(task.description)
 
         if project.has_sprints and request.form.get('sprint_id', 0, type=int):
             task.sprint_id = request.form.get('sprint_id', type=int)
         task.setparent(parent)
+        db.session.add(task)
 
         # Удаляем статус у родительской задачи
         if parent:
             parent.status = None
 
-        db.session.add(task)
+        # История!
+        db.session.flush()
+        hist = TaskHistory(task_id=task.id, status='open', user_id=task.user_id)
+        db.session.add(hist)
+
         db.session.commit()
 
         # Оповещаем assignee

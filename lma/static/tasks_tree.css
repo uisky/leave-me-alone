@@ -46,7 +46,10 @@ li.collapsed > ul { display: none; }
 
 .task-details .description { margin: 20px 0}
 
+/*
+глупо выглядит, если нет кнопок
 #form-setstatus { border: 1px solid #777; background: #f0f0f0; padding: 10px; border-radius: 10px; text-align: center;}
+*/
 
 #form-chparent, #form-swap { display: none; }
 
