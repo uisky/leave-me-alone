@@ -46,7 +46,7 @@ class TaskForm(Form):
                              choices=[(x['id'], x['name']) for x in IMPORTANCE],
                              coerce=int)
     character = SelectField('Характер', [v.optional()],
-                            choices=[(0, '')] + [(x['id'], x['name']) for x in CHARACTERS],
+                            choices=[(0, '')] + [(x['id'], x['name']) for x in CHARACTERS.values()],
                             coerce=int)
 
 

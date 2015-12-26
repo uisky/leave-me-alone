@@ -1,0 +1,15 @@
+<h1>История задачи</h1>
+<ul>
+{% set prev = None %}
+{% for hist in task.history %}
+    <li>
+        {{ hist.created.strftime('%d.%m.%Y %H:%M') }}
+        {% if prev %}
+            <span class="dt">(+{{ (hist.created - prev.created)|humandelta }})</span>
+        {% endif %}
+        {{ hist.user.link|safe }}:
+        {{ hist.text() }}
+    </li>
+    {% set prev = hist %}
+{% endfor %}
+</ul>

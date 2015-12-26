@@ -133,4 +133,11 @@
             $tab.load($tab.data('url'), init_comments);
         }
     });
+
+    // История
+    $('#tabs-task a[href=#task-history]').on('shown.bs.tab', function() {
+        var $tab = $('#task-history');
+        $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
+        $tab.load($tab.data('url'));
+    });
 })();

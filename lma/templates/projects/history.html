@@ -1,6 +1,8 @@
-{% set menu_current = 'history' %}
-
 {% extends 'project.html' %}
+
+{% set menu_current = 'history' %}
+{% set container_class = 'container' %}
+
 
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
@@ -56,13 +58,13 @@
     Ещё ничего не происходило.
 </div>
 {% else %}
-    <table class="table table-bordered">
+    <table class="table table-bordered table-list">
         <thead>
         <tr>
             <th>Дата</th>
             <th>Участник</th>
             <th>Действие</th>
-            <th>Задача</th>
+            <th class="t">Задача</th>
         </tr>
         </thead>
         {% for row in history %}
@@ -70,7 +72,7 @@
             <td>{{ row.created.strftime('%d.%m.%Y %H:%M') }}</td>
             <td><a href="{{ url_for('.member', project_id=project.id, member_id=row.user_id) }}">{{ row.user.name }}</a></td>
             <td>{{ row.status|status_label }}</td>
-            <td><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.subject }}</a></td>
+            <td class="t"><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.subject }}</a></td>
         </tr>
         {% endfor %}
     </table>

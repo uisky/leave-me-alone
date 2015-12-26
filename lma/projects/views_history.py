@@ -61,6 +61,5 @@ def gantt(project_id):
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
     g.IMPORTANCE = IMPORTANCE
-    g.CHARACTERS = CHARACTERS
 
     return render_template('projects/gantt.html', project=project, tasks=tasks, history=history, max_time=max_time)

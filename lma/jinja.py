@@ -9,7 +9,6 @@ from .utils import sanitize_html, plural
 
 
 _importance_icons = {x['id']: x['icon'] for x in IMPORTANCE}
-_character_icons = {x['id']: x['icon'] for x in CHARACTERS}
 
 
 @app.template_filter('markdown')
@@ -34,7 +33,7 @@ def jinja_status_rus(x):
 
 
 @app.template_filter('status_label')
-def jinga_status_label(x):
+def jinja_status_label(x):
     return Markup('<label class="label %s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x)))
 
 
@@ -45,7 +44,7 @@ def importance_icon(x):
 
 @app.template_filter('character_icon')
 def character_icon(x):
-    return _character_icons.get(x, '')
+    return CHARACTERS.get(x, {'icon': ''})['icon']
 
 
 @app.template_filter('taskjson')
@@ -101,6 +100,16 @@ def humantime(ts):
                 return ts.strftime('вчера в %H:%M')
         return ('%d ' % ts.day) + months[ts.month] + ts.strftime(' %H:%M')
     return ts.strftime('%d %b %Y %H:%M')
+
+
+@app.template_filter('humandelta')
+def humandelta(dt):
+    t = []
+    if dt.days:
+        t.append('%d %s' % (dt.days, plural(dt.days, 'день', 'дня', 'дней')))
+    t.append('%d:%02d' % (dt.seconds // 3600, (dt.seconds // 60) % 60))
+
+    return ' '.join(t)
 
 
 @app.context_processor

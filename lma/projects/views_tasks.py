@@ -117,13 +117,14 @@ def task_edit(project_id, task_id):
         # Пишем в историю, если что-то изменилось
         hist = TaskHistory(task_id=task.id, user_id=current_user.id)
         is_modified = False
-        for field in ('assigned_id', 'subject', 'description', 'deadline', 'importance', 'character'):
+        history_fields = ('assigned_id', 'subject', 'deadline', 'importance', 'character')
+        for field in history_fields:
             if getattr(form, field).data != getattr(task, field):
                 setattr(hist, field, getattr(form, field).data)
                 is_modified = True
+        is_modified |= all([getattr(hist, field) is None for field in history_fields])
 
         form.populate_obj(task)
-        # task.description = sanitize_html(task.description)
         if task.character == 0:
             task.character = None
 
@@ -452,3 +453,10 @@ def task_comments(project_id, task_id):
 
         return render_template('projects/_comments.html', project=project, task=task, comments=comments, lastseen=lastseen)
 
+
+@mod.route('/<int:project_id>/<int:task_id>/history/')
+def task_history(project_id, task_id):
+    project, membership = load_project(project_id)
+    task = Task.query.get_or_404(task_id)
+
+    return render_template('projects/_history.html', project=project, task=task)

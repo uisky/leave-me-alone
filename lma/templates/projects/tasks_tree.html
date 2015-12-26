@@ -158,7 +158,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {% if selected %}
                 <div id="task-details" class="tab-pane active task-details">
                     <h1>{{ selected.subject }}</h1>
-                    <p>
+                    <div class="meta">
                         Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
                         {{ selected.user.link|safe }}
                         {% if selected.assigned_id %}
@@ -173,7 +173,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                                 {% if selected.deadline <= g.now %}</span>{% endif %}
                             </p>
                         {% endif %}
-                    </p>
+                    </div>
                     <div class="description">
                         {{ selected.description|markdown|safe }}
                     </div>
@@ -195,22 +195,8 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                 </div>
 
                 {# История #}
-                <div id="task-history" class="tab-pane">
-                    <h1>История задачи</h1>
-                    <ul>
-                        <li>
-                            {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
-                            {{ selected.user.link|safe }}:
-                            Создал задачу
-                        </li>
-                    {% for hist in selected.history %}
-                        <li>
-                            {{ hist.created.strftime('%d.%m.%Y %H:%M') }}
-                            {{ hist.user.link|safe }}:
-                            {{ hist.text()|safe }}
-                        </li>
-                    {% endfor %}
-                    </ul>
+                <div id="task-history" class="tab-pane task-history"
+                    data-url="{{ url_for('.task_history', project_id=project.id, task_id=selected.id) }}">
                 </div>
             {% endif %}
 

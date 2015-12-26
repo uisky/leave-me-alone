@@ -6,6 +6,7 @@ import pytz
 
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM
 from flask_login import current_user
+from flask import Markup
 
 from .. import db
 
@@ -18,11 +19,11 @@ IMPORTANCE = [
     {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2">&darr;&darr;</span>'},
 ]
 
-CHARACTERS = [
-    {'id': 1, 'name': 'Фича', 'icon': ''},
-    {'id': 2, 'name': 'Баг', 'icon': '<i class="fa fa-bug text-danger"></i>'},
-    {'id': 3, 'name': 'Подумать', 'icon': '<i class="fa fa-lightbulb-o"></i>'},
-]
+CHARACTERS = OrderedDict([
+    (1, {'id': 1, 'name': 'Фича', 'icon': ''}),
+    (2, {'id': 2, 'name': 'Баг', 'icon': '<i class="fa fa-bug text-danger"></i>'}),
+    (3, {'id': 3, 'name': 'Подумать', 'icon': '<i class="fa fa-lightbulb-o"></i>'}),
+])
 
 
 PROJECT_TYPES = OrderedDict([('tree', 'Дерево'), ('list', 'Список')])
@@ -411,28 +412,27 @@ class TaskHistory(db.Model):
     assignee = db.relationship('User', foreign_keys=[assigned_id])
 
     def text(self):
+        from ..jinja import jinja_status_label
         deeds = []
         if self.assigned_id is not None:
-            deeds.append('Назначил исполнителя %s' % self.assignee.link)
+            deeds.append(Markup('Назначил исполнителя %s' % self.assignee.link))
         if self.status is not None:
-            deeds.append('Установил статус &laquo;%s&raquo' % self.status)
+            deeds.append('Установил статус %s' % jinja_status_label(self.status))
         if self.subject is not None:
-            # @todo: А вот тут у нас HTML Injection
-            deeds.append('Изменил формулировку на &laquo;%s&raquo' % self.subject)
+            deeds.append('Изменил формулировку на &laquo;%s&raquo;' % Markup.escape(self.subject))
         if self.description is not None:
-            # @todo: И тут ещё одна
-            deeds.append('Изменил описание: &laquo;%s&raquo' % self.subject)
+            deeds.append('Изменил описание: &laquo;%s&raquo;' % Markup.escape(self.description))
         if self.deadline is not None:
             deeds.append('Установил дедлайн на %s' % self.deadline.strftime('%d.%m.%Y %H:%M'))
+        if self.importance is not None:
+            deeds.append('Изменил важность на «%d»' % self.importance)
+        if self.character:
+            if self.character == 0:
+                deeds.append('Убрал характер')
+            else:
+                deeds.append('Изменил характер на «%s %s»' % (CHARACTERS[self.character]['icon'], CHARACTERS[self.character]['name']))
 
-        return '; '.join(deeds)
-
-    @property
-    def status_label(self):
-        return '<label class="label label-%s">%s</label>' % (
-            Task.STATUS_CSS_CLASSES.get(self.status, 'default'),
-            Task.STATUS_MEANING.get(self.status, self.status)
-        )
+        return Markup('; '.join(deeds))
 
 
 class TaskComment(db.Model):

@@ -30,8 +30,8 @@ var IMPORTANCE = {
 };
 
 var CHARACTERS = {
-{%- for i in g.CHARACTERS %}
-    {{ i.id }}: {{ i|safe }}
+{%- for id, ch in g.CHARACTERS.items() %}
+    {{ id }}: {{ ch|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
 };
