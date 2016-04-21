@@ -8,7 +8,7 @@
         'z-index': 1000
     }).appendTo('body');
 
-    var timer, DELAY = 1000 * 5;
+    var timer, DELAY = 1000 * 60 * 10;
 
     function rise() {
         $cat.animate({bottom: '10px'}, 1000, 'swing', function() {
