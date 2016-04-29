@@ -23,7 +23,7 @@
 <form id="form-filter" method="get" class="form-inline">
     <div class="form-group">
         <label class="control-label">Участник:</label>
-        <select name="user_id" class="form-control">
+        <select name="user_id" class="form-control" style="width:150px;">
             <option value="">Все</option>
             {% for member in project.members %}
                 <option value="{{ member.user_id }}"
@@ -34,11 +34,21 @@
     </div>
     <div class="form-group">
         <label class="control-label">За время:</label>
-        <input type="text" name="start" class="form-control datepick">
-        <input type="text" name="end" class="form-control datepick">
+        <div class='input-group date'>
+            <input type="text" name="start" class="form-control datepick" value="{{ request.args.get('start') }}">
+            <span class="input-group-addon">
+                <span class="fa fa-remove clear"></span>
+            </span>
+        </div>
+        <div class='input-group date'>
+            <input type="text" name="end" class="form-control datepick" value="{{ request.args.get('end') }}">
+            <span class="input-group-addon">
+                <span class="fa fa-remove clear"></span>
+            </span>
+        </div>
     </div>
     <div class="form-group">
-        <input type="hidden" name="status" value="{{ request.args.get('status') }}">
+        <input type="hidden" name="status" value="{{ request.args.get('status')|default('', True) }}">
         {% set selected = request.args.get('status', '').split(',') %}
         {% for st in statuses %}
             <button type="button"
@@ -102,13 +112,14 @@
     });
 
     $('#form-filter .datepick').datetimepicker({
-        'sideBySide': true,
         'showTodayButton': true,
-        'stepping': 10,
         'locale': 'ru',
-        'format': 'yyyy-MM-dd',
+        'format': 'YYYY-MM-DD'
     });
 
+    $('#form-filter .date .clear').click(function(e) {
+        $(this).parents('.date').find('input.datepick').val('');
+   });
 })();
 </script>
 {% endblock %}

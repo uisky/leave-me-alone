@@ -22,6 +22,12 @@ def history(project_id):
         statuses = request.args.get('status').split(',')
         history = history.filter(TaskHistory.status.in_(statuses))
 
+    if request.args.get('start'):
+        history = history.filter(TaskHistory.created >= request.args.get('start'))
+
+    if request.args.get('end'):
+        history = history.filter(TaskHistory.created <= request.args.get('end'))
+
     history = history.all()
 
     return render_template('projects/history.html', project=project, history=history, statuses=TASK_STATUSES)
