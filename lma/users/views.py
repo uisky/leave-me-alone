@@ -1,10 +1,13 @@
+import random
+import string
+
 from flask import render_template, request, redirect, flash, url_for
 from flask_login import login_required, current_user
 from flask.ext.login import login_user, logout_user
 
 from . import mod, forms
-from .. import db, app
-from .models import User
+from .models import User, PasswordResetToken
+from .. import db, app, mail
 from ..projects.models import ProjectFolder
 from ..utils import flash_errors
 
@@ -101,6 +104,73 @@ def settings():
         flash_errors(form)
 
     return render_template('users/settings.html', form=form)
+
+
+@mod.route('/sclerosis/', methods=('GET', 'POST'))
+def sclerosis():
+    if request.method == 'POST':
+        user = User.query.filter(db.func.lower(User.email) == request.form.get('email').strip().lower()).first()
+        if user:
+            # Стираем старые токены этого юзера, если были. А заодно и другие старые токены.
+            db.session.execute(
+                "DELETE FROM %s WHERE user_id = :user_id OR created < now() - interval '1 day'" % PasswordResetToken.__tablename__,
+                {'user_id': user.id}
+            )
+
+            token = PasswordResetToken(
+                user_id=user.id,
+                hash=''.join([random.choice(string.ascii_letters+string.digits) for _ in range(64)])
+            )
+            db.session.add(token)
+
+            msg_text = """Здравствуйте.
+
+Вот ссылка для восстановления пароля на Leave Me Alone:
+
+%s
+
+чмглов.""" % url_for('.reset', user_id=token.user_id, token=token.hash, _external=True)
+
+            mail.send_message(
+                subject='Восстановление пароля на Leave Me Alone',
+                recipients=[user.email],
+                body=msg_text
+            )
+            print(msg_text)
+
+            db.session.commit()
+
+        flash('Если вы ввели правильный адрес электронной почты, вам туда сейчас придёт письмо со ссылкой '
+              'для восстановления пароля.<br>На всякий случай, посмотрите в папке «Спам».', 'success')
+        return redirect(url_for('index'))
+
+    return render_template('users/sclerosis.html')
+
+
+@mod.route('/reset/<int:user_id>/<hash>', methods=('GET', 'POST'))
+def reset(user_id, hash):
+    token = PasswordResetToken.query.filter_by(user_id=user_id, hash=hash).first()
+
+    if not token:
+        flash('Ссылка для восстановления пароля повреждена или устарела. Запросите сброс пароля ещё раз.', 'danger')
+        return redirect(url_for('.sclerosis'))
+
+    if request.method == 'POST':
+        if len(request.form.get('pass')) < 6:
+            flash('Пароль должен быть не короче 6 символов.', 'danger')
+            return redirect(url_for('.reset', user_id=user_id, hash=hash))
+        if request.form.get('pass') != request.form.get('pass-check'):
+            flash('Пароли не совпадают.', 'danger')
+            return redirect(url_for('.reset', user_id=user_id, hash=hash))
+
+        token.user.password_hash = User.hash_password(request.form.get('pass'))
+        db.session.delete(token)
+        db.session.commit()
+
+        flash('Готово, входите с новым паролем.', 'success')
+        return redirect(url_for('index'))
+
+    return render_template('users/reset.html', user=token.user, token=token)
 
 
 if app.config.get('DEBUG'):

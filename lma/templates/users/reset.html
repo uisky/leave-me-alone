@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% set container_class = 'container' %}
+
+{% block content %}
+    <h1>Сбросить пароль</h1>
+
+    <p>Привет, {{ user.name }}! Придумайте новый пароль и больше его не забывайте. Введите его сюда два раза:</p>
+
+    <form method="post" class="form-inline">
+        <label class="control-label">Раз:</label>
+        <input type="password" name="pass" class="form-control" autofocus>
+        <label class="control-label">Два:</label>
+        <input type="password" name="pass-check" class="form-control">
+        <button type="submit" class="btn btn-primary">Готово</button>
+    </form>
+{% endblock %}
