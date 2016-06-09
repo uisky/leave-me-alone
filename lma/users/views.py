@@ -167,8 +167,9 @@ def reset(user_id, hash):
         db.session.delete(token)
         db.session.commit()
 
-        flash('Готово, входите с новым паролем.', 'success')
-        return redirect(url_for('index'))
+        flash('Новый пароль сохранён.', 'success')
+        login_user(token.user)
+        return redirect(url_for('projects.index'))
 
     return render_template('users/reset.html', user=token.user, token=token)
 
