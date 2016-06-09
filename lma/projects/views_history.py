@@ -10,13 +10,14 @@ from .models import *
 def history(project_id):
     project, membership = load_project(project_id)
 
-    history = TaskHistory.query.join(Task)\
+    history = TaskHistory.query\
         .filter(Task.project_id == project.id)\
         .filter(TaskHistory.status != None)\
-        .order_by(TaskHistory.created)
+        .order_by(TaskHistory.created)\
+        .options(db.joinedload('task')).options(db.joinedload('user'))
 
     if request.args.get('user_id'):
-        history = history.filter_by(user_id=request.args.get('user_id', 0, type=int))
+        history = history.filter(TaskHistory.user_id == request.args.get('user_id', 0, type=int))
 
     if request.args.get('status'):
         statuses = request.args.get('status').split(',')
