@@ -1,6 +1,6 @@
-{% set menu_current = 'tasks' %}
-
 {% extends 'project.html' %}
+
+{% set menu_current = 'tasks' %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
@@ -106,11 +106,19 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         {{ task.character|character_icon|safe }}
 
                         {# Обожаю тебя, жинжа ёбаная! #}
-                        {% set new_comments = task.cnt_comments - seen.get(task.id, {'cnt_comments': 0}).cnt_comments %}
-                        {% if new_comments %}
+                        {% if task.cnt_comments %}
+                            {% set new_comments = task.cnt_comments - seen.get(task.id, {'cnt_comments': 0}).cnt_comments %}
                             <span class="cnt-comments">
-                                <i class="fa fa-comment"></i>
-                                +{{ new_comments }}
+                                {% if new_comments %}
+                                    <i class="fa fa-comment new"></i>
+                                    {% if task.cnt_comments - new_comments %}
+                                        {{ task.cnt_comments - new_comments -}}
+                                    {%- endif -%}
+                                    +{{- new_comments }}
+                                {% else %}
+                                    <i class="fa fa-comment"></i>
+                                    {{ task.cnt_comments }}
+                                {% endif %}
                             </span>
                         {% endif %}
                     </div>
@@ -321,6 +329,6 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
-<script type="text/javascript" src="/static/tasks_tree.js"></script>
+<script type="text/javascript" src="/static/tasks_tree.js?1"></script>
 <script type="text/javascript" src="/static/plugins/wtfc/tree.js"></script>
 {% endblock %}

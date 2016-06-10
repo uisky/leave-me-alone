@@ -120,7 +120,7 @@
             });
 
             // Убираем мигающий значок о новых комментариях
-            $tree.find('.task.active .cnt-comments').remove()
+            $tree.find('.task.active .fa-comment').removeClass('new')
         }
 
         var LOAD_COMMENTS_ONLY_ONCE = false;

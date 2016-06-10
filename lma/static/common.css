@@ -34,7 +34,7 @@ a.user:before {
 }
 
 .cnt-comments { font-size: 0.8em; }
-.cnt-comments i { color: red; font-size: 1.2em; animation: blink .5s infinite ease alternate; }
+.cnt-comments i.new { color: red; font-size: 1.2em; animation: blink .5s infinite ease alternate; }
 
 .task-comments ul.comments { list-style: none; padding: 0; margin: 0; }
 .task-comments ul.comments > li { margin: 10px 0 20px; }
