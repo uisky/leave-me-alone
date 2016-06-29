@@ -121,6 +121,10 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                                 {% endif %}
                             </span>
                         {% endif %}
+
+                        {% if task.estimate %}
+                            <span class="estimate">{{ task.estimate }}d</span>
+                        {% endif %}
                     </div>
                     </div>
                 {% set prev_depth = task.depth %}

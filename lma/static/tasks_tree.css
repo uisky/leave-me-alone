@@ -31,6 +31,7 @@ li.collapsed > ul { display: none; }
 .tasks-tree .task:hover { background-color: #eee; }
 
 .tasks-tree .task .subj { }
+.tasks-tree .task .estimate { color: #777; font-style: italic; display: inline-block; float: right; margin-right: 10px; }
 
 .tasks-tree .task .users { float: right; width: 150px; overflow: hidden; white-space: nowrap; }
 .tasks-tree .task.my .users a.user { font-weight: bold; color: #3d8c2d; }

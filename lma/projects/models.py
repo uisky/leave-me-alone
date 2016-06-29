@@ -213,6 +213,7 @@ class Task(db.Model):
     subject = db.Column(db.String(1024), nullable=False)
     description = db.Column(db.Text(), nullable=False)
     deadline = db.Column(db.DateTime(timezone=True))
+    estimate = db.Column(db.DECIMAL(precision=3, scale=1))
 
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])

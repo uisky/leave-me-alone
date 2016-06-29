@@ -1,6 +1,6 @@
 from flask_wtf import Form
 from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DateField, \
-    HiddenField, RadioField
+    HiddenField, RadioField, DecimalField
 from wtforms import validators as v
 
 from .models import IMPORTANCE, CHARACTERS, PROJECT_TYPES
@@ -48,6 +48,7 @@ class TaskForm(Form):
     character = SelectField('Характер', [v.optional()],
                             choices=[(0, '')] + [(x['id'], x['name']) for x in CHARACTERS.values()],
                             coerce=int)
+    estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
 
 
 class SprintPropertiesForm(Form):
