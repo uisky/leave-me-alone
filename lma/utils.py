@@ -44,7 +44,7 @@ ALLOWED_TAGS = [
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
     'p', 'code', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'img'
+    'img', 'pre'
 ]
 
 ALLOWED_ATTRIBUTES = {
