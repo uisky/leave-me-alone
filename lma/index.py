@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for
 from flask_mail import Message
-from flask.ext.login import current_user
+from flask_login import current_user
 from . import app, mail
 
 

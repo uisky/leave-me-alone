@@ -2,8 +2,7 @@ import random
 import string
 
 from flask import render_template, request, redirect, flash, url_for
-from flask_login import login_required, current_user
-from flask.ext.login import login_user, logout_user
+from flask_login import login_required, current_user, login_user, logout_user
 
 from . import mod, forms
 from .models import User, PasswordResetToken
