@@ -77,15 +77,18 @@
             <th class="t">Задача</th>
         </tr>
         </thead>
-        {% for row in history %}
+        {% for row in history.items %}
         <tr>
             <td>{{ row.created.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td><a href="{{ url_for('.member', project_id=project.id, member_id=row.user_id) }}">{{ row.user.name }}</a></td>
+            <td><a href="{{ url_for('.history', project_id=project.id, user_id=row.user_id) }}">{{ row.user.name }}</a></td>
             <td>{{ row.status|status_label }}</td>
             <td class="t"><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.subject }}</a></td>
         </tr>
         {% endfor %}
     </table>
+
+    {{ render_pagination(history, '.history', project_id=project.id) }}
+
 {% endif %}
 
 {% endblock %}

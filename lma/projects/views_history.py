@@ -1,5 +1,6 @@
 from datetime import datetime
 import pytz
+import re
 
 from flask import render_template, request, redirect, flash, url_for, g, abort
 from . import mod, forms, load_project
@@ -11,10 +12,13 @@ def history(project_id):
     project, membership = load_project(project_id)
 
     history = TaskHistory.query\
-        .filter(Task.project_id == project.id)\
+        .join(TaskHistory.task)\
         .filter(TaskHistory.status != None)\
         .order_by(TaskHistory.created)\
-        .options(db.joinedload('task')).options(db.joinedload('user'))
+        .options(db.contains_eager(TaskHistory.task))\
+        .options(db.joinedload(TaskHistory.user))\
+        .filter(Task.project_id == project.id)
+        # .options(db.joinedload('task')).options(db.joinedload('user'))
 
     if request.args.get('user_id'):
         history = history.filter(TaskHistory.user_id == request.args.get('user_id', 0, type=int))
@@ -24,13 +28,23 @@ def history(project_id):
         history = history.filter(TaskHistory.status.in_(statuses))
 
     if request.args.get('start'):
-        history = history.filter(TaskHistory.created >= request.args.get('start'))
+        history = history.filter(TaskHistory.created >= request.args.get('start') + ' 00:00:00')
 
     if request.args.get('end'):
-        history = history.filter(TaskHistory.created <= request.args.get('end'))
+        history = history.filter(TaskHistory.created <= request.args.get('end') + ' 23:59:59')
 
-    history = history.all()
+    # sql = str(history)
+    # sql = re.sub(r'\s*AS [^,\s]*(,?)', r'\1\n   ', sql)
+    # sql = re.sub(r'\b(\w+\.)', r'<span style="color:#999">\1</span>', sql)
+    # for kw in ('SELECT', 'FROM', 'WHERE', 'LEFT OUTER JOIN', 'ORDER'):
+    #     sql = sql.replace(kw, '\n<b>%s</b>' % kw)
+    #
+    # return '<pre>' + sql + '</pre>'
+    #
+    # history = history.all()
+    #
 
+    history = history.paginate(request.args.get('page', 1, type=int), 50)
     return render_template('projects/history.html', project=project, history=history, statuses=TASK_STATUSES)
 
 
