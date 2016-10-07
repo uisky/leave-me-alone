@@ -8,7 +8,7 @@ import json
 from . import mod, forms, load_project, mail
 from .models import *
 from .. import app, db
-from ..utils import flash_errors
+from ..utils import flash_errors, print_sql
 from ..users.models import User
 
 
@@ -114,29 +114,39 @@ def member(project_id, member_id):
 
     member = ProjectMember.query.get_or_404((member_id, project_id))
 
-    tasks = Task.query\
-        .filter_by(project_id=project.id)\
+    query = Task.query\
+        .outerjoin(Task.sprint)\
+        .options(db.contains_eager(Task.sprint))\
+        .filter(Task.project_id == project.id)\
         .filter(db.or_(Task.assigned_id == member.user_id,
                        db.and_(Task.assigned_id == None, Task.user_id == member.user_id)))\
-        .order_by(Task.deadline.nullslast(), Task.mp)
+        .order_by(Sprint.sort.desc().nullslast(), Task.deadline.nullslast(), Task.mp)
 
-    if request.args.get('status'):
-        statuses = request.args.get('status').split(',')
+    statuses = request.args.get('status')
+    if statuses:
+        statuses = statuses.split(',')
     else:
         statuses = ['open', 'progress', 'pause', 'review']
-    tasks = tasks.filter(Task.status.in_(statuses))
+    query = query.filter(Task.status.in_(statuses))
 
-    tasks = tasks.all()
+    if project.has_sprints:
+        sprint = request.args.get('sprint', '')
+        if sprint == '-':
+            query = query.filter(Task.sprint_id == None)
+        elif sprint:
+            query = query.filter(Task.sprint_id == sprint)
+
+    query = query.paginate(request.args.get('page', 1, type=int), 50)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
     return render_template(
         'projects/member.html',
-        project=project, member=member, tasks=tasks, statuses=statuses, TASK_STATUSES=TASK_STATUSES
+        project=project, member=member, tasks=query, statuses=statuses, TASK_STATUSES=TASK_STATUSES
     )
 
 
-@mod.route('/<int:project_id>/members/<int:member_id>/karma', methods=('GET', 'POST'))
+@mod.route('/<int:project_id>/members/<int:member_id>/karma/', methods=('GET', 'POST'))
 def karma(project_id, member_id):
     project, membership = load_project(project_id)
     member = ProjectMember.query.get_or_404((member_id, project_id))

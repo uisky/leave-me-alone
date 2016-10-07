@@ -6,8 +6,15 @@
     {% set menu_current = 'members' %}
 {% endif %}
 
-{% block content %}
 
+{% block head %}
+<style type="text/css">
+    .btn.active { font-weight: bold; border: 2px solid black;}
+</style>
+{% endblock %}
+
+
+{% block content %}
 <h1>Участие {{ member.user.name }} в {{ project.name }}</h1>
 
 <form id="form-filter" method="get" class="form-inline" style="margin-bottom: 20px;">
@@ -16,7 +23,7 @@
         Назад
     </a>
     <div class="form-group">
-        <input type="hidden" name="status" value="{{ request.args.get('status') }}">
+        <input type="hidden" name="status" value="{{ request.args.get('status', '') }}">
         {% for st in TASK_STATUSES %}
             <button type="button"
                     class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in statuses %}active{% endif %}"
@@ -25,12 +32,25 @@
             </button>
         {% endfor %}
     </div>
+
+    {% if project.has_sprints %}
+    <div class="form-group">
+        <select name="sprint" class="form-control">
+            <option value="">Все</option>
+            {% for sprint in project.sprints %}
+                <option value="{{ sprint.id }}">{{ sprint.name }}</option>
+            {% endfor %}
+            <option value="-">Вне вех</option>
+        </select>
+    </div>
+    {% endif %}
+
     <button type="submit" class="btn btn-primary pull-right">
         Показать
     </button>
 </form>
 
-{% if not tasks %}
+{% if not tasks.total %}
     <div class="alert alert-info">
         Задач не обнаружено.
     </div>
@@ -44,7 +64,7 @@
         <th>Задача</th>
         <th>Дедлайн</th>
     </tr>
-    {% for task in tasks %}
+    {% for task in tasks.items %}
     <tr>
         <td>{{ task.created.strftime('%d.%m.%Y %H:%M') }}</td>
         <td>{{ task.status|status_label }}</td>
@@ -71,6 +91,10 @@
     {% endfor %}
     </thead>
 </table>
+
+    {{ render_pagination(tasks, '.member',
+                         project_id=project.id, member_id=member.user_id,
+                         status=request.args.get('status'), sprint=request.args.get('sprint')) }}
 {% endif %}
 {% endblock %}
 

@@ -1,5 +1,5 @@
 import bleach
-
+import sqlparse
 from flask import flash
 
 
@@ -64,3 +64,7 @@ STYLES_WHITELIST = [
 
 def sanitize_html(html):
     return bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, styles=STYLES_WHITELIST)
+
+
+def print_sql(query):
+    print(sqlparse.format(str(query), reindent=True, keyword_case='upper'))

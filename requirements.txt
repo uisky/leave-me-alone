@@ -10,3 +10,4 @@ flask-mail
 bleach
 sqlparse
 flask-script
+sqlparse

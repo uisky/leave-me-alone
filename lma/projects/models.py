@@ -218,7 +218,6 @@ class Task(db.Model):
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
     children = db.relationship('Task', backref=db.backref('parent', remote_side=id))
-    # parent = db.relation('Task', foreign_keys=[parent_id])
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created', passive_deletes=True)
     sprint = db.relationship('Sprint', backref='tasks')
 
