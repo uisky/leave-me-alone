@@ -2,8 +2,7 @@ import logging
 
 from flask_script import Command
 
-from lma.projects.models import Project
-from lma import db
+from lma.core import db
 
 
 log = logging.getLogger(__name__)

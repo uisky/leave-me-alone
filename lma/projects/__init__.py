@@ -1,8 +1,10 @@
 from collections import OrderedDict
 
 from flask import Blueprint, abort, g
-from flask_login import login_required, current_user, redirect, request, url_for
-from .models import *
+from flask_login import redirect, request, url_for, current_user
+
+from lma.models import Project, ProjectMember, ProjectFolder, Task
+from lma.core import db
 
 mod = Blueprint('projects', __name__, url_prefix='/projects')
 
@@ -11,7 +13,7 @@ def load_project(project_id):
     project = Project.query.get_or_404(project_id)
     membership = ProjectMember.query.filter_by(project_id=project.id, user_id=current_user.id).first()
     if not membership:
-        abort(403)
+        abort(403, 'У вас нет доступа в этот проект.')
 
     g.my_tasks_count = {}
     r = db.session.execute(
@@ -39,7 +41,7 @@ def check_login():
 
 @mod.before_request
 def set_globals():
-    g.TASK_STATUSES = TASK_STATUSES
+    g.TASK_STATUSES = Task.STATUSES
 
 
 @mod.before_request

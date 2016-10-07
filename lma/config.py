@@ -1,3 +1,4 @@
+ENVIRONMENT = 'production'
 DEBUG = False
 
 SQLALCHEMY_DATABASE_URI = 'postgresql://lma:e78z86@localhost:5432/lma'

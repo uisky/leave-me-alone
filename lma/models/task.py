@@ -1,194 +1,36 @@
 from collections import OrderedDict
 import json
 import markdown
-from datetime import datetime
-import pytz
 
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM
-from flask_login import current_user
 from flask import Markup
 
-from .. import db
+from lma.core import db
 
 
-IMPORTANCE = [
-    {'id':  2, 'name': 'Очень важно', 'icon': '<span class="importance important-2">&uarr;&uarr;</span>'},
-    {'id':  1, 'name': 'Важно', 'icon': '<span class="importance important-1">&uarr;</span>'},
-    {'id':  0, 'name': 'Обычная', 'icon': ''},
-    {'id': -1, 'name': 'Незначительно', 'icon': '<span class="importance important--1">&darr;</span>'},
-    {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2">&darr;&darr;</span>'},
-]
-
-CHARACTERS = OrderedDict([
-    (1, {'id': 1, 'name': 'Фича', 'icon': ''}),
-    (2, {'id': 2, 'name': 'Баг', 'icon': '<i class="fa fa-bug text-danger"></i>'}),
-    (3, {'id': 3, 'name': 'Подумать', 'icon': '<i class="fa fa-lightbulb-o"></i>'}),
-])
-
-
-PROJECT_TYPES = OrderedDict([('tree', 'Дерево'), ('list', 'Список')])
-ENUM_PROJECT_TYPE = ENUM(*PROJECT_TYPES.keys(), name='project_type')
-
-TASK_STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
-ENUM_TASK_STATUS = ENUM(*TASK_STATUSES, name='task_status')
-
-
-class Project(db.Model):
-    __tablename__ = 'projects'
-
-    id = db.Column(db.Integer(), primary_key=True)
-    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False, index=True)
-    type = db.Column(ENUM_PROJECT_TYPE, nullable=False, default='tree', server_default='tree')
-
-    name = db.Column(db.String(64), nullable=False)
-    has_sprints = db.Column(db.Boolean, nullable=False, server_default='false')
-    intro = db.Column(db.Text)
-
-    tasks = db.relationship('Task', backref='project', passive_deletes=True)
-    members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
-    owner = db.relationship('User', backref='projects')
-
-    def __repr__(self):
-        return '<Project %d:%s>' % (self.id or 0, self.name)
-
-    def url_for(self):
-        return '/projects/%d/' % self.id
-
-    def can(self, what, user=None):
-        if user is None:
-            user = current_user
-        if what == 'members':
-            return user.id == self.user_id
-        elif what == 'edit':
-            return user.id == self.user_id
-        return False
-
-    def get_tasks_query(self, options):
-        query = db.session.query(Task, TaskCommentsSeen).filter_by(project_id=self.id)
-        if self.type == 'tree':
-            query = query.order_by(Task.mp)
-            query = query.options(db.joinedload('user'), db.joinedload('assignee'))
-        else:
-            sort = {'created': 'created', 'deadline': 'deadline', 'importance': 'importance desc', 'custom': 'mp[1]'}
-            query = query.order_by(sort.get(options.sort.data, 'deadline'))
-
-        query = query.outerjoin(
-            TaskCommentsSeen,
-            db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id)
-        )
-
-        if self.has_sprints:
-            if options.sprint.data is not None and options.sprint.data != 0:
-                query = query.filter(Task.sprint_id == options.sprint.data)
-            else:
-                query = query.filter(Task.sprint_id == None)
-
-        return query
-
-    @property
-    def age(self):
-        """Возвращает возраст проекта в сутках"""
-        return pytz.utc.localize(datetime.now()) - self.created
-
-
-class Sprint(db.Model):
-    __tablename__ = 'sprints'
-
-    id = db.Column(db.Integer(), primary_key=True)
-    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-    project_id = db.Column(
-        db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
-        nullable=True, index=True
-    )
-    sort = db.Column(db.SmallInteger(), nullable=False, default=0, server_default='0')
-    name = db.Column(db.String(255), nullable=False)
-
-    project = db.relationship('Project', backref='sprints')
-
-
-class ProjectFolder(db.Model):
-    __tablename__ = 'project_folders'
-
-    id = db.Column(db.Integer(), primary_key=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False, index=True)
-    name = db.Column(db.String(255), nullable=False)
-    in_menu = db.Column(db.Boolean, nullable=False, default=True, server_default='t')
-    bgcolor = db.Column(db.String(6), nullable=True)
-
-    def __repr__(self):
-        return '<Folder #%d: %d/%s>' % (self.id, self.user_id, self.name)
-
-
-class ProjectMember(db.Model):
-    __tablename__ = 'project_members'
-
-    ROLES = ('lead', 'developer', 'tester')
-    role_meanings = {
-        'lead': 'Вождь',
-        'developer': 'Разработчик',
-        'tester': 'Тестировщик'
-    }
-
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False, primary_key=True)
-    project_id = db.Column(db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
-                           nullable=False, primary_key=True, index=True)
-    added = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-    roles = db.Column(ARRAY(db.String(16), zero_indexes=True))
-    karma = db.Column(db.Integer, nullable=False, default=0, server_default='0')
-    folder_id = db.Column(db.Integer, db.ForeignKey('project_folders.id', ondelete='SET NULL', onupdate='CASCADE'),
-                          nullable=True)
-
-    user = db.relationship('User', backref='membership')
-
-    # last_seen = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-    # seen_tasks = int, seen_my_tasks = int  - для отслеживания количества новых тасков
-
-    def can(self, what, task=None):
-        if what == 'subtask':
-            if 'lead' in self.roles:
-                return True
-            if 'developer' in self.roles and task and \
-                    (task.assigned_id == self.user.id or task.assigned_id == self.user.id):
-                return True
-
-        if what == 'edit':
-            if task is None:
-                return False
-            if 'lead' in self.roles:
-                return True
-            if 'developer' in self.roles and task and task.user_id == self.user.id:
-                return True
-
-        return False
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-
-class KarmaRecord(db.Model):
-    __tablename__ = 'karma_records'
-
-    id = db.Column(db.Integer(), primary_key=True)
-    created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-    project_id = db.Column(db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
-                           nullable=False, index=True)
-    from_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False, index=True)
-    to_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                      nullable=False, index=True)
-    comment = db.Column(db.Text, nullable=False)
-    value = db.Column(db.Integer, nullable=False, default=0, server_default='0')
-
-    from_user = db.relationship('User', backref='karma_given', foreign_keys=[from_id])
-    to_user = db.relationship('User', backref='karma_received', foreign_keys=[to_id])
+# TASK_STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
+# ENUM_TASK_STATUS = ENUM(*TASK_STATUSES, name='task_status')
 
 
 class Task(db.Model):
     __tablename__ = 'tasks'
+
+    STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
+    ENUM_STATUS = ENUM(*STATUSES, name='task_status')
+
+    IMPORTANCE = [
+        {'id': 2, 'name': 'Очень важно', 'icon': '<span class="importance important-2">&uarr;&uarr;</span>'},
+        {'id': 1, 'name': 'Важно', 'icon': '<span class="importance important-1">&uarr;</span>'},
+        {'id': 0, 'name': 'Обычная', 'icon': ''},
+        {'id': -1, 'name': 'Незначительно', 'icon': '<span class="importance important--1">&darr;</span>'},
+        {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2">&darr;&darr;</span>'},
+    ]
+
+    CHARACTERS = OrderedDict([
+        (1, {'id': 1, 'name': 'Фича', 'icon': ''}),
+        (2, {'id': 2, 'name': 'Баг', 'icon': '<i class="fa fa-bug text-danger"></i>'}),
+        (3, {'id': 3, 'name': 'Подумать', 'icon': '<i class="fa fa-lightbulb-o"></i>'}),
+    ])
 
     id = db.Column(db.Integer(), primary_key=True)
     created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
@@ -205,7 +47,7 @@ class Task(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
                           index=True)
 
-    status = db.Column(ENUM_TASK_STATUS, default='open')
+    status = db.Column(ENUM_STATUS, default='open')
     # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
     importance = db.Column(db.SmallInteger, nullable=False, server_default='0', default=0)
     # Тип задачи: баг, фича, подумать
@@ -357,38 +199,6 @@ class Task(db.Model):
         return json.dumps(dct, ensure_ascii=False)
 
 
-class TaskJSONEncoder(json.JSONEncoder):
-    @staticmethod
-    def _serialize_date(d):
-        if d is None:
-            return None
-        return d.strftime('%Y-%m-%dT%H:%M:%S.000+03:00')
-
-    def default(self, o):
-        if type(o) is Task:
-            dct = {x: getattr(o, x) for x in ('id', 'project_id', 'mp', 'parent_id', 'status', 'subject', 'description', 'character', 'importance', 'sprint_id')}
-
-            dct['created'] = self._serialize_date(o.created)
-            dct['deadline'] = self._serialize_date(o.deadline)
-            dct['description_md'] = markdown.markdown(o.description, output_format='html5')
-
-            if o.assigned_id is None:
-                dct['assignee'] = None
-            else:
-                dct['assignee'] = {'id': o.assigned_id, 'name': o.assignee.name}
-
-            if o.user_id is None:
-                dct['user'] = None
-            else:
-                dct['user'] = {'id': o.user_id, 'name': o.user.name}
-
-            # dct['allowed_statuses'] = o.allowed_statuses(current_user, membership)
-
-            return dct
-        else:
-            return super().default(o)
-
-
 class TaskHistory(db.Model):
     __tablename__ = 'task_history'
 
@@ -401,7 +211,7 @@ class TaskHistory(db.Model):
                         nullable=False, index=True)
 
     assigned_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
-    status = db.Column(ENUM_TASK_STATUS, nullable=True)
+    status = db.Column(Task.ENUM_STATUS, nullable=True)
     subject = db.Column(db.String(1024), nullable=True)
     description = db.Column(db.Text(), nullable=True)
     deadline = db.Column(db.DateTime(timezone=True))
@@ -412,7 +222,7 @@ class TaskHistory(db.Model):
     assignee = db.relationship('User', foreign_keys=[assigned_id])
 
     def text(self):
-        from ..jinja import jinja_status_label
+        from lma.jinja import jinja_status_label
         deeds = []
         if self.assigned_id is not None:
             deeds.append(Markup('Назначил исполнителя %s' % self.assignee.link))
@@ -430,7 +240,7 @@ class TaskHistory(db.Model):
             if self.character == 0:
                 deeds.append('Убрал характер')
             else:
-                deeds.append('Изменил характер на «%s %s»' % (CHARACTERS[self.character]['icon'], CHARACTERS[self.character]['name']))
+                deeds.append('Изменил характер на «%s %s»' % (Task.CHARACTERS[self.character]['icon'], Task.CHARACTERS[self.character]['name']))
 
         return Markup('; '.join(deeds))
 

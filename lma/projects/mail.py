@@ -1,7 +1,9 @@
 from collections import OrderedDict
+
 from flask import url_for
-from .. import mail
 from flask_login import current_user
+
+from lma.core import mail
 
 
 def mail_assigned(project, task):

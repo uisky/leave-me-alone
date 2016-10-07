@@ -1,12 +1,16 @@
-from flask import render_template, render_template_string, request, redirect, flash, g, abort, make_response, jsonify
+from collections import OrderedDict
 from datetime import datetime
 import pytz
+import json
 
+from flask import render_template, render_template_string, request, redirect, flash, g, abort, make_response, jsonify
+from flask_login import current_user
+
+from lma.models import Sprint, User, Task, TaskHistory, TaskComment, TaskCommentsSeen
 from . import mod, forms, load_project
-from .models import *
 from .mail import *
-from .. import db
-from ..utils import flash_errors, form_json_errors, sanitize_html
+from lma.core import db
+from lma.utils import flash_errors, form_json_errors
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
@@ -81,8 +85,8 @@ def tasks(project_id):
     form_empty = forms.TaskForm(obj=empty)
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
-    g.IMPORTANCE = IMPORTANCE
-    g.CHARACTERS = CHARACTERS
+    g.IMPORTANCE = Task.IMPORTANCE
+    g.CHARACTERS = Task.CHARACTERS
 
     # Ответ
     page = render_template(

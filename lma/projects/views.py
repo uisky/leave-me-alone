@@ -1,9 +1,10 @@
 from flask import render_template, request, redirect, flash, url_for, g, abort
+from flask_login import current_user
 
 from . import mod, forms, load_project
-from .models import *
-from .. import app, db
 from ..utils import flash_errors
+from lma.core import db
+from lma.models import Project, ProjectFolder, ProjectMember, Sprint
 
 
 @mod.route('/')
@@ -133,7 +134,7 @@ def project_add():
         return redirect(url_for('.index'))
 
     project.type = request.form.get('type', 'tree')
-    if project.type not in PROJECT_TYPES.keys():
+    if project.type not in Project.TYPES.keys():
         project.type = 'tree'
 
     db.session.add(project)
@@ -271,7 +272,7 @@ def set_type(project_id):
     project, membership = load_project(project_id)
 
     type_ = request.form.get('type')
-    if type_ not in PROJECT_TYPES.keys():
+    if type_ not in Project.TYPES.keys():
         abort(400)
 
     project.type = type_

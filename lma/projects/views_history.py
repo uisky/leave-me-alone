@@ -1,10 +1,7 @@
-from datetime import datetime
-import pytz
-import re
+from flask import render_template, request, g
 
-from flask import render_template, request, redirect, flash, url_for, g, abort
+from lma.models import *
 from . import mod, forms, load_project
-from .models import *
 
 
 @mod.route('/<int:project_id>/history/', methods=('GET', 'POST'))
@@ -18,7 +15,6 @@ def history(project_id):
         .options(db.contains_eager(TaskHistory.task))\
         .options(db.joinedload(TaskHistory.user))\
         .filter(Task.project_id == project.id)
-        # .options(db.joinedload('task')).options(db.joinedload('user'))
 
     if request.args.get('user_id'):
         history = history.filter(TaskHistory.user_id == request.args.get('user_id', 0, type=int))
@@ -33,19 +29,8 @@ def history(project_id):
     if request.args.get('end'):
         history = history.filter(TaskHistory.created <= request.args.get('end') + ' 23:59:59')
 
-    # sql = str(history)
-    # sql = re.sub(r'\s*AS [^,\s]*(,?)', r'\1\n   ', sql)
-    # sql = re.sub(r'\b(\w+\.)', r'<span style="color:#999">\1</span>', sql)
-    # for kw in ('SELECT', 'FROM', 'WHERE', 'LEFT OUTER JOIN', 'ORDER'):
-    #     sql = sql.replace(kw, '\n<b>%s</b>' % kw)
-    #
-    # return '<pre>' + sql + '</pre>'
-    #
-    # history = history.all()
-    #
-
     history = history.paginate(request.args.get('page', 1, type=int), 50)
-    return render_template('projects/history.html', project=project, history=history, statuses=TASK_STATUSES)
+    return render_template('projects/history.html', project=project, history=history, statuses=Task.STATUSES)
 
 
 @mod.route('/<int:project_id>/gantt/')
@@ -81,6 +66,6 @@ def gantt(project_id):
             max_time = pos
 
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
-    g.IMPORTANCE = IMPORTANCE
+    g.IMPORTANCE = Task.IMPORTANCE
 
     return render_template('projects/gantt.html', project=project, tasks=tasks, history=history, max_time=max_time)

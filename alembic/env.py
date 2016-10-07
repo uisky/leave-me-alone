@@ -1,12 +1,18 @@
+from __future__ import with_statement
+
+import os
+import sys
+
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 
-import os
-import sys
 sys.path.append(os.getcwd())
 
-from lma import db, app
+from lma import create_app
+from lma.core import db
+
+app = create_app('config.local.py', purpose='alembic')
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -17,7 +17,7 @@
     <ul class="dropdown-menu menu-projects">
     {% if g.my_projects|length == 1 %}
         {% for prj in g.my_projects.popitem()[1] %}
-            <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ prj.url_for() }}">
+            <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
                 {{- prj.name -}}
             </a></li>
         {% endfor %}
@@ -25,7 +25,7 @@
         {%- for folder, projects in g.my_projects.items() %}
             <li class="folder">{{ folder.name|default('Основные') }}</li>
             {% for prj in projects %}
-                <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ prj.url_for() }}">
+                <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
                     {{- prj.name -}}
                 </a></li>
             {% endfor %}

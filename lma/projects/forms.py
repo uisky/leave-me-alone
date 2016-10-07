@@ -1,9 +1,8 @@
 from flask_wtf import Form
-from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DateField, \
-    HiddenField, RadioField, DecimalField
+from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DecimalField
 from wtforms import validators as v
 
-from .models import IMPORTANCE, CHARACTERS, PROJECT_TYPES
+from lma.models import Task
 
 
 def strip_field(s):
@@ -43,10 +42,10 @@ class TaskForm(Form):
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
     assigned_id = IntegerField('Исполнитель', [v.optional()])
     importance = SelectField('Важность', [v.optional()],
-                             choices=[(x['id'], x['name']) for x in IMPORTANCE],
+                             choices=[(x['id'], x['name']) for x in Task.IMPORTANCE],
                              coerce=int)
     character = SelectField('Характер', [v.optional()],
-                            choices=[(0, '')] + [(x['id'], x['name']) for x in CHARACTERS.values()],
+                            choices=[(0, '')] + [(x['id'], x['name']) for x in Task.CHARACTERS.values()],
                             coerce=int)
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
 

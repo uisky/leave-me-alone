@@ -1,29 +1,26 @@
-import markdown
-import json
-import pytz
 from datetime import datetime
+
+import markdown
+import pytz
 from flask import Markup, get_flashed_messages
-from . import app
-from .projects.models import IMPORTANCE, CHARACTERS, TaskJSONEncoder
-from .utils import sanitize_html, plural
+
+from lma.models import Task
+from lma.utils import sanitize_html, plural
 
 
-_importance_icons = {x['id']: x['icon'] for x in IMPORTANCE}
+_importance_icons = {x['id']: x['icon'] for x in Task.IMPORTANCE}
 
 
-@app.template_filter('markdown')
 def jinja_markdown(x):
     if x is None:
         return ''
     return Markup(sanitize_html(markdown.markdown(x, output_format='html5')))
 
 
-@app.template_filter('status_class')
 def jinja_status_class(x):
     return 'status-%s' % x
 
 
-@app.template_filter('status_rus')
 def jinja_status_rus(x):
     meanings = {
         'open': 'todo', 'progress': 'в работе', 'pause': 'пауза',
@@ -32,32 +29,22 @@ def jinja_status_rus(x):
     return meanings.get(x, x)
 
 
-@app.template_filter('status_label')
 def jinja_status_label(x):
     return Markup('<label class="label %s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x)))
 
 
-@app.template_filter('importance_icon')
-def importance_icon(x):
+def jinja_importance_icon(x):
     return _importance_icons.get(x, '')
 
 
-@app.template_filter('character_icon')
 def character_icon(x):
-    return CHARACTERS.get(x, {'icon': ''})['icon']
+    return Task.CHARACTERS.get(x, {'icon': ''})['icon']
 
 
-@app.template_filter('taskjson')
-def taskjson(task):
-    return json.dumps(task, cls=TaskJSONEncoder, ensure_ascii=False)
-
-
-@app.template_filter('minus')
 def minus(x):
     return str(x).replace('-', '−')
 
 
-@app.template_filter('nl2br')
 def nl2br(t):
     if isinstance(t, str):
         t = str(Markup.escape(t))
@@ -65,7 +52,6 @@ def nl2br(t):
     return Markup(t)
 
 
-@app.template_filter('my_tasks_count')
 def my_tasks_count(data):
     if not isinstance(data, dict):
         return ''
@@ -80,12 +66,10 @@ def my_tasks_count(data):
         return ''
 
 
-@app.template_filter('datetime')
 def datetime_(x):
     return x.strftime('%d.%m.%Y %H:%M')
 
 
-@app.template_filter('humantime')
 def humantime(ts):
     months = [
         '', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля',
@@ -102,7 +86,6 @@ def humantime(ts):
     return ts.strftime('%d %b %Y %H:%M')
 
 
-@app.template_filter('humandelta')
 def humandelta(dt):
     t = []
     if dt.days:
@@ -112,20 +95,35 @@ def humandelta(dt):
     return ' '.join(t)
 
 
-@app.context_processor
-def flashes():
-    """
-    Возвращает flash-сообщения в виде [('error', [msg1, msg2, msg3]), ('success', [msg1, msg2]), ...]
-    :return:
-    """
-    def make_flashes():
-        result = {}
-        for cat, msg in get_flashed_messages(with_categories=True):
-            result.setdefault(cat, []).append(msg)
-        return result
-
-    return {'flashes': make_flashes}
-
-@app.template_filter('plural')
 def jinja_plural(x, var1, var2, var5):
     return plural(x, var1, var2, var5)
+
+
+def init_jinja_filters(app):
+    app.add_template_filter(jinja_markdown, 'markdown')
+    app.add_template_filter(jinja_status_class, 'status_class')
+    app.add_template_filter(jinja_status_rus, 'status_rus')
+    app.add_template_filter(jinja_status_label, 'status_label')
+    app.add_template_filter(jinja_importance_icon, 'importance_icon')
+    app.add_template_filter(character_icon, 'character_icon')
+    app.add_template_filter(minus, 'minus')
+    app.add_template_filter(nl2br, 'nl2br')
+    app.add_template_filter(my_tasks_count, 'my_tasks_count')
+    app.add_template_filter(datetime_, 'datetime')
+    app.add_template_filter(humantime, 'humantime')
+    app.add_template_filter(humandelta, 'humandelta')
+    app.add_template_filter(plural, 'plural')
+
+    @app.context_processor
+    def flashes():
+        """
+        Возвращает flash-сообщения в виде [('error', [msg1, msg2, msg3]), ('success', [msg1, msg2]), ...]
+        :return:
+        """
+        def make_flashes():
+            result = {}
+            for cat, msg in get_flashed_messages(with_categories=True):
+                result.setdefault(cat, []).append(msg)
+            return result
+
+        return {'flashes': make_flashes}

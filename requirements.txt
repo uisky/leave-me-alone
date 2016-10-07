@@ -11,3 +11,4 @@ bleach
 sqlparse
 flask-script
 sqlparse
+ansicolors

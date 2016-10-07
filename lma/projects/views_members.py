@@ -1,15 +1,14 @@
-from flask import render_template, request, redirect, flash, url_for, g, Markup, abort, jsonify
-from flask_login import login_required, current_user
-from datetime import datetime
-import pytz
 import re
-import json
+import pytz
+from datetime import datetime
 
+from flask import render_template, request, redirect, flash, url_for, g, abort, Markup
+from flask_login import current_user
+
+from lma.models import User, Sprint, Project, ProjectMember, Task, KarmaRecord
 from . import mod, forms, load_project, mail
-from .models import *
-from .. import app, db
-from ..utils import flash_errors, print_sql
-from ..users.models import User
+from lma.core import db
+from lma.utils import flash_errors
 
 
 def find_user(clue):
@@ -142,7 +141,7 @@ def member(project_id, member_id):
 
     return render_template(
         'projects/member.html',
-        project=project, member=member, tasks=query, statuses=statuses, TASK_STATUSES=TASK_STATUSES
+        project=project, member=member, tasks=query, statuses=statuses, TASK_STATUSES=Task.STATUSES
     )
 
 
