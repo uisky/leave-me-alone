@@ -1,5 +1,6 @@
 from flask_wtf import Form
-from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DecimalField
+from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DecimalField, \
+    HiddenField
 from wtforms import validators as v
 
 from lma.models import Task
@@ -59,3 +60,9 @@ class KarmaRecordForm(Form):
                         choices=[(-2, '-2'), (-1, '-1'), (0, ''), (1, '+1'), (2, '+2')],
                         coerce=int)
     comment = TextAreaField('Обоснование', [v.required(message='Обоснуйте.')], filters=[strip_field])
+
+
+class HistoryFiltersForm(Form):
+    user_id = IntegerField('Участник')
+    status = HiddenField('Статусы')
+    when = HiddenField('Дата', default='')

@@ -1,36 +1,49 @@
-from flask import render_template, request, g
+from datetime import date, datetime
+import pytz
 
-from lma.models import *
+from flask import render_template, request, g, flash
+
+from lma.models import Task, TaskHistory
 from . import mod, forms, load_project
+from lma.utils import print_sql
+from lma.core import db
 
 
 @mod.route('/<int:project_id>/history/', methods=('GET', 'POST'))
 def history(project_id):
     project, membership = load_project(project_id)
+    _dcreated = db.func.cast(TaskHistory.created, db.Date)
+
+    filters = forms.HistoryFiltersForm(request.args)
 
     history = TaskHistory.query\
-        .join(TaskHistory.task)\
-        .filter(TaskHistory.status != None)\
+        .outerjoin(TaskHistory.task)\
+        .filter(Task.project_id == project.id, TaskHistory.status != None)\
         .order_by(TaskHistory.created)\
         .options(db.contains_eager(TaskHistory.task))\
-        .options(db.joinedload(TaskHistory.user))\
-        .filter(Task.project_id == project.id)
+        .options(db.joinedload(TaskHistory.user))
 
-    if request.args.get('user_id'):
+    if filters.user_id.data:
         history = history.filter(TaskHistory.user_id == request.args.get('user_id', 0, type=int))
 
-    if request.args.get('status'):
+    if filters.status.data:
         statuses = request.args.get('status').split(',')
         history = history.filter(TaskHistory.status.in_(statuses))
 
-    if request.args.get('start'):
-        history = history.filter(TaskHistory.created >= request.args.get('start') + ' 00:00:00')
+    q_stat = history.with_entities(_dcreated, db.func.count('*')).group_by(_dcreated).order_by(None)
+    stat = {}
+    for day, cnt in q_stat:
+        stat[day.strftime('%d.%m.%Y')] = cnt
 
-    if request.args.get('end'):
-        history = history.filter(TaskHistory.created <= request.args.get('end') + ' 23:59:59')
+    try:
+        when = datetime.strptime(filters.when.data, '%Y-%m-%d').date()
+    except ValueError:
+        when = date.today()
+        filters.when.data = when.strftime('%Y-%m-%d')
+    history = history.filter(_dcreated == when)
 
     history = history.paginate(request.args.get('page', 1, type=int), 50)
-    return render_template('projects/history.html', project=project, history=history, statuses=Task.STATUSES)
+    return render_template('projects/history.html', project=project, history=history, stat=stat, filters=filters, statuses=Task.STATUSES)
 
 
 @mod.route('/<int:project_id>/gantt/')

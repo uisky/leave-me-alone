@@ -13,6 +13,8 @@
     #form-filter .btn-filter-status { opacity: .5; }
     #form-filter .btn-filter-status.active { opacity: 1; }
     #form-filter .datepick { width: 130px; }
+
+    .has-events { background: #9fffa3; }
 </style>
 {% endblock %}
 
@@ -20,48 +22,85 @@
 
 <h1>История</h1>
 
-<form id="form-filter" method="get" class="form-inline">
+<form id="form-filter" method="get">
     <div class="form-group">
-        <label class="control-label">Участник:</label>
-        <select name="user_id" class="form-control" style="width:150px;">
-            <option value="">Все</option>
-            {% for member in project.members %}
-                <option value="{{ member.user_id }}"
-                        {% if request.args.get('user_id')|int == member.user_id %} selected {% endif %}
-                >{{ member.user.name }}</option>
+        <div class="col-sm-2">
+            <select name="user_id" class="form-control" style="width:150px;" multiple size="8">
+                <option value="">Все</option>
+                {% for member in project.members %}
+                    <option value="{{ member.user_id }}"
+                            {% if filters.user_id.data|int == member.user_id %} selected {% endif %}
+                    >{{ member.user.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-sm-2">
+            {{ filters.status() }}
+            {% set selected = (filters.status.data or '').split(',') %}
+            <div class="list-group">
+            {% for st in statuses %}
+                <button type="button"
+                        class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
+                        data-status="{{ st }}">
+                    {{ st|status_rus }}
+                </button><br>
             {% endfor %}
-        </select>
-    </div>
-    <div class="form-group">
-        <label class="control-label">За время:</label>
-        <div class='input-group date'>
-            <input type="text" name="start" class="form-control datepick" value="{{ request.args.get('start') }}">
-            <span class="input-group-addon">
-                <span class="fa fa-remove clear"></span>
-            </span>
+            </div>
         </div>
-        <div class='input-group date'>
-            <input type="text" name="end" class="form-control datepick" value="{{ request.args.get('end') }}">
-            <span class="input-group-addon">
-                <span class="fa fa-remove clear"></span>
-            </span>
+        <div class="col-sm-4">
+            <div id="datetimepicker-when"></div>
+            {{ filters.when() }}
         </div>
-    </div>
-    <div class="form-group">
-        <input type="hidden" name="status" value="{{ request.args.get('status')|default('', True) }}">
-        {% set selected = request.args.get('status', '').split(',') %}
-        {% for st in statuses %}
-            <button type="button"
-                    class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
-                    data-status="{{ st }}">
-                {{ st|status_rus }}
+        <div class="col-sm-1">
+            <button type="submit" class="btn btn-primary pull-right">
+                Показать
             </button>
-        {% endfor %}
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary pull-right">
-        Показать
-    </button>
 </form>
+<script type="text/javascript">
+    $(function () {
+        var stat = {{ stat|tojson }}, $dp = $('#datetimepicker-when'), $formFilter = $('#form-filter'), $fieldWhen = $formFilter.find('[name=when]');
+
+        $formFilter.find('.btn-filter-status').click(function(e) {
+            var $this = $(this);
+            if($this.hasClass('active')) {
+                $this.removeClass('active');
+            } else {
+                $this.addClass('active');
+            }
+
+            var v = [];
+            $('#form-filter .btn-filter-status.active').each(function() {
+                v.push($(this).data('status'))
+            });
+            $('#form-filter input[name=status]').val(v.join(','));
+
+            $this.blur();
+        });
+
+        function addStat() {
+            for(var day in stat) {
+                $('.day[data-day="' + day + '"]').addClass('has-events').attr('title', 'Событий: ' + stat[day]);
+            }
+        }
+
+        $dp.datetimepicker({
+            inline: true,
+            showTodayButton: true,
+            locale: 'ru',
+            format: 'YYYY-MM-DD',
+            defaultDate: $fieldWhen.val()
+        });
+
+        $dp.on('dp.update dp.change', addStat);
+        $dp.on('dp.change', function(e) {
+            $fieldWhen.val(e.date.format('YYYY-MM-DD'));
+            $formFilter.submit();
+        });
+        addStat();
+    });
+</script>
 
 {% if not history %}
 <div class="alert alert-info">
@@ -97,32 +136,6 @@
 {% block tail %}
 <script type="text/javascript">
 (function() {
-    $('#form-filter .btn-filter-status').click(function(e) {
-        var $this = $(this);
-        if($this.hasClass('active')) {
-            $this.removeClass('active');
-        } else {
-            $this.addClass('active');
-        }
-
-        var v = [];
-        $('#form-filter .btn-filter-status.active').each(function() {
-            v.push($(this).data('status'))
-        });
-        $('#form-filter input[name=status]').val(v.join(','));
-
-        $this.blur();
-    });
-
-    $('#form-filter .datepick').datetimepicker({
-        'showTodayButton': true,
-        'locale': 'ru',
-        'format': 'YYYY-MM-DD'
-    });
-
-    $('#form-filter .date .clear').click(function(e) {
-        $(this).parents('.date').find('input.datepick').val('');
-   });
 })();
 </script>
 {% endblock %}
