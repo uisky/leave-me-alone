@@ -14,15 +14,17 @@
     #form-filter .btn-filter-status.active { opacity: 1; }
     #form-filter .datepick { width: 130px; }
 
-    .has-events { background: #9fffa3; }
+    .bootstrap-datetimepicker-widget table td.has-events { /* background-color: #9fffa3; */}
+    .bootstrap-datetimepicker-widget table td.active { border: 2px solid black; padding: 3px; color: #000; background-color: inherit; }
+    .bootstrap-datetimepicker-widget table td.active:hover { color: #000; }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<h1>История</h1>
+<h1>История проекта</h1>
 
-<form id="form-filter" method="get">
+<form id="form-filter" method="get" class="form-horizontal">
     <div class="form-group">
         <div class="col-sm-2">
             <select name="user_id" class="form-control" style="width:150px;" multiple size="8">
@@ -58,53 +60,14 @@
         </div>
     </div>
 </form>
-<script type="text/javascript">
-    $(function () {
-        var stat = {{ stat|tojson }}, $dp = $('#datetimepicker-when'), $formFilter = $('#form-filter'), $fieldWhen = $formFilter.find('[name=when]');
 
-        $formFilter.find('.btn-filter-status').click(function(e) {
-            var $this = $(this);
-            if($this.hasClass('active')) {
-                $this.removeClass('active');
-            } else {
-                $this.addClass('active');
-            }
-
-            var v = [];
-            $('#form-filter .btn-filter-status.active').each(function() {
-                v.push($(this).data('status'))
-            });
-            $('#form-filter input[name=status]').val(v.join(','));
-
-            $this.blur();
-        });
-
-        function addStat() {
-            for(var day in stat) {
-                $('.day[data-day="' + day + '"]').addClass('has-events').attr('title', 'Событий: ' + stat[day]);
-            }
-        }
-
-        $dp.datetimepicker({
-            inline: true,
-            showTodayButton: true,
-            locale: 'ru',
-            format: 'YYYY-MM-DD',
-            defaultDate: $fieldWhen.val()
-        });
-
-        $dp.on('dp.update dp.change', addStat);
-        $dp.on('dp.change', function(e) {
-            $fieldWhen.val(e.date.format('YYYY-MM-DD'));
-            $formFilter.submit();
-        });
-        addStat();
-    });
-</script>
-
-{% if not history %}
+{% if not history.total %}
 <div class="alert alert-info">
-    Ещё ничего не происходило.
+    {% if filters.status.data %}
+        В этот день не было событий выбранных типов.
+    {% else %}
+        В этот день ничего не происходило.
+    {% endif %}
 </div>
 {% else %}
     <table class="table table-bordered table-list">
@@ -135,7 +98,57 @@
 
 {% block tail %}
 <script type="text/javascript">
-(function() {
-})();
+    $(function () {
+        var stat = {{ stat|tojson }}, $dp = $('#datetimepicker-when'), $formFilter = $('#form-filter'), $fieldWhen = $formFilter.find('[name=when]'),
+            min_events = Infinity, max_events = 0, opacity, n;
+
+        $formFilter.find('.btn-filter-status').click(function(e) {
+            var $this = $(this);
+            if($this.hasClass('active')) {
+                $this.removeClass('active');
+            } else {
+                $this.addClass('active');
+            }
+
+            var v = [];
+            $('#form-filter .btn-filter-status.active').each(function() {
+                v.push($(this).data('status'))
+            });
+            $('#form-filter input[name=status]').val(v.join(','));
+
+            $this.blur();
+        });
+
+        for(var day in stat) {
+            min_events = Math.min(min_events, stat[day]);
+            max_events = Math.max(max_events, stat[day]);
+        }
+
+        function addStat() {
+            var curMonth = $dp.data('DateTimePicker').viewDate().format('MM.YYYY');
+
+            for(var day in stat) {
+                n = stat[day];
+                opacity = (n - min_events) / (max_events - min_events) * 0.9 + 0.1;
+                $('.day[data-day="' + day + '"]').addClass('has-events').attr('title', 'Событий: ' + stat[day]).css('background-color', 'rgba(0,127,0,' + opacity + ')');
+            }
+        }
+
+        $dp.datetimepicker({
+            inline: true,
+            showTodayButton: true,
+            locale: 'ru',
+            format: 'YYYY-MM-DD',
+            defaultDate: $fieldWhen.val(),
+//            minDate: '{{ project.created.strftime('%Y-%m-%d') }}' - не подходит, если задача перенесена из другого проекта.
+        });
+
+        $dp.on('dp.update dp.change', addStat);
+        $dp.on('dp.change', function(e) {
+            $fieldWhen.val(e.date.format('YYYY-MM-DD'));
+            $formFilter.submit();
+        });
+        addStat();
+    });
 </script>
 {% endblock %}
