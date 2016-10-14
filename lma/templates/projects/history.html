@@ -125,8 +125,6 @@
         }
 
         function addStat() {
-            var curMonth = $dp.data('DateTimePicker').viewDate().format('MM.YYYY');
-
             for(var day in stat) {
                 n = stat[day];
                 opacity = (n - min_events) / (max_events - min_events) * 0.9 + 0.1;
@@ -140,7 +138,7 @@
             locale: 'ru',
             format: 'YYYY-MM-DD',
             defaultDate: $fieldWhen.val(),
-//            minDate: '{{ project.created.strftime('%Y-%m-%d') }}' - не подходит, если задача перенесена из другого проекта.
+            minDate: '{{ project_start.strftime('%Y-%m-%d') }}'
         });
 
         $dp.on('dp.update dp.change', addStat);

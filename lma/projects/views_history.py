@@ -30,10 +30,14 @@ def history(project_id):
         statuses = request.args.get('status').split(',')
         history = history.filter(TaskHistory.status.in_(statuses))
 
+    # Считаем статистику: количество
     q_stat = history.with_entities(_dcreated, db.func.count('*')).group_by(_dcreated).order_by(None)
-    stat = {}
+    stat, project_start = {}, date.today()
     for day, cnt in q_stat:
+        project_start = min(project_start, day)
         stat[day.strftime('%d.%m.%Y')] = cnt
+
+    print(project_start)
 
     try:
         when = datetime.strptime(filters.when.data, '%Y-%m-%d').date()
@@ -43,7 +47,10 @@ def history(project_id):
     history = history.filter(_dcreated == when)
 
     history = history.paginate(request.args.get('page', 1, type=int), 50)
-    return render_template('projects/history.html', project=project, history=history, stat=stat, filters=filters, statuses=Task.STATUSES)
+    return render_template('projects/history.html',
+                           project=project, history=history,
+                           stat=stat, project_start=project_start,
+                           filters=filters, statuses=Task.STATUSES)
 
 
 @mod.route('/<int:project_id>/gantt/')
