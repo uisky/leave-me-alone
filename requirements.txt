@@ -10,5 +10,5 @@ flask-mail
 bleach
 sqlparse
 flask-script
-sqlparse
+# sqlparse
 ansicolors

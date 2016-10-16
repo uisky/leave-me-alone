@@ -15,19 +15,20 @@ def load_project(project_id):
     if not membership:
         abort(403, 'У вас нет доступа в этот проект.')
 
+    my_tasks = db.session.query(Task.status, db.func.count('*'))\
+        .filter(Task.project_id == project.id)\
+        .filter(Task.status.in_(('open', 'progress', 'pause', 'review')))\
+        .filter(
+            db.or_(
+                Task.assigned_id == current_user.id,
+                db.and_(
+                    Task.assigned_id == None, Task.user_id == current_user.id
+                )
+            )
+        ).group_by(Task.status)
+
     g.my_tasks_count = {}
-    r = db.session.execute(
-        """
-        SELECT status, count(*) FROM tasks
-        WHERE
-            project_id = :project_id AND
-            (assigned_id = :me OR assigned_id is null and user_id = :me) AND
-            status in ('open', 'progress', 'pause', 'review')
-        GROUP BY status
-        """,
-        {'project_id': project.id, 'me': current_user.id}
-    )
-    for status, count in r:
+    for status, count in my_tasks.all():
         g.my_tasks_count[status] = count
 
     return project, membership
