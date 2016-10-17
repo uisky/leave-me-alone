@@ -6,9 +6,9 @@
     <div class="alert alert-info comments-empty-message">Комментариев пока нет.</div>
 {% endif %}
 
-<ul class="comments">
+<ul class="comments" id="comments">
     {% for comment in comments %}
-        {{ render_comment(comment, lastseen, current_user) }}
+        {{ render_comment(comment, lastseen, current_user, project, task) }}
     {% endfor %}
 </ul>
 
@@ -18,3 +18,75 @@
     <p class="help-block">Здесь можно использовать Markdown</p>
     <p><button type="submit" class="btn btn-primary" title="Можно просто нажать Ctrl+Enter">Отправить</button></p>
 </form>
+
+
+<form method="post" id="form-comment-edit">
+<div class="modal" id="modal-comment-edit"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        <h4 class="modal-title">Редактировать комментарий</h4>
+    </div>
+    <div class="modal-body">
+        <p>
+            <textarea name="body" class="form-control" rows="6"></textarea>
+        </p>
+        <p class="help-block">
+            Если хотите удалить комментарий — просто сотрите его текст.
+        </p>
+
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+    </div>
+</div></div></div>
+</form>
+
+<script type="text/javascript">
+(function() {
+    var $comments = $('#comments'), $formEdit = $('#form-comment-edit'), $modalEdit = $('#modal-comment-edit');
+
+    $formEdit.ajaxForm({
+        beforeSubmit: function() {
+            if($formEdit.find('[name=body]').val() == '') return confirm('Удалить комментарий?');
+            return true;
+        },
+        success: function(data) {
+            if(data.error) {
+                alert(data.error);
+                return;
+            }
+            if(data.action == 'deleted') {
+                $comments.find('li[data-id=' + data.id + ']').remove();
+            } else if(data.action == 'saved') {
+                $comments.find('li[data-id=' + data.id + '] .body').html(data.body_html);
+            } else {
+                alert('Случилось что-то странное.');
+                return;
+            }
+            $modalEdit.modal('hide');
+        }
+    });
+
+    $modalEdit.on('shown.bs.modal', function(e) {
+        var $li = $(e.relatedTarget).parents('li');
+
+        $formEdit.attr('action', $li.data('url'))
+                .find('[name=body]')
+                .attr('disabled', true)
+                .attr('placeholder', 'Минуточку, комментарий загружается...');
+
+        $.get({
+            url: $li.data('url'),
+            success: function(data) {
+                $formEdit.find('[name=body]')
+                        .attr('disabled', false)
+                        .attr('placeholder', 'Комментарий будет удалён!')
+                        .val(data.body)
+                        .focus();
+            }
+        });
+    });
+
+})();
+</script>

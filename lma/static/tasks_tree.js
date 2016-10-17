@@ -8,7 +8,7 @@
     });
 
     // Фокус на поле "Задача" при активации таба "Создать подзадачу"
-    $('#tabs-task').find('a[href=#task-subtask]').on('shown.bs.tab', function() {
+    $('#tabs-task').find('a[href="#task-subtask"]').on('shown.bs.tab', function() {
         $('#form-subtask').find('input[name=subject]').focus();
     });
 
@@ -17,7 +17,7 @@
         e.preventDefault();
         $('#form-chparent input[name=parent_id]').val($(this).closest('li').data('id'));
         $('#form-chparent').submit();
-    }
+    };
     $('#btn-chparent').click(function(e) {
         $('#form-edit').hide();
         $('#form-chparent').show();
@@ -103,7 +103,7 @@
     $tree.find('.active').parents('li.collapsed').children('.toggler').click();
 
     // Комменты
-    $('#tabs-task a[href=#task-comments]').on('shown.bs.tab', function() {
+    $('#tabs-task a[href="#task-comments"]').on('shown.bs.tab', function() {
         var $tab = $('#task-comments');
 
         function init_comments() {
@@ -135,7 +135,7 @@
     });
 
     // История
-    $('#tabs-task a[href=#task-history]').on('shown.bs.tab', function() {
+    $('#tabs-task a[href="#task-history"]').on('shown.bs.tab', function() {
         var $tab = $('#task-history');
         $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
         $tab.load($tab.data('url'));

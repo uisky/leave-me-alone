@@ -61,4 +61,5 @@ def load_projects():
         g.my_projects.setdefault(folder, []).append(project)
 
 
-from . import views, views_members, views_tasks, views_history
+from . import views, views_members, views_tasks, views_history, views_comments
+
