@@ -59,7 +59,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
         {% if not tasks %}
             <div class="alert alert-box alert-info">
-                {% if project.has_sprints %}Спринт{% else %}Проект{% endif %} пуст.
+                {% if project.has_sprints %}Веха пуста{% else %}Проект пуст{% endif %}.
             </div>
         {% else %}
             <div class="tasks-tree show-deadline">

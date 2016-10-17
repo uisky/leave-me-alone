@@ -37,8 +37,6 @@ def history(project_id):
         project_start = min(project_start, day)
         stat[day.strftime('%d.%m.%Y')] = cnt
 
-    print(project_start)
-
     try:
         when = datetime.strptime(filters.when.data, '%Y-%m-%d').date()
     except ValueError:

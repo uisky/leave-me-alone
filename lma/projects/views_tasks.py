@@ -19,7 +19,7 @@ def tasks(project_id):
 
     options = forms.OutputOptions(request.args)
 
-    # Текущий спринт, если проект спринтованный
+    # Текущая веха, если проект с вехами
     if project.has_sprints:
         sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
         options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне вех')]

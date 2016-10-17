@@ -5,8 +5,8 @@ from datetime import datetime
 from flask import render_template, request, redirect, flash, url_for, g, abort, Markup
 from flask_login import current_user
 
-from lma.models import User, Sprint, Project, ProjectMember, Task, KarmaRecord
 from . import mod, forms, load_project, mail
+from lma.models import User, Sprint, Project, ProjectMember, Task, KarmaRecord
 from lma.core import db
 from lma.utils import flash_errors
 
@@ -111,6 +111,9 @@ def member_delete(project_id, member_id):
 def member(project_id, member_id):
     project, membership = load_project(project_id)
 
+    filters = forms.MemberFiltersForm(request.args)
+    filters.sprint.choices = [('', 'Все')] + [(sprint.id, sprint.name) for sprint in project.sprints] + [('-', 'Вне вех')]
+
     member = ProjectMember.query.get_or_404((member_id, project_id))
 
     query = Task.query\
@@ -121,7 +124,7 @@ def member(project_id, member_id):
                        db.and_(Task.assigned_id == None, Task.user_id == member.user_id)))\
         .order_by(Sprint.sort.desc().nullslast(), Task.deadline.nullslast(), Task.mp)
 
-    statuses = request.args.get('status')
+    statuses = filters.status.data
     if statuses:
         statuses = statuses.split(',')
     else:
@@ -129,7 +132,7 @@ def member(project_id, member_id):
     query = query.filter(Task.status.in_(statuses))
 
     if project.has_sprints:
-        sprint = request.args.get('sprint', '')
+        sprint = filters.sprint.data
         if sprint == '-':
             query = query.filter(Task.sprint_id == None)
         elif sprint:
@@ -141,7 +144,7 @@ def member(project_id, member_id):
 
     return render_template(
         'projects/member.html',
-        project=project, member=member, tasks=query, statuses=statuses, TASK_STATUSES=Task.STATUSES
+        project=project, member=member, tasks=query, filters=filters, statuses=statuses, TASK_STATUSES=Task.STATUSES
     )
 
 

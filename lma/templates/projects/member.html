@@ -23,7 +23,7 @@
         Назад
     </a>
     <div class="form-group">
-        <input type="hidden" name="status" value="{{ request.args.get('status', '') }}">
+        {{ filters.status() }}
         {% for st in TASK_STATUSES %}
             <button type="button"
                     class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in statuses %}active{% endif %}"
@@ -35,13 +35,7 @@
 
     {% if project.has_sprints %}
     <div class="form-group">
-        <select name="sprint" class="form-control">
-            <option value="">Все</option>
-            {% for sprint in project.sprints %}
-                <option value="{{ sprint.id }}">{{ sprint.name }}</option>
-            {% endfor %}
-            <option value="-">Вне вех</option>
-        </select>
+        {{ filters.sprint(class='form-control') }}
     </div>
     {% endif %}
 
@@ -60,7 +54,7 @@
     <tr>
         <th>Поставлено</th>
         <th>Статус</th>
-        {% if project.has_sprints %}<th>Спринт</th>{% endif %}
+        {% if project.has_sprints %}<th>Веха</th>{% endif %}
         <th>Задача</th>
         <th>Дедлайн</th>
     </tr>
@@ -94,7 +88,7 @@
 
     {{ render_pagination(tasks, '.member',
                          project_id=project.id, member_id=member.user_id,
-                         status=request.args.get('status'), sprint=request.args.get('sprint')) }}
+                         status=filters.status.data, sprint=filters.sprint.data) }}
 {% endif %}
 {% endblock %}
 
