@@ -1,5 +1,11 @@
 (function() {
-    var $tree = $('.tasks-tree > ul');
+    var $tree = $('.tasks-tree > ul'), $taskCurrent = $tree.find('.task.active').closest('li');
+
+    function ctrlEnterSubmit(e) {
+        if(e.ctrlKey && (e.which == 10 || e.which == 13)) {
+            $(this).submit();
+        }
+    }
 
     // Кнопка удаления задачи в редакторе
     $('#btn-task-delete').click(function() {
@@ -38,7 +44,7 @@
         e.preventDefault();
         $('#form-swap input[name=sister_id]').val($(this).closest('li').data('id'));
         $('#form-swap').submit();
-    }
+    };
     $('#btn-swap').click(function(e) {
         $('#form-edit').hide();
         $('#form-swap').show();
@@ -81,10 +87,10 @@
     $('#btn-toggle-collapsed').click(function() {
         var $this = $(this), open_togglers = $tree.find('li').not('.collapsed').children('.toggler');
         if(open_togglers.length > 0) {
-            open_togglers.click()
+            open_togglers.click();
             $this.html('<i class="fa fa-plus"></i>');
         } else {
-            $tree.find('li').children('.toggler').click()
+            $tree.find('li').children('.toggler').click();
             $this.html('<i class="fa fa-minus"></i>');
         }
     }).html(
@@ -95,7 +101,7 @@
 
     // Установка статуса
     $('#form-setstatus').on('click', 'button.setter', function(e) {
-        $('#form-setstatus input[name=status]').val($(this).data('status'))
+        $('#form-setstatus input[name=status]').val($(this).data('status'));
         $('#form-setstatus').submit();
     });
 
@@ -104,23 +110,106 @@
 
     // Комменты
     $('#tabs-task a[href="#task-comments"]').on('shown.bs.tab', function() {
-        var $tab = $('#task-comments');
+        var $tab = $('#task-comments'), $tabHandle = $('#tabs-task a[href="#task-comments"]');
 
+        /* Вызывается после загрузки комментариев */
         function init_comments() {
+            var $comments = $('#comments'), $formEdit = $('#form-comment-edit'), $modalEdit = $('#modal-comment-edit'),
+                $btnSubmit = $formEdit.find(':submit');
+
+            // Убираем мигающий значок о новых комментариях
+            $tree.find('.task.active .fa-comment').removeClass('new');
+
+            // Обвес формы добавления комментария
             $tab.find('#form-comment').ajaxForm({
                 success: function(data) {
                     $tab.find('ul.comments').append(data);
                     $tab.find('div.comments-empty-message').hide();
+
+                    // Увеличиваем счётчики комментариев, где надо:
+                    // 1. Таб
+                    var tabLabel = $tabHandle.text();
+                    if(/\(\d+\)/.test(tabLabel)) {
+                        tabLabel = tabLabel.replace(/\((\d+)\)/, function(str, n) { return '(' + (parseInt(n) + 1) + ')' });
+                    } else {
+                        tabLabel += '(1)';
+                    }
+                    $tabHandle.text(tabLabel);
+
+                    // 2. Текущая задача
+                    var $counter = $taskCurrent.find('.cnt-comments');
+                    if(!$counter.length) {
+                        $counter = $('<span class="cnt-comments"><i class="fa fa-comment"></i> 1</span>').appendTo($taskCurrent.find('.subj:first'));
+                    } else {
+                        $counter.html('<i class="fa fa-comment"></i> ' + (parseInt($counter.text()) + 1));
+                    }
                 },
                 clearForm: true
-            }).keypress(function(e) {
-                if(e.ctrlKey && (e.which == 10 || e.which == 13)) {
-                    $(this).submit();
+            }).keypress(ctrlEnterSubmit);
+
+            // Обвес формы редактирования комментария
+            $formEdit.ajaxForm({
+                beforeSubmit: function() {
+                    if($formEdit.find('[name=body]').val() == '') return confirm('Удалить комментарий?');
+                    return true;
+                },
+                success: function(data) {
+                    if(data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    if(data.action == 'deleted') {
+                        $comments.find('li[data-id=' + data.id + ']').remove();
+
+                        // Уменьшаем счётчики комментариев
+                        // 1. Таб
+                        $tabHandle.text($tabHandle.text().replace(/\((\d+)\)/, function(str, n) { if(n <= 1) return ''; else return '(' + (n-1) + ')' }));
+
+                        // 2. Текущая задача
+                        var $counter = $taskCurrent.find('.cnt-comments'), n = parseInt($counter.text());
+                        if(n > 1) {
+                            $counter.html('<i class="fa fa-comment"></i> ' + (n - 1));
+                        } else {
+                            $counter.remove();
+                        }
+
+                    } else if(data.action == 'saved') {
+                        $comments.find('li[data-id=' + data.id + '] .body').html(data.body_html);
+                    } else {
+                        alert('Случилось что-то странное.');
+                        return;
+                    }
+                    $modalEdit.modal('hide');
                 }
+            }).keyup(function(e) {
+                if($formEdit.find('[name=body]').val() == '') {
+                    $btnSubmit.removeClass('btn-primary').addClass('btn-danger').text('Удалить комментарий');
+                } else {
+                    $btnSubmit.removeClass('btn-danger').addClass('btn-primary').text('Сохранить');
+                }
+            }).keypress(ctrlEnterSubmit);
+
+            $modalEdit.on('shown.bs.modal', function(e) {
+                var $li = $(e.relatedTarget).parents('li');
+
+                $formEdit.attr('action', $li.data('url'))
+                        .find('[name=body]')
+                        .attr('disabled', true)
+                        .attr('placeholder', 'Минуточку, комментарий загружается...');
+
+                $.get({
+                    url: $li.data('url'),
+                    success: function(data) {
+                        $formEdit.find('[name=body]')
+                                .attr('disabled', false)
+                                .attr('placeholder', 'Комментарий будет удалён!')
+                                .val(data.body)
+                                .keyup()
+                                .focus();
+                    }
+                });
             });
 
-            // Убираем мигающий значок о новых комментариях
-            $tree.find('.task.active .fa-comment').removeClass('new')
         }
 
         var LOAD_COMMENTS_ONLY_ONCE = false;
