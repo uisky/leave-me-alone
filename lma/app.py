@@ -5,8 +5,8 @@ from flask import Flask
 
 from .core import db, csrf, mail, login_manager
 from .jinja import init_jinja_filters
-from . import flask_sa_logger
-
+#from . import flask_sa_logger
+import flask_sa_logger
 
 def create_app(cfg=None, purpose=None):
     """Application factory

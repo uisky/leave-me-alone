@@ -5,3 +5,4 @@ __pycache__/
 
 /local.cfg
 /env/
+lma/config.local.py
