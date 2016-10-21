@@ -2,7 +2,7 @@
 
 {% set menu = (
     {'id': 'tasks', 'url': url_for('.tasks', project_id=project.id), 'title': 'Задачи'},
-    {'id': 'my', 'url': url_for('.member', project_id=project.id, member_id=current_user.id), 'title': 'Мои задачи' + g.my_tasks_count|my_tasks_count},
+    {'id': 'my', 'url': url_for('.member', project_id=project.id, member_id=current_user.id), 'title': 'Мои задачи' + tasks_stat(project, current_user)|my_tasks_count},
     {'id': 'about', 'url': url_for('.about', project_id=project.id), 'title': 'О проекте'},
     {'id': 'history', 'url': url_for('.history', project_id=project.id), 'title': 'История'},
 )
@@ -14,26 +14,33 @@
         LMA: {{ project.name }}
         <span class="caret"></span>
     </a>
-    <ul class="dropdown-menu menu-projects">
-    {% if g.my_projects|length == 1 %}
-        {% for prj in g.my_projects.popitem()[1] %}
-            <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
-                {{- prj.name -}}
-            </a></li>
-        {% endfor %}
-    {% else %}
-        {%- for folder, projects in g.my_projects.items() %}
-            <li class="folder">{{ folder.name|default('Основные') }}</li>
-            {% for prj in projects %}
-                <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}><a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
-                    {{- prj.name -}}
-                </a></li>
-            {% endfor %}
-        {%- endfor -%}
-    {% endif %}
-        <li role="separator" class="divider"></li>
-        <li><a href="/projects" title="Центр Управления Проектами"><i class="fa fa-rocket"></i> ЦУП</a></li>
-    </ul>
+
+    {% macro menu_project_li(prj, project) %}
+        <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}>
+            <a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
+            {{- prj.name -}}
+            </a>
+        </li>
+    {% endmacro %}
+
+    {% with pmenu = projects_menu(current_user) %}
+        <ul class="dropdown-menu menu-projects">
+            {% if pmenu|length == 1 %}
+                {% for prj in projects_menu().popitem()[1] %}
+                    {{ menu_project_li(prj, project) }}
+                {% endfor %}
+            {% else %}
+                {%- for folder, projects in pmenu.items() %}
+                    <li class="folder">{{ folder.name|default('Основные') }}</li>
+                    {% for prj in projects %}
+                        {{ menu_project_li(prj, project) }}
+                    {% endfor %}
+                {%- endfor -%}
+            {% endif %}
+            <li role="separator" class="divider"></li>
+            <li><a href="/projects" title="Центр Управления Проектами"><i class="fa fa-rocket"></i> ЦУП</a></li>
+        </ul>
+    {% endwith %}
 </div>
 {% endblock %}
 

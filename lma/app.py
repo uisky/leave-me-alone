@@ -5,8 +5,8 @@ from flask import Flask
 
 from .core import db, csrf, mail, login_manager
 from .jinja import init_jinja_filters
-#from . import flask_sa_logger
 import flask_sa_logger
+
 
 def create_app(cfg=None, purpose=None):
     """Application factory
@@ -20,10 +20,6 @@ def create_app(cfg=None, purpose=None):
     flask_sa_logger.init_logging(app)
 
     db.init_app(app)
-
-    # Вроде бы без этой хуйни не работал алембик, но на самом деле прекрасно он работает
-    # with app.app_context():
-    #     from . import models
 
     csrf.init_app(app)
 
