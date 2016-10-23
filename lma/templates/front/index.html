@@ -6,7 +6,7 @@
     <link href='https://fonts.googleapis.com/css?family=PT+Serif' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="http://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/landing.css?1">
+    <link rel="stylesheet" href="/static/landing.css?2">
     <script type="text/javascript" src="http://yastatic.net/jquery/2.1.3/jquery.js"></script>
     <script type="text/javascript" src="http://yastatic.net/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     {% block head %}{% endblock %}
@@ -15,8 +15,28 @@
 
 <h1>Leave Me Alone</h1>
 <h2>
-    Трекер задач.
+    Иерархический трекер задач.
 </h2>
+<h3>Основные фичи:</h3>
+<div class="container">
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <ul class="features">
+            <li>Иерархичность: дробите задачи на мелкие подзадачи до бесконечности.</li>
+            <li>Командная работа: назначайте задачи другим людям.</li>
+            <li>Вехи: типа подпроектов.</li>
+            <li>Открытые проекты: публикуйте свои задачи.</li>
+            <li>Задачи можно комментировать.</li>
+            <li>Markdown в описаниях задач, описании проекта, комментариях.</li>
+            <li>Хранится история задачи.</li>
+            <li>У членов команд есть карма.</li>
+        </ul>
+        <p>
+            Вот тут можно посмотреть трекер задач для самого leave-me-alone.ru.
+        </p>
+    </div>
+</div>
+</div>
 
 <div class="container-fluid">
     {% with messages = get_flashed_messages(with_categories=True, category_filter=['danger', 'warning', 'success', 'info']) %}

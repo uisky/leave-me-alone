@@ -29,6 +29,7 @@
         <div class="col-sm-2">
             <select name="user_id" class="form-control" style="width:150px;" multiple size="8">
                 <option value="">Все</option>
+                {# @todo: Вот тут у нас lazy loading опять #}
                 {% for member in project.members %}
                     <option value="{{ member.user_id }}"
                             {% if filters.user_id.data|int == member.user_id %} selected {% endif %}

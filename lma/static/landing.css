@@ -3,6 +3,9 @@ body { margin: 0; padding: 0; text-align: center; }
 
 h1 { font-family: 'PT Serif', serif; font-size: 48px; margin: 50px 0; }
 h2 { font-size: 1em; font-family: serif;  font-style: italic; margin: 20px 0 50px; }
+h3 { font-family: 'PT Serif', serif; font-size: 24px; margin: 50px 0 10px; }
+
+.features { text-align: left; }
 
 #form-login { width: 400px; margin: 50px auto; }
 #form-login input { margin: 10px 0; text-align: center;}

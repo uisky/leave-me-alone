@@ -417,5 +417,10 @@ def reorder_tasks(project_id):
 def task_history(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
+    history = TaskHistory.query\
+        .filter_by(task_id=task.id)\
+        .order_by(TaskHistory.created)\
+        .options(db.joinedload(TaskHistory.user))\
+        .all()
 
-    return render_template('projects/_history.html', project=project, task=task)
+    return render_template('projects/_history.html', project=project, task=task, history=history)
