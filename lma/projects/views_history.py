@@ -52,7 +52,7 @@ def history(project_id):
                            filters=filters, statuses=Task.STATUSES)
 
 
-@mod.route('/<int:project_id>/gantt/')
+# @mod.route('/<int:project_id>/gantt/')
 def gantt(project_id):
     project, membership = load_project(project_id)
 

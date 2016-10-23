@@ -109,7 +109,7 @@ def tasks(project_id):
 @mod.route('/<int:project_id>/<int:task_id>/edit/', methods=('POST',))
 def task_edit(project_id, task_id):
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
     if not membership.can('edit', task):
         abort(403, 'Вы не можете редактировать эту задачу.')
@@ -159,7 +159,7 @@ def task_edit(project_id, task_id):
 @mod.route('/<int:project_id>/<int:task_id>/delete/', methods=('POST',))
 def task_delete(project_id, task_id):
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
     kw = {'project_id': task.project_id}
     if task.parent_id:
@@ -191,7 +191,7 @@ def task_delete(project_id, task_id):
 def task_subtask(project_id, parent_id=None):
     project, membership = load_project(project_id)
     if parent_id:
-        parent = Task.query.get_or_404(parent_id)
+        parent = Task.query.filter_by(id=parent_id, project_id=project.id).first_or_404()
     else:
         parent = None
 
@@ -252,7 +252,7 @@ def task_status(project_id, task_id):
         return True
 
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
     status = request.form.get('status')
 
     if check():
@@ -283,20 +283,15 @@ def task_sprint(project_id, task_id):
         return False
 
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
     if check():
         task.sprint_id = request.form.get('sprint_id', type=int)
         if task.sprint_id == 0:
             task.sprint_id = None
-        db.session.execute(
-            'UPDATE tasks SET sprint_id = :sprint_id WHERE project_id = :project_id AND mp[1] = :mp',
-            {
-                'sprint_id': task.sprint_id,
-                'project_id': project.id,
-                'mp': task.mp[0]
-            }
-        )
+        Task.query\
+            .filter(Task.project_id == project.id, Task.mp[1] == task.mp[0])\
+            .update({'sprint_id': task.sprint_id}, synchronize_session=False)
         db.session.commit()
 
     return redirect(url_for('.tasks', **{'project_id': task.project_id, 'task': task.id, 'sprint': task.sprint_id}))
@@ -314,7 +309,7 @@ def task_chparent(project_id, task_id):
         return True
 
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
     subtree = task.subtree(withme=True).order_by(Task.mp).all()
     if task.parent_id:
         old_parent = Task.query.get(task.parent_id)
@@ -322,9 +317,9 @@ def task_chparent(project_id, task_id):
         old_parent = None
 
     if request.form.get('parent_id', 0, int):
-        parent = Task.query.get_or_404(request.form.get('parent_id'))
+        parent = Task.query.filter_by(project_id=project.id, id=request.form.get('parent_id')).first_or_404()
         if not check_parent():
-            return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % task.id)
+            return redirect(url_for('.tasks', project_id=project.id, task=task.id))
 
         # Удаляем статус у нового родителя
         parent.status = None
@@ -371,8 +366,8 @@ def task_chparent(project_id, task_id):
 def task_swap(project_id, task_id):
     project, membership = load_project(project_id)
     sisters = (
-        Task.query.get_or_404(task_id),
-        Task.query.get_or_404(request.form.get('sister_id', 0, type=int))
+        Task.query.filter_by(id=task_id, project_id=project.id).first_or_404(),
+        Task.query.filter_by(id=request.form.get('sister_id', 0, type=int), project_id=project.id).first_or_404()
     )
 
     def check():
@@ -421,6 +416,6 @@ def reorder_tasks(project_id):
 @mod.route('/<int:project_id>/<int:task_id>/history/')
 def task_history(project_id, task_id):
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
     return render_template('projects/_history.html', project=project, task=task)

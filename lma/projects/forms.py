@@ -1,4 +1,4 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DecimalField, \
     HiddenField
 from wtforms import validators as v
@@ -12,19 +12,19 @@ def strip_field(s):
         return s.strip()
 
 
-class ProjectPropertiesForm(Form):
+class ProjectPropertiesForm(FlaskForm):
     name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[strip_field])
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
     # type = RadioField('Тип', [v.required()], choices=PROJECT_TYPES)
     has_sprints = BooleanField('Использовать вехи')
 
 
-class ProjectFolderForm(Form):
+class ProjectFolderForm(FlaskForm):
     name = StringField('Название', [v.required(message='Имя забыли.')], filters=[strip_field])
     in_menu = BooleanField('Показывать проекты из этой папки в меню', default=True)
 
 
-class OutputOptions(Form):
+class OutputOptions(FlaskForm):
     sort = SelectField(
         'Сортировка',
         [v.optional()],
@@ -38,7 +38,7 @@ class OutputOptions(Form):
     sprint = SelectField('Веха', [v.optional()], default=0, coerce=int)
 
 
-class TaskForm(Form):
+class TaskForm(FlaskForm):
     subject = StringField('Пароль', [v.required(message='Опишите задачу.')], filters=[strip_field])
     description = TextAreaField('Ник', [v.optional()])
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
@@ -52,11 +52,11 @@ class TaskForm(Form):
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
 
 
-class SprintPropertiesForm(Form):
+class SprintPropertiesForm(FlaskForm):
     name = StringField('Название', [v.required(message='У вехи должно быть название')], filters=[strip_field])
 
 
-class KarmaRecordForm(Form):
+class KarmaRecordForm(FlaskForm):
     value = SelectField('Оценка', [v.required(message='Поставьте оценку')],
                         choices=[(-2, '-2'), (-1, '-1'), (0, ''), (1, '+1'), (2, '+2')],
                         coerce=int)
