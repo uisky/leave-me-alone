@@ -1,4 +1,5 @@
 {% extends 'project.html' %}
+{% from '_macros.html' import status_bar %}
 
 {% set menu_current = 'tasks' %}
 
@@ -37,15 +38,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                 {% endif %}
             </div>
             <div class="col-sm-6">
-                <div class="progress">
-                    {% for status in g.TASK_STATUSES if status in stats %}
-                        <div
-                                class="progress-bar {{ status | status_class }}"
-                                style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
-                                title="{{ status | status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
-                                ></div>
-                    {% endfor %}
-                </div>
+                {{ status_bar(stats) }}
             </div>
             <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
                 {% if stats['max_deadline'] %}

@@ -55,13 +55,13 @@ def nl2br(t):
     return Markup(t)
 
 
-def my_tasks_count(data):
+def status_counters(data):
     if not isinstance(data, dict):
         return ''
 
     x = []
     for status, count in data.items():
-        if status in ('open', 'progress', 'pause', 'review'):
+        if status is not None:
             x.append('<span class="label %s">%d</span>' % (jinja_status_class(status), count))
     if x:
         return Markup(' ' + ' '.join(x))
@@ -111,7 +111,7 @@ def init_jinja_filters(app):
     app.add_template_filter(character_icon, 'character_icon')
     app.add_template_filter(minus, 'minus')
     app.add_template_filter(nl2br, 'nl2br')
-    app.add_template_filter(my_tasks_count, 'my_tasks_count')
+    app.add_template_filter(status_counters, 'status_counters')
     app.add_template_filter(datetime_, 'datetime')
     app.add_template_filter(humantime, 'humantime')
     app.add_template_filter(humandelta, 'humandelta')

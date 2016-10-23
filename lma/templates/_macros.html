@@ -10,3 +10,19 @@
         </div>
     </li>
 {% endmacro %}
+
+{% macro status_bar(stats) %}
+    {% if 'total' not in stats %}
+        {% set _ = stats.update({'total': stats.values()|sum}) %}
+    {% endif %}
+
+    <div class="progress">
+        {% for status in g.TASK_STATUSES if status in stats %}
+            <div
+                    class="progress-bar {{ status | status_class }}"
+                    style="width: {{ (stats[status] / stats['total'] * 100) | round(3) }}%"
+                    title="{{ status|status_rus }}: {{ stats[status] }} ({{ (stats[status] / stats['total'] * 100) | round | int }}%)"
+                    ></div>
+        {% endfor %}
+    </div>
+{% endmacro %}

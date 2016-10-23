@@ -1,10 +1,12 @@
+from collections import OrderedDict
+
 from flask import render_template, request, redirect, flash, url_for, g, abort
 from flask_login import current_user
 
 from . import mod, forms, load_project
 from ..utils import flash_errors
 from lma.core import db
-from lma.models import Project, ProjectFolder, ProjectMember, Sprint
+from lma.models import Project, ProjectFolder, ProjectMember, Sprint, Task
 
 
 @mod.route('/')
@@ -199,7 +201,15 @@ def sprints(project_id):
     if not project.has_sprints:
         abort(403, 'В этом проекте нет вех.')
 
-    sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
+    query = db.session.query(Sprint, Task.status, db.func.count(Task.id))\
+        .outerjoin(Task)\
+        .filter_by(project_id=project.id).order_by(Sprint.sort)\
+        .group_by(Sprint.id, Task.status)\
+        .order_by(Sprint.sort, Task.status)
+
+    sprints = OrderedDict()
+    for sprint, status, cnt in query.all():
+        sprints.setdefault(sprint, OrderedDict())[status] = cnt
 
     return render_template('projects/sprints.html', project=project, sprints=sprints)
 

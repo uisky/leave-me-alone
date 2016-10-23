@@ -24,19 +24,22 @@
     <thead>
     <tr>
         <th></th>
-        <th class="t">Название</th>
+        <th class="t" colspan="2">Название</th>
         <th></th>
     </tr>
     </thead>
     <tbody>
-    {% for sprint in sprints %}
+    {% for sprint, stat in sprints.items() %}
     <tr
             data-id="{{ sprint.id }}"
             data-url-edit="{{ url_for('.sprint_edit', project_id=project.id, sprint_id=sprint.id) }}"
             data-url-delete="{{ url_for('.sprint_delete', project_id=project.id, sprint_id=sprint.id) }}"
             >
         <td><i class="fa fa-sort handle"></i></td>
-        <td class="t"><a href="{{ url_for('.tasks', project_id=project.id, sprint=sprint.id) }}">{{ sprint.name }}</a></td>
+        <td class="t">
+            <a href="{{ url_for('.tasks', project_id=project.id, sprint=sprint.id) }}">{{ sprint.name }}</a>
+        </td>
+        <td>{{ stat|status_counters }}</td>
         <td>
             <a href="#modal-edit" data-toggle="modal" class="btn btn-xs btn-success action-edit">
                 <i class="fa fa-edit"></i>
@@ -154,7 +157,7 @@
         var $tr = $(e.relatedTarget).parents('tr'), $modal = $(this);
         $('#form-edit').attr('action', $tr.data('url-edit'));
         $('#form-delete').attr('action', $tr.data('url-delete'));
-        $modal.find('[name=name]').val($tr.find('td.t').text()).focus();
+        $modal.find('[name=name]').val($.trim($tr.find('td.t').text())).focus();
     });
 
     $('#modal-add').on('shown.bs.modal', function(e) {
