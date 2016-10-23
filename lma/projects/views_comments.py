@@ -1,21 +1,20 @@
 from datetime import datetime
 import pytz
 
-from flask import render_template, render_template_string, request, redirect, flash, g, abort, make_response, jsonify
+from flask import render_template, render_template_string, request, jsonify
 from flask_login import current_user
 
-from . import mod, forms, load_project
-from .mail import *
+from . import mod, load_project
+from . import mail
 from lma.models import Task, TaskComment, TaskCommentsSeen
 from lma.core import db
-from lma.utils import flash_errors, form_json_errors
 from lma.jinja import jinja_markdown
 
 
 @mod.route('/<int:project_id>/<int:task_id>/comments/', methods=('GET', 'POST'))
 def task_comments(project_id, task_id):
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
     seen = TaskCommentsSeen.query.filter_by(task_id=task.id, user_id=current_user.id).first()
     if not seen:
@@ -35,7 +34,7 @@ def task_comments(project_id, task_id):
             task.cnt_comments += 1
             seen.cnt_comments += 1
 
-            mail_comment(comment)
+            mail.mail_comment(comment)
 
             db.session.commit()
             return render_template_string("""
@@ -50,15 +49,20 @@ def task_comments(project_id, task_id):
         seen.seen = datetime.now()
         db.session.commit()
 
-        comments = TaskComment.query.filter_by(task_id=task.id).order_by(TaskComment.created).all()
+        comments = TaskComment.query\
+            .filter_by(task_id=task.id)\
+            .order_by(TaskComment.created)\
+            .options(db.joinedload(TaskComment.user))\
+            .all()
 
-        return render_template('projects/_comments.html', project=project, task=task, comments=comments, lastseen=lastseen)
+        return render_template('projects/_comments.html',
+                               project=project, task=task, comments=comments, lastseen=lastseen)
 
 
 @mod.route('/<int:project_id>/<int:task_id>/comments/<int:comment_id>/', methods=('GET', 'POST'))
 def task_comment(project_id, task_id, comment_id):
     project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
     comment = TaskComment.query.filter_by(task_id=task.id, id=comment_id).first_or_404()
 
     if request.method == 'POST':
@@ -80,6 +84,5 @@ def task_comment(project_id, task_id, comment_id):
             db.session.commit()
 
             return jsonify(d)
-
 
     return jsonify(comment.as_dict())

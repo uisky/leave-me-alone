@@ -5,7 +5,7 @@ import flask_mail
 from blinker import Namespace
 
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={'expire_on_commit': False})
 
 csrf = CsrfProtect()
 
