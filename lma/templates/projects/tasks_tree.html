@@ -59,7 +59,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
         {% if not tasks %}
             <div class="alert alert-box alert-info">
-                {% if project.has_sprints %}Спринт{% else %}Проект{% endif %} пуст.
+                {% if project.has_sprints %}Веха пуста{% else %}Проект пуст{% endif %}.
             </div>
         {% else %}
             <div class="tasks-tree show-deadline">
@@ -240,90 +240,89 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {% endif %}
 
             {# Редактор задачи #}
-            {% if membership.can('edit', selected) %}
-            <div id="task-edit" class="tab-pane">
-                <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal">
-                    <h2>Редактировать задачу</h2>
-                    {% set edit_form = form_edit %}
-                    {% set edit_task = selected %}
-                    {% include 'projects/_task_edit.html' %}
+            {% if selected and membership.can('edit', selected) %}
+                <div id="task-edit" class="tab-pane">
+                    <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal">
+                        <h2>Редактировать задачу</h2>
+                        {% set edit_form = form_edit %}
+                        {% set edit_task = selected %}
+                        {% include 'projects/_task_edit.html' %}
 
-                    <div class="form-group">
-                        <div class="col-sm-offset-1 col-sm-11">
-                            <button type="submit" class="btn btn-success">
-                                <span class="glyphicon glyphicon-ok"></span> Сохранить
-                            </button>
-                            <button type="button" class="btn btn-danger" id="btn-task-delete">
-                                <span class="glyphicon glyphicon-remove"></span> Удалить
-                            </button>
-                            <button type="button" class="btn btn-info" id="btn-chparent">
-                                <span class="fa fa-share-alt"></span> Сменить надзадачу
-                            </button>
-                            <button type="button" class="btn btn-info" id="btn-swap">
-                                <span class="fa fa-random"></span> Поменять местами
-                            </button>
+                        <div class="form-group">
+                            <div class="col-sm-offset-1 col-sm-11">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="glyphicon glyphicon-ok"></span> Сохранить
+                                </button>
+                                <button type="button" class="btn btn-danger" id="btn-task-delete">
+                                    <span class="glyphicon glyphicon-remove"></span> Удалить
+                                </button>
+                                <button type="button" class="btn btn-info" id="btn-chparent">
+                                    <span class="fa fa-share-alt"></span> Сменить надзадачу
+                                </button>
+                                <button type="button" class="btn btn-info" id="btn-swap">
+                                    <span class="fa fa-random"></span> Поменять местами
+                                </button>
 
-                            {% if project.has_sprints and selected.parent_id == None %}
-                            <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint">
-                                <span class="fa fa-map"></span> В другую веху
-                            </button>
-                            {% endif %}
+                                {% if project.has_sprints and selected.parent_id == None %}
+                                <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint">
+                                    <span class="fa fa-map"></span> В другую веху
+                                </button>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
 
-                <form id="form-delete" method="post" action="{{ url_for('.task_delete', project_id=project.id, task_id=selected.id) }}"></form>
+                    <form id="form-delete" method="post" action="{{ url_for('.task_delete', project_id=project.id, task_id=selected.id) }}"></form>
 
-                <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, task_id=selected.id) }}">
-                    <h2>Переместить ветку</h2>
-                    <p>
-                        Выберите задачу, которая должна стать новым родителем выбранной задачи.
-                    </p>
-                    <input type="hidden" name="parent_id">
-                    {% if selected.parent_id %}
-                    <button type="button" class="btn btn-default" id="btn-chparent-root">
-                        <span class="glyphicon glyphicon-hand-up"></span> В корень
-                    </button>
+                    <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, task_id=selected.id) }}">
+                        <h2>Переместить ветку</h2>
+                        <p>
+                            Выберите задачу, которая должна стать новым родителем выбранной задачи.
+                        </p>
+                        <input type="hidden" name="parent_id">
+                        {% if selected.parent_id %}
+                        <button type="button" class="btn btn-default" id="btn-chparent-root">
+                            <span class="glyphicon glyphicon-hand-up"></span> В корень
+                        </button>
+                        {% endif %}
+                        <button type="button" class="btn btn-warning" id="btn-chparent-cancel">
+                            <span class="glyphicon glyphicon-remove"></span> Отмена
+                        </button>
+                    </form>
+
+                    <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, task_id=selected.id) }}">
+                        <h2>Сортировка</h2>
+                        <p>
+                            Выберите задачу того же уровня, с которой нужно поменяться местами.
+                        </p>
+                        <input type="hidden" name="sister_id">
+                        <button type="button" class="btn btn-warning" id="btn-swap-cancel">
+                            <span class="glyphicon glyphicon-remove"></span> Отмена
+                        </button>
+                    </form>
+
+                    {% if project.has_sprints %}
+                    <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
+                                <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую веху</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <select name="sprint_id" class="form-control">
+                                        {% for id, name in options.sprint.choices %}
+                                        <option value="{{ id }}" {% if selected.sprint_id|default(0, true) == id %} selected {% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                                    <button type="submit" class="btn btn-primary">Ok</button>
+                                </div>
+                                </div></div></div>
+                                </form>
                     {% endif %}
-                    <button type="button" class="btn btn-warning" id="btn-chparent-cancel">
-                        <span class="glyphicon glyphicon-remove"></span> Отмена
-                    </button>
-                </form>
-
-                <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, task_id=selected.id) }}">
-                    <h2>Сортировка</h2>
-                    <p>
-                        Выберите задачу того же уровня, с которой нужно поменяться местами.
-                    </p>
-                    <input type="hidden" name="sister_id">
-                    <button type="button" class="btn btn-warning" id="btn-swap-cancel">
-                        <span class="glyphicon glyphicon-remove"></span> Отмена
-                    </button>
-                </form>
-
-                {% if project.has_sprints %}
-                <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
-                            <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую веху</h4>
-                            </div>
-                            <div class="modal-body">
-                                <select name="sprint_id" class="form-control">
-                                    {% for id, name in options.sprint.choices %}
-                                    <option value="{{ id }}" {% if selected.sprint_id|default(0, true) == id %} selected {% endif %}>{{ name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-                                <button type="submit" class="btn btn-primary">Ok</button>
-                            </div>
-                            </div></div></div>
-                            </form>
-                {% endif %}
-
-            </div>
+                </div>
             {% endif %}
         </div>
     </div>

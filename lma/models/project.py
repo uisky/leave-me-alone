@@ -131,7 +131,7 @@ class ProjectMember(db.Model):
             if 'lead' in self.roles:
                 return True
             if 'developer' in self.roles and task and \
-                    (task.assigned_id == self.user.id or task.assigned_id == self.user.id):
+                    (task.assigned_id == self.user_id or task.assigned_id == self.user_id):
                 return True
 
         if what == 'edit':
@@ -139,7 +139,7 @@ class ProjectMember(db.Model):
                 return False
             if 'lead' in self.roles:
                 return True
-            if 'developer' in self.roles and task and task.user_id == self.user.id:
+            if 'developer' in self.roles and task and task.user_id == self.user_id:
                 return True
 
         return False

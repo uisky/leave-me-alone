@@ -5,7 +5,7 @@ from flask import Flask
 
 from .core import db, csrf, mail, login_manager
 from .jinja import init_jinja_filters
-from .log import init_logging
+import flask_sa_logger
 
 
 def create_app(cfg=None, purpose=None):
@@ -17,13 +17,9 @@ def create_app(cfg=None, purpose=None):
     app.purpose = purpose
     load_config(app, cfg)
 
-    init_logging(app)
+    flask_sa_logger.init_logging(app)
 
     db.init_app(app)
-
-    # Вроде бы без этой хуйни не работал алембик, но на самом деле прекрасно он работает
-    # with app.app_context():
-    #     from . import models
 
     csrf.init_app(app)
 

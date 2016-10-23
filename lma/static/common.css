@@ -41,6 +41,7 @@ a.user:before {
 .task-comments ul.comments > li { margin: 10px 0 20px; }
 .task-comments ul.comments > li > .body { padding: 5px 5px 0; }
 .task-comments ul.comments > li > .meta { padding: 2px 5px; font-size: 0.8em; background: #eee; border-bottom: 1px solid #bbb; }
+.task-comments ul.comments > li > .meta .action-edit { display: inline-block; float: right; }
 .task-comments ul.comments > li.new { background-color: #BFF1C2; }
 .task-comments ul.comments > li.new > .meta { background-color: #99CE9C; }
 .task-comments ul.comments > li.new > .meta:after {

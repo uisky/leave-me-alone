@@ -6,9 +6,9 @@
     <div class="alert alert-info comments-empty-message">Комментариев пока нет.</div>
 {% endif %}
 
-<ul class="comments">
+<ul class="comments" id="comments">
     {% for comment in comments %}
-        {{ render_comment(comment, lastseen, current_user) }}
+        {{ render_comment(comment, lastseen, current_user, project, task) }}
     {% endfor %}
 </ul>
 
@@ -17,4 +17,27 @@
     <p><textarea name="body" rows="4" class="form-control"></textarea></p>
     <p class="help-block">Здесь можно использовать Markdown</p>
     <p><button type="submit" class="btn btn-primary" title="Можно просто нажать Ctrl+Enter">Отправить</button></p>
+</form>
+
+
+<form method="post" id="form-comment-edit">
+<div class="modal" id="modal-comment-edit"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        <h4 class="modal-title">Редактировать комментарий</h4>
+    </div>
+    <div class="modal-body">
+        <p>
+            <textarea name="body" class="form-control" rows="6"></textarea>
+        </p>
+        <p class="help-block">
+            Если хотите удалить комментарий — просто сотрите его текст.
+        </p>
+
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+    </div>
+</div></div></div>
 </form>

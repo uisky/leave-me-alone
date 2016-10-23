@@ -4,6 +4,7 @@ from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, Sel
 from wtforms import validators as v
 
 from lma.models import Task
+from lma.utils import FiltersForm
 
 
 def strip_field(s):
@@ -34,7 +35,7 @@ class OutputOptions(Form):
             ('custom', 'Как сам расставил'),
         ])
 
-    sprint = SelectField('Спринт', [v.optional()], default=0, coerce=int)
+    sprint = SelectField('Веха', [v.optional()], default=0, coerce=int)
 
 
 class TaskForm(Form):
@@ -62,7 +63,14 @@ class KarmaRecordForm(Form):
     comment = TextAreaField('Обоснование', [v.required(message='Обоснуйте.')], filters=[strip_field])
 
 
-class HistoryFiltersForm(Form):
-    user_id = IntegerField('Участник')
-    status = HiddenField('Статусы')
+class HistoryFiltersForm(FiltersForm):
+    user_id = IntegerField('Участник', default='')
+    status = HiddenField('Статусы', default='')
     when = HiddenField('Дата', default='')
+
+
+class MemberFiltersForm(FiltersForm):
+    __remember_fields__ = ['sprint']
+
+    status = HiddenField('Статусы', default='')
+    sprint = SelectField('Веха', default='')

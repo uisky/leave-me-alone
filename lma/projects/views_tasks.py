@@ -1,14 +1,13 @@
-from collections import OrderedDict
 from datetime import datetime
 import pytz
 import json
 
-from flask import render_template, render_template_string, request, redirect, flash, g, abort, make_response, jsonify
+from flask import render_template, request, redirect, flash, g, abort, make_response, jsonify
 from flask_login import current_user
 
-from lma.models import Sprint, User, Task, TaskHistory, TaskComment, TaskCommentsSeen
 from . import mod, forms, load_project
 from .mail import *
+from lma.models import Sprint, User, Task, TaskHistory
 from lma.core import db
 from lma.utils import flash_errors, form_json_errors
 
@@ -19,7 +18,7 @@ def tasks(project_id):
 
     options = forms.OutputOptions(request.args)
 
-    # Текущий спринт, если проект спринтованный
+    # Текущая веха, если проект с вехами
     if project.has_sprints:
         sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
         options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне вех')]
@@ -417,49 +416,6 @@ def reorder_tasks(project_id):
     db.session.commit()
 
     return 'ok'
-
-
-@mod.route('/<int:project_id>/<int:task_id>/comments/', methods=('GET', 'POST'))
-def task_comments(project_id, task_id):
-    project, membership = load_project(project_id)
-    task = Task.query.get_or_404(task_id)
-
-    seen = TaskCommentsSeen.query.filter_by(task_id=task.id, user_id=current_user.id).first()
-    if not seen:
-        seen = TaskCommentsSeen(
-            task_id=task.id, user_id=current_user.id,
-            cnt_comments=0, seen=datetime(1981, 8, 8, tzinfo=pytz.timezone('Europe/Moscow'))
-        )
-        db.session.add(seen)
-
-    if request.method == 'POST':
-        comment = TaskComment(task_id=task.id, user_id=current_user.id)
-        comment.body = request.form.get('body', '').strip()
-        comment.task = task
-        if comment.body != '':
-            db.session.add(comment)
-
-            task.cnt_comments += 1
-            seen.cnt_comments += 1
-
-            mail_comment(comment)
-
-            db.session.commit()
-            return render_template_string("""
-                {% from '_macros.html' import render_comment %}
-                {{ render_comment(comment, lastseen, current_user) }}
-            """, comment=comment, lastseen=seen.seen)
-        else:
-            return jsonify({'error': 'Давайте обойдёмся без дзенских реплик.'})
-    else:
-        seen.cnt_comments = task.cnt_comments
-        lastseen = seen.seen
-        seen.seen = datetime.now()
-        db.session.commit()
-
-        comments = TaskComment.query.filter_by(task_id=task.id).order_by(TaskComment.created).all()
-
-        return render_template('projects/_comments.html', project=project, task=task, comments=comments, lastseen=lastseen)
 
 
 @mod.route('/<int:project_id>/<int:task_id>/history/')

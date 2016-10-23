@@ -1,11 +1,14 @@
 from datetime import datetime
+from collections import OrderedDict
 
 import markdown
 import pytz
 from flask import Markup, get_flashed_messages
+from flask_login import current_user
 
-from lma.models import Task
+from lma.models import Task, Project, ProjectMember, ProjectFolder
 from lma.utils import sanitize_html, plural
+from lma.core import db
 
 
 _importance_icons = {x['id']: x['icon'] for x in Task.IMPORTANCE}
@@ -115,15 +118,67 @@ def init_jinja_filters(app):
     app.add_template_filter(plural, 'plural')
 
     @app.context_processor
-    def flashes():
-        """
-        Возвращает flash-сообщения в виде [('error', [msg1, msg2, msg3]), ('success', [msg1, msg2]), ...]
-        :return:
-        """
+    def context_processors():
         def make_flashes():
+            """
+            Возвращает flash-сообщения в виде [('error', [msg1, msg2, msg3]), ('success', [msg1, msg2]), ...]
+            :return:
+            """
             result = {}
             for cat, msg in get_flashed_messages(with_categories=True):
                 result.setdefault(cat, []).append(msg)
             return result
 
-        return {'flashes': make_flashes}
+        def projects_menu(user):
+            """
+            Возвращает папки, которые нужно показывать в меню и проекты в них для user:
+            {
+                folder: [project, project, ...],
+                folder: [project, project, ...]
+                ...
+            }
+            :return: OrderedDict
+            """
+            menu = OrderedDict()
+
+            if user.is_authenticated:
+                query = db.session.query(Project, ProjectMember, ProjectFolder) \
+                    .join(ProjectMember) \
+                    .outerjoin(ProjectFolder) \
+                    .filter(ProjectMember.user_id == user.id) \
+                    .filter(db.or_(ProjectFolder.in_menu, ProjectMember.folder_id == None)) \
+                    .order_by(ProjectMember.folder_id.desc(), ProjectMember.added.desc())
+
+                for project, membership, folder in query.all():
+                    menu.setdefault(folder, []).append(project)
+
+            return menu
+
+        def tasks_stat(project, user):
+            """
+            Возвращает количество задач юзера (назначены ему или никому не назначены, но созданы им) по статусам
+            словарём {status: count, ...}
+            :param project: Project
+            :param user: User
+            :return: dict
+            """
+            stat = {}
+
+            if user.is_authenticated:
+                query = db.session.query(Task.status, db.func.count('*'))\
+                    .filter_by(project_id=project.id)\
+                    .filter(db.or_(
+                        Task.assigned_id == user.id,
+                        db.and_(Task.assigned_id == None, Task.user_id == user.id))
+                    )\
+                    .filter(Task.status.in_(['open', 'progress', 'pause', 'review']))\
+                    .group_by(Task.status)
+
+                print(query)
+
+                for status, count in query.all():
+                    stat[status] = count
+
+            return stat
+
+        return {'flashes': make_flashes, 'projects_menu': projects_menu, 'tasks_stat': tasks_stat}
