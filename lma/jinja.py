@@ -174,8 +174,6 @@ def init_jinja_filters(app):
                     .filter(Task.status.in_(['open', 'progress', 'pause', 'review']))\
                     .group_by(Task.status)
 
-                print(query)
-
                 for status, count in query.all():
                     stat[status] = count
 

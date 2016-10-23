@@ -32,22 +32,23 @@ def history(project_id):
 
     # Считаем статистику: количество
     q_stat = history.with_entities(_dcreated, db.func.count('*')).group_by(_dcreated).order_by(None)
-    stat, project_start = {}, date.today()
+    stat, project_start, project_stop = {}, date.today(), project.created.date()
     for day, cnt in q_stat:
         project_start = min(project_start, day)
+        project_stop = max(project_stop, day)
         stat[day.strftime('%d.%m.%Y')] = cnt
 
     try:
         when = datetime.strptime(filters.when.data, '%Y-%m-%d').date()
     except ValueError:
-        when = date.today()
+        when = min(date.today(), project_stop)
         filters.when.data = when.strftime('%Y-%m-%d')
     history = history.filter(_dcreated == when)
 
     history = history.paginate(request.args.get('page', 1, type=int), 50)
     return render_template('projects/history.html',
                            project=project, history=history,
-                           stat=stat, project_start=project_start,
+                           stat=stat, project_start=project_start, project_stop=project_stop,
                            filters=filters, statuses=Task.STATUSES)
 
 

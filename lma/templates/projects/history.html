@@ -138,7 +138,8 @@
             locale: 'ru',
             format: 'YYYY-MM-DD',
             defaultDate: $fieldWhen.val(),
-            minDate: '{{ project_start.strftime('%Y-%m-%d') }}'
+            minDate: '{{ project_start.strftime('%Y-%m-%d') }}',
+            maxDate: '{{ project_stop.strftime('%Y-%m-%d') }}'
         });
 
         $dp.on('dp.update dp.change', addStat);
