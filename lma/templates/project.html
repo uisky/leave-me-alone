@@ -30,7 +30,7 @@
     {% with pmenu = projects_menu(current_user) %}
         <ul class="dropdown-menu menu-projects">
             {% if pmenu|length == 1 %}
-                {% for prj in projects_menu(prj, project).popitem()[1] %}
+                {% for prj in projects_menu(current_user).popitem()[1] %}
                     {{ menu_project_li(prj, project) }}
                 {% endfor %}
             {% else %}
