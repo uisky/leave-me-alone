@@ -65,7 +65,7 @@
         <td>
             {% for role in member.roles or [] %}
                 <span class="label label-{{ role_classes.get(role, 'default') }}">
-                    {{ g.role_meanings.get(role, role) }}
+                    {{ ProjectMember.role_meanings.get(role, role) }}
                 </span>
                 &nbsp;
             {% endfor %}
@@ -145,7 +145,7 @@
 
         <label>Выдать им роли:</label>
         <p>
-        {% for role, title in g.role_meanings.items() %}
+        {% for role, title in ProjectMember.role_meanings.items() %}
             <label class="checkbox-inline">
                 <input type="checkbox" name="roles" value="{{ role }}">
                 {{ title }}

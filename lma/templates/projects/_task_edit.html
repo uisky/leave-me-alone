@@ -7,13 +7,12 @@
 {{ edit_form.csrf_token }}
 <input type="hidden" name="parent_id" value="0">
 
+{% if edit_task.id %}
 <div class="form-group">
     <label class="control-label col-sm-1">Создал</label>
     <div class="col-sm-5">
         <p class="form-control-static">
-            {% if edit_task.user_id %}
-            {{ edit_task.user.link|safe }}
-            {% endif %}
+            {{ member_link(project, edit_task.user) }}
         </p>
     </div>
     <label class="control-label col-sm-2">Статус</label>
@@ -23,6 +22,8 @@
         </p>
     </div>
 </div>
+{% endif %}
+
 <div class="form-group">
     <label class="control-label col-sm-1">Задача</label>
     <div class="col-sm-11">
@@ -60,8 +61,7 @@
     <div class="col-sm-4">
         <select name="assigned_id" class="form-control">
             <option value="">Никто</option>
-            {# @todo: Вот тут получаются lazy loads! #}
-            {% for member in project.members %}
+            {% for member in project.members_users().all() %}
                 <option value="{{ member.user_id }}" {% if member.user_id == edit_task.assigned_id %} selected {% endif %}>
                     {{ member.user.name }}
                 </option>

@@ -8,15 +8,17 @@ from lma.core import mail
 
 @mod.route('/')
 def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('projects.index'))
-    else:
-        return render_template('front/index.html')
+    return render_template('front/index.html')
 
 
 @mod.route('/about/')
 def about():
     return render_template('front/about.html')
+
+
+@mod.route('/lee/')
+def lee():
+    return render_template('front/lee.html')
 
 
 @mod.route('/mail')

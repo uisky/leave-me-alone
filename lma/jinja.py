@@ -20,20 +20,23 @@ def jinja_markdown(x):
     return Markup(sanitize_html(markdown.markdown(x, output_format='html5')))
 
 
-def jinja_status_class(x):
-    return 'status-%s' % x
+def jinja_status_class(status):
+    return 'status-%s' % status
 
 
-def jinja_status_rus(x):
+def jinja_status_rus(status):
     meanings = {
         'open': 'todo', 'progress': 'в работе', 'pause': 'пауза',
         'review': 'проверка', 'done': 'готово', 'canceled': 'отменено'
     }
-    return meanings.get(x, x)
+    return meanings.get(status, status)
 
 
-def jinja_status_label(x):
-    return Markup('<label class="label %s">%s</label>' % (jinja_status_class(x), jinja_status_rus(x)))
+def jinja_status_label(status):
+    if status is None:
+        return ''
+    else:
+        return Markup('<label class="label %s">%s</label>' % (jinja_status_class(status), jinja_status_rus(status)))
 
 
 def jinja_importance_icon(x):
@@ -73,20 +76,22 @@ def datetime_(x):
     return x.strftime('%d.%m.%Y %H:%M')
 
 
-def humantime(ts):
+def humantime(ts, if_none=''):
     months = [
         '', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля',
         'августа', 'сентября', 'октября', 'ноября', 'декабря'
     ]
+    if ts is None:
+        return if_none
     now = pytz.utc.localize(datetime.now())
     if now.year == ts.year:
         if now.month == ts.month:
             if now.day == ts.day:
                 return ts.strftime('сегодня в %H:%M')
-            elif (now - ts).days == 1:
+            elif (now - ts).days <= 1:
                 return ts.strftime('вчера в %H:%M')
         return ('%d ' % ts.day) + months[ts.month] + ts.strftime(' %H:%M')
-    return ts.strftime('%d %b %Y %H:%M')
+    return ts.strftime('%d.%m.%Y %H:%M')
 
 
 def humandelta(dt):

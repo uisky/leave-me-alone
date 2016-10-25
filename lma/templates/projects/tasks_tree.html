@@ -165,17 +165,17 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                     <h1>{{ selected.subject }}</h1>
                     <div class="meta">
                         Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
-                        {{ selected.user.link|safe }}
+                        {{ member_link(project, selected.user) }}
                         {% if selected.assigned_id %}
-                            &rarr; {{ selected.assignee.link|safe }}
+                            &rarr; {{ member_link(project, selected.assignee) }}
                         {% endif %}
                         {{ selected.status|status_label }}
                         {% if selected.deadline %}
                             <p>
                                 Дедлайн:
-                                {% if selected.deadline <= g.now %}<span class="deadline late">{% endif %}
+                                {% if selected.status in ('open', 'progress', 'pause') and selected.deadline <= g.now %}<span class="deadline late">{% endif %}
                                     {{ selected.deadline.strftime('%d.%m.%Y %H:%M') }}
-                                {% if selected.deadline <= g.now %}</span>{% endif %}
+                                {% if selected.status in ('open', 'progress', 'pause') and selected.deadline <= g.now %}</span>{% endif %}
                             </p>
                         {% endif %}
                     </div>
@@ -183,9 +183,8 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         {{ selected.description|markdown|safe }}
                     </div>
 
-                    <form id="form-setstatus"
-                          method="post"
-                          action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
+                    <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status">
                         {% for status in selected.allowed_statuses(current_user, membership) %}
                             <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}">
@@ -195,6 +194,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                     </form>
                 </div>
 
+                {# Комментарии #}
                 <div id="task-comments" class="tab-pane task-comments"
                      data-url="{{ url_for('.task_comments', project_id=project.id, task_id=selected.id) }}">
                 </div>
@@ -296,24 +296,24 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
                     {% if project.has_sprints %}
                     <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
-                                <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую веху</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <select name="sprint_id" class="form-control">
-                                        {% for id, name in options.sprint.choices %}
-                                        <option value="{{ id }}" {% if selected.sprint_id|default(0, true) == id %} selected {% endif %}>{{ name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-                                    <button type="submit" class="btn btn-primary">Ok</button>
-                                </div>
-                                </div></div></div>
-                                </form>
+                        <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую веху</h4>
+                        </div>
+                        <div class="modal-body">
+                            <select name="sprint_id" class="form-control">
+                                {% for id, name in options.sprint.choices %}
+                                <option value="{{ id }}" {% if selected.sprint_id|default(0, true) == id %} selected {% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Ok</button>
+                        </div>
+                        </div></div></div>
+                    </form>
                     {% endif %}
                 </div>
             {% endif %}

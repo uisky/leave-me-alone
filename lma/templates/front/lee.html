@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style type="text/css">
+    .field { margin: 50px auto; }
+    .field td { padding: 3px; width: 26px; border: 1px solid #aaa; text-align: center; cursor: pointer; }
+    .field td:hover { background-color: #ffd475; }
+    .field td.wall { background-color: #000; }
+    .field td.start { background-color: #51ff8c; }
+    .field td.finish { background-color: #4d76ea; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <table class="field" id="field">
+    {% for y in range(10) %}
+    <tr>
+        {% for x in range(30) %}
+            <td data-x="{{ x }}" data-y="{{ y }}">&nbsp;</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+    </table>
+
+    <p class="text-center" id="actions">
+        <button type="button" class="action-mode btn btn-default" data-mode="set-wall">Поставить стену</button>
+        <button type="button" class="action-mode btn btn-default" data-mode="set-start">Указать начало</button>
+        <button type="button" class="action-mode btn btn-default" data-mode="set-finish">Указать конец</button>
+        <button type="button" id="action-calc" class="btn btn-default">Пустить волну</button>
+    </p>
+{% endblock %}
+
+{% block tail %}
+<script type="text/javascript">
+(function() {
+    var $field = $('#field'), $actions = $('#actions'), mode = false, start = [], finish = [];
+
+    $actions.find('button.action-mode').click(function(e) {
+        var $btn = $(this);
+        mode = $btn.data('mode');
+
+        $actions.find('button.action-mode').removeClass('active');
+        $btn.addClass('active');
+    });
+
+    $field.on('click', 'td', function(e) {
+        var $td = $(this);
+        if(mode == 'set-wall') {
+            $td.toggleClass('wall');
+        } else if(mode == 'set-start') {
+            $field.find('td.start').removeClass('start');
+            $td.addClass('start');
+            start = [$td.data('x'), $td.data('y')];
+        } else if(mode == 'set-finish') {
+            $field.find('td.finish').removeClass('finish');
+            $td.addClass('finish');
+            finish = [$td.data('x'), $td.data('y')];
+        }
+    });
+
+    $actions.find('#action-calc').click(function(e) {
+        var $btn = $(this);
+        mode = 'calc';
+        console.log(start, finish);
+
+    });
+
+})();
+</script>
+{% endblock %}

@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, ENUM
 from flask_login import current_user
 
 from lma.models.task import Task, TaskCommentsSeen
+from lma.models import User
 from lma.core import db
 
 
@@ -27,6 +28,18 @@ class Project(db.Model):
     tasks = db.relationship('Task', backref='project', passive_deletes=True)
     members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
     owner = db.relationship('User', backref='projects')
+
+    def members_users(self):
+        """
+        Возвращает BaseQuery для списка ProjectMember'ов проекта с уже подгруженной реляцией user.
+        Используется для списка
+        :return:
+        """
+        return ProjectMember.query\
+            .outerjoin(User)\
+            .filter(ProjectMember.project_id == self.id)\
+            .options(db.contains_eager(ProjectMember.user))\
+            .order_by(User.name)
 
     def __repr__(self):
         return '<Project %d:%s>' % (self.id or 0, self.name)

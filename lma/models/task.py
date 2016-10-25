@@ -226,7 +226,7 @@ class TaskHistory(db.Model):
         from lma.jinja import jinja_status_label
         deeds = []
         if self.assigned_id is not None:
-            deeds.append(Markup('Назначил исполнителя %s' % self.assignee.link))
+            deeds.append(Markup('Назначил исполнителя %s' % self.assignee.name))
         if self.status is not None:
             deeds.append('Установил статус %s' % jinja_status_label(self.status))
         if self.subject is not None:

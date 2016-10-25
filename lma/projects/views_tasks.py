@@ -29,7 +29,7 @@ def tasks(project_id):
     tasks = OrderedDict()
     seen = {}
 
-    for task, seen_ in project.get_tasks_query(options):
+    for task, seen_ in project.get_tasks_query(options).all():
         if seen_:
             seen[task.id] = seen_
         task.children_statuses = {}
@@ -78,7 +78,7 @@ def tasks(project_id):
         selected = None
         form_edit = None
 
-    empty = Task(project_id=project.id, user_id=current_user.id, status='open', importance=0)
+    empty = Task(project_id=project.id, status='open', importance=0)
     if selected:
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)

@@ -57,19 +57,25 @@
     {% block content %}{% endblock %}
 </div>
 
-<form method="post" action="{{ url_for('users.login', next=request.args.get('next', '/projects')) }}" id="form-login">
-    <p>
-        <input type="text" name="email" placeholder="E-mail" class="form-control">
-        <input type="password" name="password" placeholder="Пароль" class="form-control">
-    </p>
-    <p>
-        <button type="submit" class="btn btn-success">Войти</button>
-    </p>
-    <p>
-        <a href="{{ url_for('users.register', next=request.url) }}">Зарегистрироваться</a> &bull;
-        <a href="{{ url_for('users.sclerosis') }}">Я забыл пароль</a>
-    </p>
-</form>
+{% if current_user.is_authenticated %}
+    <div class="container">
+        <a href="{{ url_for('projects.index') }}" class="btn btn-success">Мои проекты</a>
+    </div>
+{% else %}
+    <form method="post" action="{{ url_for('users.login', next=request.args.get('next', '/projects')) }}" id="form-login">
+        <p>
+            <input type="text" name="email" placeholder="E-mail" class="form-control">
+            <input type="password" name="password" placeholder="Пароль" class="form-control">
+        </p>
+        <p>
+            <button type="submit" class="btn btn-success">Войти</button>
+        </p>
+        <p>
+            <a href="{{ url_for('users.register', next=request.url) }}">Зарегистрироваться</a> &bull;
+            <a href="{{ url_for('users.sclerosis') }}">Я забыл пароль</a>
+        </p>
+    </form>
+{% endif %}
 
 <div id="life"></div>
 

@@ -20,6 +20,47 @@ def find_user(clue):
     return user
 
 
+@mod.route('/<int:project_id>/members/<int:member_id>/')
+def member(project_id, member_id):
+    project, membership = load_project(project_id)
+
+    filters = forms.MemberFiltersForm(request.args)
+    filters.sprint.choices = [('', 'Все')] + [(sprint.id, sprint.name) for sprint in project.sprints] + [('-', 'Вне вех')]
+
+    member = ProjectMember.query.get_or_404((member_id, project_id))
+
+    query = Task.query\
+        .outerjoin(Task.sprint)\
+        .options(db.contains_eager(Task.sprint))\
+        .filter(Task.project_id == project.id)\
+        .filter(db.or_(Task.assigned_id == member.user_id,
+                       db.and_(Task.assigned_id == None, Task.user_id == member.user_id)))\
+        .order_by(Sprint.sort.desc().nullslast(), Task.deadline.nullslast(), Task.mp)
+
+    statuses = filters.status.data
+    if statuses:
+        statuses = statuses.split(',')
+    else:
+        statuses = ['open', 'progress', 'pause', 'review']
+    query = query.filter(Task.status.in_(statuses))
+
+    if project.has_sprints:
+        sprint = filters.sprint.data
+        if sprint == '-':
+            query = query.filter(Task.sprint_id == None)
+        elif sprint:
+            query = query.filter(Task.sprint_id == sprint)
+
+    query = query.paginate(request.args.get('page', 1, type=int), 50)
+
+    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
+
+    return render_template(
+        'projects/member.html',
+        project=project, member=member, tasks=query, filters=filters, statuses=statuses, TASK_STATUSES=Task.STATUSES
+    )
+
+
 @mod.route('/<int:project_id>/members/add/', methods=['POST'])
 def members_add(project_id):
     project, membership = load_project(project_id)
@@ -105,47 +146,6 @@ def member_delete(project_id, member_id):
         db.session.commit()
 
     return redirect(url_for('.about', project_id=project.id))
-
-
-@mod.route('/<int:project_id>/members/<int:member_id>/')
-def member(project_id, member_id):
-    project, membership = load_project(project_id)
-
-    filters = forms.MemberFiltersForm(request.args)
-    filters.sprint.choices = [('', 'Все')] + [(sprint.id, sprint.name) for sprint in project.sprints] + [('-', 'Вне вех')]
-
-    member = ProjectMember.query.get_or_404((member_id, project_id))
-
-    query = Task.query\
-        .outerjoin(Task.sprint)\
-        .options(db.contains_eager(Task.sprint))\
-        .filter(Task.project_id == project.id)\
-        .filter(db.or_(Task.assigned_id == member.user_id,
-                       db.and_(Task.assigned_id == None, Task.user_id == member.user_id)))\
-        .order_by(Sprint.sort.desc().nullslast(), Task.deadline.nullslast(), Task.mp)
-
-    statuses = filters.status.data
-    if statuses:
-        statuses = statuses.split(',')
-    else:
-        statuses = ['open', 'progress', 'pause', 'review']
-    query = query.filter(Task.status.in_(statuses))
-
-    if project.has_sprints:
-        sprint = filters.sprint.data
-        if sprint == '-':
-            query = query.filter(Task.sprint_id == None)
-        elif sprint:
-            query = query.filter(Task.sprint_id == sprint)
-
-    query = query.paginate(request.args.get('page', 1, type=int), 50)
-
-    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
-
-    return render_template(
-        'projects/member.html',
-        project=project, member=member, tasks=query, filters=filters, statuses=statuses, TASK_STATUSES=Task.STATUSES
-    )
 
 
 @mod.route('/<int:project_id>/members/<int:member_id>/karma/', methods=('GET', 'POST'))

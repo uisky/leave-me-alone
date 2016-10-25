@@ -111,19 +111,22 @@ def about(project_id):
     members = ProjectMember.query\
         .filter(ProjectMember.project_id == project.id)\
         .order_by(ProjectMember.karma.desc(), ProjectMember.added)\
-        .options(db.joinedload('user'))\
+        .options(db.joinedload(ProjectMember.user))\
         .all()
 
     stat = {}
-    r = db.session.execute(
-        "SELECT coalesce(assigned_id, user_id) worker_id, status, count(*) n FROM tasks WHERE project_id = :project_id AND status is not null GROUP BY worker_id, status",
-        {'project_id': project.id}
-    )
-    for row in r:
-        stat.setdefault(row['worker_id'], {})[row['status']] = row['n']
+    query = db.session\
+        .query(
+            db.func.coalesce(Task.assigned_id, Task.user_id).label('worker_id'),
+            Task.status,
+            db.func.count('*'),
+        )\
+        .filter(Task.project_id == project.id, Task.status != None)\
+        .group_by('worker_id', Task.status)
+    for worker_id, status, cnt in query.all():
+        stat.setdefault(worker_id, {})[status] = cnt
 
-    g.role_meanings = ProjectMember.role_meanings
-    return render_template('projects/about.html', project=project, members=members, editing=editing, stat=stat)
+    return render_template('projects/about.html', project=project, members=members, editing=editing, stat=stat, ProjectMember=ProjectMember)
 
 
 @mod.route('/add', methods=('POST',), endpoint='project_add')
