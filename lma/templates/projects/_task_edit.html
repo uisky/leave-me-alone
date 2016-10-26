@@ -44,7 +44,7 @@
             {% set deadline_id = 'deadline-%d' % (edit_task.id or 0) %}
             {{ edit_form.deadline(class='form-control', id=deadline_id) }}
             <span class="input-group-addon">
-                <span class="glyphicon glyphicon-remove" id="{{ deadline_id }}-clear"></span>
+                <span class="fa fa-remove" id="{{ deadline_id }}-clear"></span>
             </span>
         </div>
         <script type="text/javascript">

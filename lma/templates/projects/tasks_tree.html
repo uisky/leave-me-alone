@@ -224,7 +224,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         <div class="form-group">
                             <div class="col-sm-offset-1 col-sm-11">
                                 <button type="submit" class="btn btn-success">
-                                    <span class="glyphicon glyphicon-ok"></span> Создать
+                                    <span class="fa fa-check"></span> Создать
                                 </button>
                             </div>
                         </div>
@@ -244,10 +244,10 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         <div class="form-group">
                             <div class="col-sm-offset-1 col-sm-11">
                                 <button type="submit" class="btn btn-success">
-                                    <span class="glyphicon glyphicon-ok"></span> Сохранить
+                                    <span class="fa fa-check"></span> Сохранить
                                 </button>
                                 <button type="button" class="btn btn-danger" id="btn-task-delete">
-                                    <span class="glyphicon glyphicon-remove"></span> Удалить
+                                    <span class="fa fa-remove"></span> Удалить
                                 </button>
                                 <button type="button" class="btn btn-info" id="btn-chparent">
                                     <span class="fa fa-share-alt"></span> Сменить надзадачу
@@ -275,11 +275,11 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         <input type="hidden" name="parent_id">
                         {% if selected.parent_id %}
                         <button type="button" class="btn btn-default" id="btn-chparent-root">
-                            <span class="glyphicon glyphicon-hand-up"></span> В корень
+                            <span class="fa fa-hand-o-up"></span> В корень
                         </button>
                         {% endif %}
                         <button type="button" class="btn btn-warning" id="btn-chparent-cancel">
-                            <span class="glyphicon glyphicon-remove"></span> Отмена
+                            <span class="fa fa-remove"></span> Отмена
                         </button>
                     </form>
 
@@ -290,7 +290,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         </p>
                         <input type="hidden" name="sister_id">
                         <button type="button" class="btn btn-warning" id="btn-swap-cancel">
-                            <span class="glyphicon glyphicon-remove"></span> Отмена
+                            <span class="fa fa-remove"></span> Отмена
                         </button>
                     </form>
 
