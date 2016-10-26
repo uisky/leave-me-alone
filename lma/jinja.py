@@ -11,7 +11,7 @@ from lma.utils import sanitize_html, plural
 from lma.core import db
 
 
-_importance_icons = {x['id']: x['icon'] for x in Task.IMPORTANCE}
+_importance_icons = {id_: x['icon'] for id_, x in Task.IMPORTANCE.items()}
 
 
 def jinja_markdown(x):

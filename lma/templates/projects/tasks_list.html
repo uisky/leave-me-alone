@@ -23,14 +23,14 @@ var Tasks = [
 ];
 
 var IMPORTANCE = {
-{%- for i in g.IMPORTANCE %}
-    '{{ i.id }}': {{ i|safe }}
+{%- for id, x in g.Task.IMPORTANCE.items() %}
+    '{{ id }}': {{ x|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}
 };
 
 var CHARACTERS = {
-{%- for id, ch in g.CHARACTERS.items() %}
+{%- for id, ch in g.Task.CHARACTERS.items() %}
     {{ id }}: {{ ch|safe }}
     {%- if not loop.last %},{% endif -%}
 {%- endfor %}

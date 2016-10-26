@@ -24,7 +24,7 @@
     </a>
     <div class="form-group">
         {{ filters.status() }}
-        {% for st in TASK_STATUSES %}
+        {% for st in g.Task.STATUSES %}
             <button type="button"
                     class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in statuses %}active{% endif %}"
                     data-status="{{ st }}">

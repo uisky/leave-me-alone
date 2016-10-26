@@ -44,7 +44,7 @@ class TaskForm(FlaskForm):
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
     assigned_id = IntegerField('Исполнитель', [v.optional()])
     importance = SelectField('Важность', [v.optional()],
-                             choices=[(x['id'], x['name']) for x in Task.IMPORTANCE],
+                             choices=[(id_, x['name']) for id_, x in Task.IMPORTANCE.items()],
                              coerce=int)
     character = SelectField('Характер', [v.optional()],
                             choices=[(0, '')] + [(x['id'], x['name']) for x in Task.CHARACTERS.values()],

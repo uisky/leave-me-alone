@@ -83,10 +83,6 @@ def tasks(project_id):
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)
 
-    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
-    g.IMPORTANCE = Task.IMPORTANCE
-    g.CHARACTERS = Task.CHARACTERS
-
     # Ответ
     page = render_template(
         'projects/tasks_%s.html' % project.type,

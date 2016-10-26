@@ -1,4 +1,5 @@
-from collections import OrderedDict
+from datetime import datetime
+import pytz
 
 from flask import Blueprint, abort, g
 from flask_login import redirect, request, url_for, current_user
@@ -38,7 +39,8 @@ def check_login():
 
 @mod.before_request
 def set_globals():
-    g.TASK_STATUSES = Task.STATUSES
+    g.Task = Task
+    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
 
 from . import views, views_members, views_tasks, views_history, views_comments

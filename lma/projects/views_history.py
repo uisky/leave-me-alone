@@ -84,7 +84,4 @@ def gantt(project_id):
         if pos > max_time:
             max_time = pos
 
-    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
-    g.IMPORTANCE = Task.IMPORTANCE
-
     return render_template('projects/gantt.html', project=project, tasks=tasks, history=history, max_time=max_time)

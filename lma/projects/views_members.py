@@ -53,11 +53,9 @@ def member(project_id, member_id):
 
     query = query.paginate(request.args.get('page', 1, type=int), 50)
 
-    g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
-
     return render_template(
         'projects/member.html',
-        project=project, member=member, tasks=query, filters=filters, statuses=statuses, TASK_STATUSES=Task.STATUSES
+        project=project, member=member, tasks=query, filters=filters, statuses=statuses
     )
 
 
@@ -126,8 +124,7 @@ def member_edit(project_id, member_id):
         db.session.commit()
         return redirect(url_for('.about', project_id=project.id))
 
-    g.role_meanings = ProjectMember.role_meanings
-    return render_template('projects/_member_edit.html', project=project, member=member)
+    return render_template('projects/_member_edit.html', project=project, member=member, ProjectMember=ProjectMember)
 
 
 @mod.route('/<int:project_id>/members/<int:member_id>/delete/', methods=['POST'])

@@ -1,16 +1,12 @@
 from collections import OrderedDict
 import json
-import markdown
 
+import markdown
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM
 from flask import Markup
 from flask_login import current_user
 
 from lma.core import db
-
-
-# TASK_STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
-# ENUM_TASK_STATUS = ENUM(*TASK_STATUSES, name='task_status')
 
 
 class Task(db.Model):
@@ -19,13 +15,13 @@ class Task(db.Model):
     STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
     ENUM_STATUS = ENUM(*STATUSES, name='task_status')
 
-    IMPORTANCE = [
-        {'id': 2, 'name': 'Очень важно', 'icon': '<span class="importance important-2">&uarr;&uarr;</span>'},
-        {'id': 1, 'name': 'Важно', 'icon': '<span class="importance important-1">&uarr;</span>'},
-        {'id': 0, 'name': 'Обычная', 'icon': ''},
-        {'id': -1, 'name': 'Незначительно', 'icon': '<span class="importance important--1">&darr;</span>'},
-        {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2">&darr;&darr;</span>'},
-    ]
+    IMPORTANCE = OrderedDict([
+        (2, {'id': 2, 'name': 'Очень важно', 'icon': '<span class="importance important-2">&uarr;&uarr;</span>'}),
+        (1, {'id': 1, 'name': 'Важно', 'icon': '<span class="importance important-1">&uarr;</span>'}),
+        (0, {'id': 0, 'name': 'Обычная', 'icon': ''}),
+        (-1, {'id': -1, 'name': 'Незначительно', 'icon': '<span class="importance important--1">&darr;</span>'}),
+        (-2, {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2">&darr;&darr;</span>'}),
+    ])
 
     CHARACTERS = OrderedDict([
         (1, {'id': 1, 'name': 'Фича', 'icon': ''}),
