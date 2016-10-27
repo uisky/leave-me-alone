@@ -55,70 +55,76 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                 {% if project.has_sprints %}Веха пуста{% else %}Проект пуст{% endif %}.
             </div>
         {% else %}
+            {% macro _task_container_class(task, selected, current_user) -%}
+                task {%- if task.id == selected.id %} active {% endif %} {%- if task.assigned_id == current_user.id %} my {% endif %}
+            {%- endmacro -%}
+
+            {%- macro _task_li_class(task) -%}
+                {% if task.status %}li-{{ task.status }}{% elif task.children_statuses.get('complete') == 100 %}li-done li-100{% endif %}
+            {%- endmacro -%}
+
+            {% macro _task_comments_icon(task, seen) %}
+                {% set new_comments = task.cnt_comments - seen.get(task.id, {'cnt_comments': 0}).cnt_comments %}
+                <span class="cnt-comments">
+                    {% if new_comments %}
+                        <i class="fa fa-comment new"></i>
+                        {% if task.cnt_comments - new_comments %}
+                            {{ task.cnt_comments - new_comments -}}
+                        {%- endif -%}
+                        +{{- new_comments }}
+                    {% else %}
+                        <i class="fa fa-comment"></i>
+                        {{ task.cnt_comments }}
+                    {% endif %}
+                </span>
+            {% endmacro %}
+
             <div class="tasks-tree show-deadline">
             {% set prev_depth = -1 %}
             {% for task in tasks %}
                 {% if task.depth == prev_depth %}
                     {% if loop.index0 > 0 %} </li> {% endif %}
                 {% elif task.depth > prev_depth %}
-                    <ul>
+                    {{ ('<ul>' * (task.depth - prev_depth)) | safe }}
                 {% elif task.depth < prev_depth %}
-                    {{ ('</li></ul>' * (prev_depth - task.depth)) | safe}}
+                    {{ ('</li></ul>' * (prev_depth - task.depth)) | safe }}
                 {% endif %}
-                <li data-id="{{ task.id }}" class="{% if task.status %}li-{{ task.status }}{% elif task.children_statuses.get('complete') == 100 %}li-done li-100{% endif %}">
-                    <div class="task
-                        {%- if task.id == selected.id %} active {% endif %}
-                        {%- if task.assigned_id == current_user.id %} my {% endif %}
-                    ">
-                    <div class="status">
-                        {% if task.children_statuses %}
-                            <small>{{ task.children_statuses['complete'] }}%</small>
-                        {% else %}
-                            {{ task.status|status_label }}
-                        {% endif %}
-                    </div>
 
-                    <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
-                        {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
-                    </div>
+                <li data-id="{{ task.id }}" class="{{ _task_li_class(task) }}">
+                    <div class="{{ _task_container_class(task, selected, current_user) }}">
+                        <div class="status">
+                            {% if task.children_statuses %}
+                                <small>{{ task.children_statuses['complete'] }}%</small>
+                            {% else %}
+                                {{ task.status|status_label }}
+                            {% endif %}
+                        </div>
 
-                    <div class="users">
-                        {% if task.assigned_id %}
-                            <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
-                        {% endif %}
-                    </div>
+                        <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
+                            {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif %}
+                        </div>
 
-                    <div class="subj">
-                        <a href="?task={{ task.id }}{% if project.has_sprints %}&sprint={{ options.sprint.data }}{% endif %}">{{ task.subject }}</a>
-                        {#
-                        <small>
-                            {{ task.children_statuses }} : <b>{{ task.status }}</b>
-                        </small>
-                        #}
-                        {{ task.importance|importance_icon|safe }}
-                        {{ task.character|character_icon|safe }}
+                        <div class="users">
+                            {% if task.assigned_id %}
+                                <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
+                            {% endif %}
+                        </div>
 
-                        {# Обожаю тебя, жинжа ёбаная! #}
-                        {% if task.cnt_comments %}
-                            {% set new_comments = task.cnt_comments - seen.get(task.id, {'cnt_comments': 0}).cnt_comments %}
-                            <span class="cnt-comments">
-                                {% if new_comments %}
-                                    <i class="fa fa-comment new"></i>
-                                    {% if task.cnt_comments - new_comments %}
-                                        {{ task.cnt_comments - new_comments -}}
-                                    {%- endif -%}
-                                    +{{- new_comments }}
-                                {% else %}
-                                    <i class="fa fa-comment"></i>
-                                    {{ task.cnt_comments }}
-                                {% endif %}
-                            </span>
-                        {% endif %}
+                        <div class="subj">
+                            <small>{{ task.mp }}</small>
+                            <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
 
-                        {% if task.estimate %}
-                            <span class="estimate">{{ task.estimate }}d</span>
-                        {% endif %}
-                    </div>
+                            {{ task.importance|importance_icon|safe }}
+                            {{ task.character|character_icon|safe }}
+
+                            {% if task.cnt_comments %}
+                                {{ _task_comments_icon(task, seen) }}
+                            {% endif %}
+
+                            {% if task.estimate %}
+                                <span class="estimate">{{ task.estimate }}d</span>
+                            {% endif %}
+                        </div>
                     </div>
                 {% set prev_depth = task.depth %}
             {% endfor %}

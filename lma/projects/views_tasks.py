@@ -29,10 +29,15 @@ def load_tasks_tree(query):
         # Всем родителям увеличиваем счётчик статусов детей Task.children_statuses
         if task.status:
             t = task
-            while t.parent_id:
-                t.parent.children_statuses.setdefault(task.status, 0)
-                t.parent.children_statuses[task.status] += 1
-                t = t.parent
+            try:
+                while t.parent_id:
+                    t.parent.children_statuses.setdefault(task.status, 0)
+                    t.parent.children_statuses[task.status] += 1
+                    t = t.parent
+            except AttributeError:
+                # Редкий случай, когда родитель не загружен в tasks (дерево поломалось)
+                print('Ну, пиздец, приплыли! У задачи [%d %r %s] нет родителя id=%d' % (t.id, t.mp, t.subject, t.parent_id))
+                pass
 
     stats = {}
     max_deadline = None
@@ -88,7 +93,6 @@ def tasks(project_id):
             selected = Task.query.filter_by(id=request.args.get('task'), project_id=project.id).first()
             if not selected:
                 abort(404, 'Выбранная задача не обнаружена. Может, удалили? <a href="?">Весь проект</a>.')
-            print('Redirect to %s' % url_for('.tasks', project_id=project.id, sprint=selected.sprint_id, task=selected.id))
             return redirect(url_for('.tasks', project_id=project.id, sprint=selected.sprint_id or 0, task=selected.id))
 
         form_edit = forms.TaskForm(obj=selected)
@@ -102,15 +106,13 @@ def tasks(project_id):
     form_empty = forms.TaskForm(obj=empty)
 
     # Ответ
-    page = render_template(
+    return render_template(
         'projects/tasks_%s.html' % project.type,
         project=project, membership=membership, options=options,
         tasks=list(tasks.values()), stats=stats,
         selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit,
         seen=seen
     )
-    resp = make_response(page)
-    return resp
 
 
 @mod.route('/<int:project_id>/<int:task_id>/edit/', methods=('POST',))
@@ -331,24 +333,15 @@ def task_chparent(project_id, task_id):
         # Удаляем статус у нового родителя
         parent.status = None
     else:
-        parent = None
+        parent = Task(mp=[])
 
     # Создаём префикс mp для поддерева
-    if parent:
-        prefix = parent.mp[:]
-        max_mp = db.session.execute(
-            "SELECT coalesce(max(mp[%d]), 0) FROM tasks WHERE project_id = :project_id and parent_id = :parent_id" %
-            (len(parent.mp) + 1),
-            {'project_id': project.id, 'parent_id': parent.id}
-        ).scalar() + 1
-        prefix += [max_mp]
-        task.parent_id = parent.id
-    else:
-        prefix = [db.session.execute(
-            "SELECT coalesce(max(mp[1]), 0) FROM tasks WHERE project_id = :project_id and parent_id is null",
-            {'project_id': project.id}
-        ).scalar() + 1]
-        task.parent_id = None
+    max_mp = db.session\
+        .query(db.func.coalesce(db.func.max(Task.mp[len(parent.mp)]), 0))\
+        .filter(Task.project_id == project.id, Task.parent_id == parent.id)\
+        .scalar() + 1
+    prefix = parent.mp + [max_mp]
+    task.parent_id = parent.id
 
     # Остались ли у детки у старого родителя?
     if old_parent:
