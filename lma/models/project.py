@@ -29,17 +29,21 @@ class Project(db.Model):
     members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
     owner = db.relationship('User', backref='projects')
 
-    def members_users(self):
+    _members_users = None
+
+    def members_users(self, use_cache=True):
         """
-        Возвращает BaseQuery для списка ProjectMember'ов проекта с уже подгруженной реляцией user.
-        Используется для списка
-        :return:
+        Возвращает список [ProjectMember]'ов проекта с жадно подгруженными реляциями ProjectMember.user. Кеширует его.
+        :return: list
         """
-        return ProjectMember.query\
-            .outerjoin(User)\
-            .filter(ProjectMember.project_id == self.id)\
-            .options(db.contains_eager(ProjectMember.user))\
-            .order_by(User.name)
+        if self._members_users is None or not use_cache:
+            self._members_users = ProjectMember.query\
+                .outerjoin(User)\
+                .filter(ProjectMember.project_id == self.id)\
+                .options(db.contains_eager(ProjectMember.user))\
+                .order_by(User.name).all()
+
+        return self._members_users
 
     def __repr__(self):
         return '<Project %d:%s>' % (self.id or 0, self.name)

@@ -61,7 +61,7 @@
     <div class="col-sm-4">
         <select name="assigned_id" class="form-control">
             <option value="">Никто</option>
-            {% for member in project.members_users().all() %}
+            {% for member in project.members_users() %}
                 <option value="{{ member.user_id }}" {% if member.user_id == edit_task.assigned_id %} selected {% endif %}>
                     {{ member.user.name }}
                 </option>

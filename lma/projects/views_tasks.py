@@ -1,15 +1,60 @@
 from datetime import datetime
-import pytz
 import json
 
-from flask import render_template, request, redirect, flash, g, abort, make_response, jsonify
-from flask_login import current_user
+from flask import render_template, request, redirect, flash, abort, make_response, jsonify
 
 from . import mod, forms, load_project
 from .mail import *
-from lma.models import Sprint, User, Task, TaskHistory
+from lma.models import Sprint, Task, TaskHistory
 from lma.core import db
-from lma.utils import flash_errors, form_json_errors
+from lma.utils import flash_errors, form_json_errors, defer_cookie
+
+
+def load_tasks_tree(query):
+    """
+    Загружает дерево задач и TaskCommentSeen, считает статистику
+    :param query: BaseQuery
+    :return: (OrderedDict(Task), dict(Seen), dict {'total': кол-во задач, 'max_deadline': крайний дедлайн, status: count})
+    """
+    # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
+    tasks = OrderedDict()
+    seen = {}
+
+    for task, seen_ in query.all():
+        if seen_:
+            seen[task.id] = seen_
+        task.children_statuses = {}
+        tasks[task.id] = task
+
+        # Всем родителям увеличиваем счётчик статусов детей Task.children_statuses
+        if task.status:
+            t = task
+            while t.parent_id:
+                t.parent.children_statuses.setdefault(task.status, 0)
+                t.parent.children_statuses[task.status] += 1
+                t = t.parent
+
+    stats = {}
+    max_deadline = None
+    for id_, task in tasks.items():
+        if task.children_statuses:
+            cs = task.children_statuses
+            cs['complete'] = int((cs.get('done', 0) + cs.get('canceled', 0)) / sum(cs.values()) * 100)
+
+        if task.status is not None:
+            stats.setdefault(task.status, 0)
+            stats[task.status] += 1
+
+        if task.deadline is not None:
+            if max_deadline is None:
+                max_deadline = task.deadline
+            else:
+                max_deadline = max(task.deadline, max_deadline)
+
+    stats['total'] = sum(stats.values())
+    stats['max_deadline'] = max_deadline
+
+    return tasks, seen, stats
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
@@ -22,57 +67,30 @@ def tasks(project_id):
     if project.has_sprints:
         sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
         options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне вех')]
+
         if 'sprint' not in request.args:
             options.sprint.data = int(request.cookies.get('sprint', '0'))
 
-    # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
-    tasks = OrderedDict()
-    seen = {}
+        defer_cookie(
+            'sprint', str(options.sprint.data),
+            path=url_for('.tasks', project_id=project.id),
+            expires=datetime(2029, 8, 8)
+        )
 
-    for task, seen_ in project.get_tasks_query(options).all():
-        if seen_:
-            seen[task.id] = seen_
-        task.children_statuses = {}
-        tasks[task.id] = task
-
-        status = task.status
-        if status:
-            while task.parent_id:
-                if task.parent_id not in tasks:
-                    print('\033[31mСтранно, у задачи %d не найден родитель (%d)\033[0m' % (task.id, task.parent_id))
-                    break
-
-                parent = tasks[task.parent_id]
-
-                parent.children_statuses.setdefault(status, 0)
-                parent.children_statuses[status] += 1
-
-                task = parent
-
-    # Считаем статистику по всему проекту
-    stats = {}
-    max_deadline = None
-    for id_, task in tasks.items():
-        if task.children_statuses:
-            cs = task.children_statuses
-            cs['complete'] = int((cs.get('done', 0) + cs.get('canceled', 0)) / sum(cs.values()) * 100)
-
-        if task.status is not None:
-            stats.setdefault(task.status, 0)
-            stats[task.status] += 1
-            if task.deadline is not None:
-                if max_deadline is None:
-                    max_deadline = task.deadline
-                else:
-                    max_deadline = max(task.deadline, max_deadline)
-    stats['total'] = sum(stats.values())
-    stats['max_deadline'] = max_deadline
+    tasks, seen, stats = load_tasks_tree(project.get_tasks_query(options))
 
     # Выбранная задача
-    if request.args.get('task'):
-        selected = Task.query.filter_by(id=request.args.get('task'), project_id=project.id).first()
-        if not selected:
-            abort(404, 'Выбранная задача не обнаружена. Может, удалили? <a href="?">Весь проект</a>.')
+    task_id = request.args.get('task', type=int)
+    if task_id:
+        if task_id in tasks:
+            selected = tasks[task_id]
+        else:
+            selected = Task.query.filter_by(id=request.args.get('task'), project_id=project.id).first()
+            if not selected:
+                abort(404, 'Выбранная задача не обнаружена. Может, удалили? <a href="?">Весь проект</a>.')
+            print('Redirect to %s' % url_for('.tasks', project_id=project.id, sprint=selected.sprint_id, task=selected.id))
+            return redirect(url_for('.tasks', project_id=project.id, sprint=selected.sprint_id or 0, task=selected.id))
+
         form_edit = forms.TaskForm(obj=selected)
     else:
         selected = None
@@ -92,13 +110,6 @@ def tasks(project_id):
         seen=seen
     )
     resp = make_response(page)
-    if project.has_sprints:
-        resp.set_cookie(
-            'sprint', str(options.sprint.data),
-            path=url_for('.tasks', project_id=project.id),
-            expires=datetime(2029, 8, 8)
-        )
-
     return resp
 
 

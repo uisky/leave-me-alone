@@ -1,7 +1,7 @@
 import locale
 import os
 
-from flask import Flask
+from flask import Flask, g
 
 from .core import db, csrf, mail, login_manager
 from .jinja import init_jinja_filters
@@ -30,6 +30,12 @@ def create_app(cfg=None, purpose=None):
     register_blueprints(app)
 
     init_jinja_filters(app)
+
+    @app.after_request
+    def deferred_cookies(response):
+        for args, kwargs in g.get('deferred_cookies', []):
+            response.set_cookie(*args, **kwargs)
+        return response
 
     app.logger.info('%s %s загружен' % (app.name, app.config['ENVIRONMENT']))
 
