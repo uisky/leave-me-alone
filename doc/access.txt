@@ -15,13 +15,13 @@
 
 access levels:
 - owner
-- lead
-- developer
-- watcher
+- owner,lead
+- owner,lead,developer
+- owner,lead,developer,watcher
 - bylink - любой, кто пришёл по специальной ссылке (включая анонимусов?)
 - any - любой
 
 
-ac_link
+ac_link_code
 ac_read
 ac_comment

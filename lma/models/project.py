@@ -14,6 +14,8 @@ class Project(db.Model):
     __tablename__ = 'projects'
 
     TYPES = OrderedDict([('tree', 'Дерево'), ('list', 'Список')])
+    ACCESS_LEVELS = ('owner', 'lead', 'developer', 'watcher', 'bylink', 'any')
+    ENUM_ACCESS_LEVEL = ENUM(*ACCESS_LEVELS, name='access_level')
 
     id = db.Column(db.Integer(), primary_key=True)
     created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
@@ -24,6 +26,11 @@ class Project(db.Model):
     name = db.Column(db.String(64), nullable=False)
     has_sprints = db.Column(db.Boolean, nullable=False, server_default='false')
     intro = db.Column(db.Text)
+
+    ac_link_code = db.Column(db.String(64), index=True, unique=True)
+    ac_read = db.Column(ENUM_ACCESS_LEVEL, nullable=False, default='watcher', server_default='watcher')
+    ac_comment = db.Column(ENUM_ACCESS_LEVEL, nullable=False, default='watcher', server_default='watcher')
+
 
     tasks = db.relationship('Task', backref='project', passive_deletes=True)
     members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
