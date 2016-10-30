@@ -1,0 +1,42 @@
+{% extends 'projects/edit/base.html' %}
+
+{% block h1 %}
+    <h1>Описание проекта</h1>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<form method="post" action="{{ url_for('.project_edit', project_id=project.id) }}">
+    {{ form.csrf_token }}
+    <div class="form-group">
+        <label>Название проекта:</label>
+        {{ form.name(class='form-control') }}
+    </div>
+    <div class="form-group">
+        <label>Вступительное слово (показывается на странице «<a href="{{ purl_for('.about') }}">О проекте</a>»:</label>
+        {{ form.intro(class='form-control', rows=12) }}
+        <p class="help-block">Здесь можно использовать Markdown.</p>
+    </div>
+    <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Сохранить</button>
+    <a href="#modal-delete" data-toggle="modal" class="btn btn-danger"><i class="fa fa-remove"></i> Удалить</a>
+</form>
+
+<form method="post" action="{{ url_for('.project_delete', project_id=project.id) }}">
+    <div class="modal" id="modal-delete" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Серьёзно?</h4>
+    </div>
+    <div class="modal-body">
+        Удалить проект? Назад дороги не будет.
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-danger">Да</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Нет</button>
+    </div>
+    </div></div></div>
+</form>
+
+{% endblock %}
+

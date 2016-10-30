@@ -4,6 +4,10 @@
     <a href="{{ url_for('.member', project_id=project.id, member_id=user.id) }}" class="user">{{ user.name }}</a>
 {%- endmacro -%}
 
+{%- macro purl_for(endpoint) -%}
+    {{ url_for(endpoint, project_id=project.id, **kwargs) }}
+{% endmacro %}
+
 {% set menu = (
     {'id': 'tasks', 'url': url_for('.tasks', project_id=project.id), 'title': 'Задачи'},
     {'id': 'my', 'url': url_for('.member', project_id=project.id, member_id=current_user.id), 'title': 'Мои задачи' + tasks_stat(project, current_user)|status_counters},

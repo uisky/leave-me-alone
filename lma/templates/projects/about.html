@@ -23,20 +23,28 @@
     {{ project.created|humantime }} ({{ project.age.days }} {{ project.age.days|plural('день', 'дня', 'дней') }} тому назад).
 </p>
 
+{% if project.can('edit') or project.can('members') %}
+    <p class="text-center">
+        {% if project.can('edit') %}
+            <a href="{{ url_for('.project_edit', project_id=project.id) }}" class="btn btn-primary btn-sm">
+                <i class="fa fa-edit"></i> Редактировать свойства проекта
+            </a>
+        {% endif %}
+        {% if project.can('members') %}
+            <a href="#modal-add" class="btn btn-success btn-sm" data-toggle="modal">
+                <i class="fa fa-plus-circle"></i> Добавить участников
+            </a>
+        {% endif %}
+    </p>
+{% endif %}
+
 {% if project.intro %}
-<div class="peoject-about">
-    {{ project.intro|markdown }}
-</div>
+    <div class="peoject-about">
+        {{ project.intro|markdown }}
+    </div>
 {% endif %}
 
 
-
-
-{% if project.can('members') %}
-    <button type="button" class="btn btn-success btn-sm pull-right" data-toggle="modal" data-target="#modal-add">
-        <i class="fa fa-plus-circle"></i> Добавить участников
-    </button>
-{% endif %}
 <h2>Команда</h2>
 <table class="table table-bordered table-hover table-members" id="simposium">
     <thead>
@@ -99,16 +107,6 @@
     {% endfor %}
     </tbody>
 </table>
-
-
-
-{% if project.can('edit') %}
-<p class="text-center">
-    <a href="{{ url_for('.project_edit', project_id=project.id) }}" class="btn btn-primary btn-sm">
-        <i class="fa fa-edit"></i> Редактировать свойства проекта
-    </a>
-</p>
-{% endif %}
 
 
 <div class="modal fade" id="modal-help-karma" tabindex="-1"><div class="modal-dialog"><div class="modal-content">

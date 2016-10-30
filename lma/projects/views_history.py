@@ -9,6 +9,19 @@ from lma.utils import print_sql
 from lma.core import db
 
 
+@mod.route('/<int:project_id>/<int:task_id>/history/')
+def task_history(project_id, task_id):
+    project, membership = load_project(project_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
+    history = TaskHistory.query\
+        .filter_by(task_id=task.id)\
+        .order_by(TaskHistory.created)\
+        .options(db.joinedload(TaskHistory.user))\
+        .all()
+
+    return render_template('projects/_history.html', project=project, task=task, history=history)
+
+
 @mod.route('/<int:project_id>/history/', methods=('GET', 'POST'))
 def history(project_id):
     project, membership = load_project(project_id)

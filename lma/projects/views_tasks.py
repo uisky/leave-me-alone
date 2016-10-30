@@ -221,8 +221,11 @@ def task_subtask(project_id, parent_id=None):
     if form.validate_on_submit():
         form.populate_obj(task)
 
-        if project.has_sprints and request.form.get('sprint_id', 0, type=int):
+        if parent:
+            task.sprint_id = parent.sprint_id
+        elif request.form.get('sprint_id', 0, type=int):
             task.sprint_id = request.form.get('sprint_id', type=int)
+
         task.setparent(parent)
         db.session.add(task)
 
@@ -332,6 +335,9 @@ def task_chparent(project_id, task_id):
 
         # Удаляем статус у нового родителя
         parent.status = None
+
+        # Ставим спринт нового родителя
+        task.sprint_id = parent.sprint_id
     else:
         parent = Task(mp=[])
 
@@ -411,16 +417,3 @@ def reorder_tasks(project_id):
     db.session.commit()
 
     return 'ok'
-
-
-@mod.route('/<int:project_id>/<int:task_id>/history/')
-def task_history(project_id, task_id):
-    project, membership = load_project(project_id)
-    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
-    history = TaskHistory.query\
-        .filter_by(task_id=task.id)\
-        .order_by(TaskHistory.created)\
-        .options(db.joinedload(TaskHistory.user))\
-        .all()
-
-    return render_template('projects/_history.html', project=project, task=task, history=history)

@@ -16,7 +16,7 @@ class ProjectPropertiesForm(FlaskForm):
     name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[strip_field])
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
     # type = RadioField('Тип', [v.required()], choices=PROJECT_TYPES)
-    has_sprints = BooleanField('Использовать вехи')
+    # has_sprints = BooleanField('Использовать вехи')
 
 
 class ProjectFolderForm(FlaskForm):

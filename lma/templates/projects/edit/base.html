@@ -1,0 +1,26 @@
+{% extends 'project.html' %}
+{% set container_class = 'container' %}
+{% set menu_current = 'about' %}
+
+{% set menu_edit = [
+    {'title': 'Описание', 'endpoint': 'projects.project_edit'},
+    {'title': 'Вехи', 'endpoint': 'projects.sprints'},
+    {'title': 'Доступ', 'endpoint': 'projects.project_access'}
+] %}
+{% set menu_edit_current = menu_edit_current or request.endpoint %}
+
+{% block content %}
+
+    {% block h1 %}
+        <h1>Свойства проекта</h1>
+    {% endblock %}
+
+    <ul class="nav nav-tabs" style="margin-bottom: 20px">
+        {% for item in menu_edit %}
+        <li {% if menu_edit_current == item.endpoint %} class="active" {% endif %}>
+            <a href="{{ purl_for(item.endpoint) }}">{{ item.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

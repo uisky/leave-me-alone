@@ -1,0 +1,200 @@
+{% extends 'projects/edit/base.html' %}
+
+{% block head %}
+<style type="text/css">
+    .table-list .handle { padding: 8px; cursor: move; }
+</style>
+{% endblock %}
+
+{% block h1 %}
+<h1>Вехи проекта</h1>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+{% if not project.has_sprints %}
+    <p>
+        Вехи — это типа подпроектов или, извините за выражение, спринтов. Когда задач становится слишком много,
+        их бывает удобно разделить. У каждой вехи своя статистика, а переключаться между ними можно в выпадающей
+        менюшке в дереве задач. Создавать вехи может только владелец проекта.
+    </p>
+    <form method="post" action="{{ purl_for('.sprints_onoff') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="has_sprints" value="Илья, ты пиздян.">
+        <button type="submit" class="btn btn-primary">Включить вехи</button>
+    </form>
+    <p class="help-block">
+        Вы всегда можете отменить вехи.
+    </p>
+{% else %}
+    {% if sprints %}
+        <table class="table table-bordered table-list" id="table-sprints">
+        <thead>
+        <tr>
+            <th></th>
+            <th class="t" colspan="2">Название</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sprint, stat in sprints.items() %}
+        <tr
+                data-id="{{ sprint.id }}"
+                data-url-edit="{{ purl_for('.sprint_edit', sprint_id=sprint.id) }}"
+                data-url-delete="{{ purl_for('.sprint_delete', sprint_id=sprint.id) }}"
+                >
+            <td><i class="fa fa-sort handle"></i></td>
+            <td class="t">
+                <a href="{{ purl_for('.tasks', sprint=sprint.id) }}">{{ sprint.name }}</a>
+            </td>
+            <td>{{ stat|status_counters }}</td>
+            <td>
+                <a href="#modal-edit" data-toggle="modal" class="btn btn-xs btn-success action-edit">
+                    <i class="fa fa-edit"></i>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">В проекте ещё нет ни одной вехи.</div>
+    {% endif %}
+
+    <a href="#modal-add" data-toggle="modal" class="btn btn-success"> <i class="fa fa-plus-circle"></i> Добавить веху</a>
+    <a href="#modal-sprints-off" data-toggle="modal" class="btn btn-danger"> <i class="fa fa-remove"></i> Отказаться от вех</a>
+{% endif %}
+{% endblock %}
+
+
+
+{% block tail %}
+{% if project.has_sprints %}
+    <form method="post" action="{{ purl_for('.sprints_onoff') }}" id="form-onoff">
+        <input type="hidden" name="csrf_toker" value="{{ csrf_token() }}">
+        <input type="hidden" name="has_sprints" value="">
+        <div class="modal" id="modal-sprints-off"><div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">Отказаться от вех</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Если вы потом решите вернуть вехи, то задачи останутся в своих вехах.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Поехали</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+            </div>
+        </div></div></div>
+    </form>
+
+
+    <form method="post" action="{{ purl_for('.sprint_edit') }}" id="form-add">
+    <div class="modal" id="modal-add"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            <h4 class="modal-title">Создать веху</h4>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="control-label">Название</label>
+                <input type="text" name="name" class="form-control">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Создать</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        </div>
+    </div></div></div>
+    </form>
+
+
+    <form method="post" action="" id="form-edit">
+    <div class="modal" id="modal-edit"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            <h4 class="modal-title">Свойства вехи</h4>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="control-label">Название</label>
+                <input type="text" name="name" class="form-control">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete">Удалить</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        </div>
+    </div></div></div>
+    </form>
+
+    <form method="post" action="" id="form-delete">
+    <div class="modal" id="modal-delete"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            <h4 class="modal-title">Удалить веху?</h4>
+        </div>
+        <div class="modal-body">
+            Если в ней были задачи, они останутся доступными, но попадут в раздел "Вне вех".
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Да</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Нет, я передумал</button>
+        </div>
+    </div></div></div>
+    </form>
+
+    <form method="post" action="{{ purl_for('.sprints_reorder') }}" id="form-reorder"></form>
+
+    <script type="text/javascript" src="/static/jquery-sortable-min.js"></script>
+    <script type="text/javascript" src="https://yastatic.net/jquery/form/3.14/jquery.form.min.js"></script>
+    <script type="text/javascript">
+    (function() {
+        var $table = $('#table-sprints'), $formReorder = $('#form-reorder');
+
+        $formReorder.ajaxForm({
+            beforeSubmit: function() {
+                $('#ajax-wait').show();
+            },
+            complete: function(data) {
+                $('#ajax-wait').hide();
+            }
+        });
+
+        $table.sortable({
+            containerSelector: 'table',
+            itemPath: '> tbody',
+            itemSelector: 'tr',
+            placeholder: '<tr class="placeholder"><td>&nbsp;</td><td></td><td></td></tr>',
+            handle: 'i.fa-sort',
+            delay: 200,
+            onDrop: function ($item, container, _super) {
+                $formReorder.empty();
+                $.each($table.sortable("serialize").get()[0], function(i) {
+                    $('<input type="hidden">').attr('name', 'sort.' + this.id).val(i).appendTo($formReorder);
+                });
+                $formReorder.submit();
+
+                _super($item, container);
+            }
+        });
+
+        $('#modal-edit').on('shown.bs.modal', function(e) {
+            var $tr = $(e.relatedTarget).parents('tr'), $modal = $(this);
+            $('#form-edit').attr('action', $tr.data('url-edit'));
+            $('#form-delete').attr('action', $tr.data('url-delete'));
+            $modal.find('[name=name]').val($.trim($tr.find('td.t').text())).focus();
+        });
+
+        $('#modal-add').on('shown.bs.modal', function(e) {
+            $(this).find('[name=name]').focus();
+        });
+
+    })();
+    </script>
+{% endif %}
+{% endblock %}
