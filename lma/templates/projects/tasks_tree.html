@@ -10,8 +10,8 @@
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
 <script type="text/javascript">
-var current_user = {"id": {{ current_user.id}}, "name": "{{ current_user.name }}"};
-var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
+    var current_user = {"id": {{ current_user.id or None }}, "name": "{{ current_user.name or '' }}"};
+    var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 </script>
 {% endblock %}
 
@@ -24,13 +24,8 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
         <form method="get">
         <div class="row show-options">
             <div class="col-sm-2">
-                {% if project.type == 'tree' %}
-                    <button type="button" class="btn btn-xs" id="btn-toggle-collapsed"><i class="fa fa-plus"></i></button>
-                    <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
-                {% elif project.type == 'list' %}
-                    <input type="hidden" name="task" value="{{ request.args.get('task', '') }}">
-                    {{ options.sort(class='form-control', onchange='this.form.submit()') }}
-                {% endif %}
+                <button type="button" class="btn btn-xs" id="btn-toggle-collapsed" title="Свернуть/развернуть всё"><i class="fa fa-plus"></i></button>
+                <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
             </div>
             <div class="col-sm-2">
                 {% if project.has_sprints %}
@@ -44,7 +39,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                 {% if stats['max_deadline'] %}
                     <i class="fa fa-bed"></i> {{ stats.max_deadline.strftime('%d.%m') }}
                 {% else %}
-                    Без дедлайна
+                    <small>Без дедлайна</small>
                 {% endif %}
             </div>
         </div>
@@ -52,26 +47,36 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
         {% if not tasks %}
             <div class="alert alert-box alert-info">
-                {% if project.has_sprints %}Веха пуста{% else %}Проект пуст{% endif %}.
+                {% if project.has_sprints %} Веха пуста {% else %} Проект пуст {% endif %}.
             </div>
         {% else %}
-            {% macro _task_container_class(task, selected, current_user) -%}
-                task {%- if task.id == selected.id %} active {% endif %} {%- if task.assigned_id == current_user.id %} my {% endif %}
+            {%- macro _task_li_class(task) -%}
+                {%- if task.status %}
+                    li-{{ task.status }}
+                {%- elif task.children_statuses.get('complete') == 100 %}
+                    li-done li-100
+                {%- endif %}
             {%- endmacro -%}
 
-            {%- macro _task_li_class(task) -%}
-                {% if task.status %}li-{{ task.status }}{% elif task.children_statuses.get('complete') == 100 %}li-done li-100{% endif %}
+            {% macro _task_container_class(task, selected) -%}
+                task
+                {%- if task.id == selected.id %} active {% endif %}
+                {%- if current_user.is_authenticated and task.assigned_id == current_user.id %} my {% endif %}
             {%- endmacro -%}
 
             {% macro _task_comments_icon(task, seen) %}
-                {% set new_comments = task.cnt_comments - seen.get(task.id, {'cnt_comments': 0}).cnt_comments %}
+                {% if not current_user.is_authenticated %}
+                    {% set new = 0 %}
+                {% else %}
+                    {% set new = task.cnt_comments - seen.get(task.id, {'cnt_comments': 0}).cnt_comments %}
+                {% endif %}
                 <span class="cnt-comments">
-                    {% if new_comments %}
+                    {% if new %}
                         <i class="fa fa-comment new"></i>
-                        {% if task.cnt_comments - new_comments %}
-                            {{ task.cnt_comments - new_comments -}}
+                        {% if task.cnt_comments - new %}
+                            {{ task.cnt_comments - new -}}
                         {%- endif -%}
-                        +{{- new_comments }}
+                        +{{- new }}
                     {% else %}
                         <i class="fa fa-comment"></i>
                         {{ task.cnt_comments }}
@@ -91,7 +96,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                 {% endif %}
 
                 <li data-id="{{ task.id }}" class="{{ _task_li_class(task) }}">
-                    <div class="{{ _task_container_class(task, selected, current_user) }}">
+                    <div class="{{ _task_container_class(task, selected) }}">
                         <div class="status">
                             {% if task.children_statuses %}
                                 <small>{{ task.children_statuses['complete'] }}%</small>
@@ -130,10 +135,11 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {{ ('</li></ul>' * (tasks[-1].depth + 1)) | safe }}
         </div>
         {% endif %}
-        {% if membership.can('subtask') %}
-        <p style="margin: 10px 0">
-            <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
-        </p>
+
+        {% if membership.can('project.task-level-0') %}
+            <p style="margin: 10px 0">
+                <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
+            </p>
         {% endif %}
     </div>
 
@@ -154,10 +160,10 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                 </a></li>
                 <li><a href="#task-history" data-toggle="tab">История</a></li>
             {% endif %}
-            {% if membership.can('subtask', selected) %}
+            {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
                 <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
             {% endif %}
-            {% if membership.can('edit', selected) %}
+            {% if selected and membership.can('task.edit', selected) %}
                 <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
             {% endif %}
         </ul>
@@ -188,6 +194,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         {{ selected.description|markdown|safe }}
                     </div>
 
+                    {% if membership.can('task.set-status', selected) %}
                     <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status">
@@ -197,6 +204,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                             </button>
                         {% endfor %}
                     </form>
+                    {% endif %}
                 </div>
 
                 {# Комментарии #}
@@ -211,7 +219,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {% endif %}
 
             {# Создать подзадачу #}
-            {% if membership.can('subtask', selected) %}
+            {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
                 <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}">
                     {% if selected %}
                         {% set url = url_for('.task_subtask', project_id=project.id, parent_id=selected.id) %}
@@ -238,7 +246,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
             {% endif %}
 
             {# Редактор задачи #}
-            {% if selected and membership.can('edit', selected) %}
+            {% if selected and membership.can('task.edit', selected) %}
                 <div id="task-edit" class="tab-pane">
                     <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal">
                         <h2>Редактировать задачу</h2>
@@ -248,23 +256,14 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
                         <div class="form-group">
                             <div class="col-sm-offset-1 col-sm-11">
-                                <button type="submit" class="btn btn-success">
-                                    <span class="fa fa-check"></span> Сохранить
-                                </button>
-                                <button type="button" class="btn btn-danger" id="btn-task-delete">
-                                    <span class="fa fa-remove"></span> Удалить
-                                </button>
-                                <button type="button" class="btn btn-info" id="btn-chparent">
-                                    <span class="fa fa-share-alt"></span> Сменить надзадачу
-                                </button>
-                                <button type="button" class="btn btn-info" id="btn-swap">
-                                    <span class="fa fa-random"></span> Поменять местами
-                                </button>
-
-                                {% if project.has_sprints and selected.parent_id == None %}
-                                <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint">
-                                    <span class="fa fa-map"></span> В другую веху
-                                </button>
+                                <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Сохранить</button>
+                                <button type="button" class="btn btn-danger" id="btn-task-delete"><i class="fa fa-remove"></i> Удалить</button>
+                                {% if membership.can('task.chparent', selected) %}
+                                    <button type="button" class="btn btn-info" id="btn-chparent"><i class="fa fa-share-alt"></i> Сменить надзадачу</button>
+                                {% endif %}
+                                <button type="button" class="btn btn-info" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
+                                {% if membership.can('task.sprint', selected) %}
+                                    <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint"><i class="fa fa-map"></i> В другую веху</button>
                                 {% endif %}
                             </div>
                         </div>
@@ -272,7 +271,8 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
 
                     <form id="form-delete" method="post" action="{{ url_for('.task_delete', project_id=project.id, task_id=selected.id) }}"></form>
 
-                    <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, task_id=selected.id) }}">
+                    {% if membership.can('task.chparent', selected) %}
+                        <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, task_id=selected.id) }}">
                         <h2>Переместить ветку</h2>
                         <p>
                             Выберите задачу, которая должна стать новым родителем выбранной задачи.
@@ -287,6 +287,7 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                             <span class="fa fa-remove"></span> Отмена
                         </button>
                     </form>
+                    {% endif %}
 
                     <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, task_id=selected.id) }}">
                         <h2>Сортировка</h2>
@@ -299,8 +300,8 @@ var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
                         </button>
                     </form>
 
-                    {% if project.has_sprints %}
-                    <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
+                    {% if membership.can('task.sprint', selected) %}
+                        <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
                         <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal">&times;</button>

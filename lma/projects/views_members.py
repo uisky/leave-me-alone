@@ -63,7 +63,7 @@ def member(project_id, member_id):
 def members_add(project_id):
     project, membership = load_project(project_id)
 
-    if not project.can('members'):
+    if not membership.can('members'):
         abort(403, 'Вы недостаточно круты, чтобы управлять членством в этой команде.')
 
     clues = [x.strip() for x in re.split(r'[,\n]+', request.form.get('clues', ''))]
@@ -114,7 +114,7 @@ def members_add(project_id):
 def member_edit(project_id, member_id):
     project, membership = load_project(project_id)
 
-    if not project.can('members'):
+    if not membership.can('members'):
         abort(403, 'Вы не имеете права!')
 
     member = ProjectMember.query.get_or_404((member_id, project_id))
@@ -129,9 +129,9 @@ def member_edit(project_id, member_id):
 
 @mod.route('/<int:project_id>/members/<int:member_id>/delete/', methods=['POST'])
 def member_delete(project_id, member_id):
-    project = Project.query.get_or_404(project_id)
+    project, membership = load_project(project_id)
 
-    if not project.can('members'):
+    if not membership.can('members'):
         abort(403, 'Не позволено вам выгонять людей отсюда!')
 
     member = ProjectMember.query.get_or_404((member_id, project.id))

@@ -8,54 +8,72 @@
     {{ url_for(endpoint, project_id=project.id, **kwargs) }}
 {% endmacro %}
 
-{% set menu = (
-    {'id': 'tasks', 'url': url_for('.tasks', project_id=project.id), 'title': 'Задачи'},
-    {'id': 'my', 'url': url_for('.member', project_id=project.id, member_id=current_user.id), 'title': 'Мои задачи' + tasks_stat(project, current_user)|status_counters},
-    {'id': 'about', 'url': url_for('.about', project_id=project.id), 'title': 'О проекте'},
-    {'id': 'history', 'url': url_for('.history', project_id=project.id), 'title': 'История'},
-)
-%}
+
+{% if current_user.is_authenticated %}
+    {% set menu = (
+        {'id': 'tasks', 'url': purl_for('.tasks'), 'title': 'Задачи'},
+        {
+            'id': 'my', 'url': purl_for('.member', member_id=current_user.id),
+            'title': 'Мои задачи' + tasks_stat(project, current_user) | status_counters
+        },
+        {'id': 'about', 'url': purl_for('.about'), 'title': 'О проекте'},
+        {'id': 'history', 'url': purl_for('.history'), 'title': 'История'},
+    )
+    %}
+{% else %}
+    {% set menu = (
+        {'id': 'tasks', 'url': purl_for('.tasks'), 'title': 'Задачи'},
+        {'id': 'about', 'url': purl_for('.about'), 'title': 'О проекте'},
+        {'id': 'history', 'url': purl_for('.history'), 'title': 'История'},
+    )
+    %}
+{% endif %}
 
 {% block logo %}
-<div class="navbar-header">
-    <a class="navbar-brand dropdown-toggle" href="/" data-toggle="dropdown">
-        LMA: {{ project.name }}
-        <span class="caret"></span>
-    </a>
-
-    {% macro menu_project_li(prj, project) %}
-        <li {%- if project and prj.id == project.id %} class="active" {%- endif -%}>
-            <a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
-            {{- prj.name -}}
+    <div class="navbar-header">
+        {% if current_user.is_authenticated %}
+            <a class="navbar-brand dropdown-toggle" href="{{ url_for('front.index') }}" data-toggle="dropdown">
+                LMA: {{ project.name }}
+                <span class="caret"></span>
             </a>
-        </li>
-    {% endmacro %}
 
-    {% with pmenu = projects_menu(current_user) %}
-        <ul class="dropdown-menu menu-projects">
-            {% if pmenu|length == 1 %}
-                {% for prj in projects_menu(current_user).popitem()[1] %}
-                    {{ menu_project_li(prj, project) }}
-                {% endfor %}
-            {% else %}
-                {%- for folder, projects in pmenu.items() %}
-                    <li class="folder">{{ folder.name|default('Основные') }}</li>
-                    {% for prj in projects %}
-                        {{ menu_project_li(prj, project) }}
-                    {% endfor %}
-                {%- endfor -%}
-            {% endif %}
-            <li role="separator" class="divider"></li>
-            <li><a href="/projects" title="Центр Управления Проектами"><i class="fa fa-rocket"></i> ЦУП</a></li>
-        </ul>
-    {% endwith %}
-</div>
+            {% macro menu_project_li(prj, project) %}
+                <li {%- if prj.id == project.id %} class="active" {%- endif -%}>
+                    <a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
+                    {{- prj.name -}}
+                    </a>
+                </li>
+            {% endmacro %}
+
+            {% with pmenu = projects_menu(current_user) %}
+                <ul class="dropdown-menu menu-projects">
+                    {% if pmenu|length == 1 %}
+                        {% for prj in projects_menu(current_user).popitem()[1] %}
+                            {{ menu_project_li(prj, project) }}
+                        {% endfor %}
+                    {% else %}
+                        {%- for folder, projects in pmenu.items() %}
+                            <li class="folder">{{ folder.name|default('Основные') }}</li>
+                            {% for prj in projects %}
+                                {{ menu_project_li(prj, project) }}
+                            {% endfor %}
+                        {%- endfor -%}
+                    {% endif %}
+                    <li role="separator" class="divider"></li>
+                    <li><a href="/projects" title="Центр Управления Проектами"><i class="fa fa-rocket"></i> ЦУП</a></li>
+                </ul>
+            {% endwith %}
+        {% else %}
+            <a href="{{ url_for('front.index') }}" class="navbar-brand">LMA:</a>
+            <a href="{{ purl_for('.about') }}" class="navbar-brand">{{ project.name }}</a>
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block menu_main %}
-<ul class="nav navbar-nav">
-{%- for item in menu %}
-    <li {%- if menu_current == item.id %} class="active" {%- endif -%}><a href="{{ item.url }}">{{ item.title }}</a></li>
-{%- endfor -%}
-</ul>
+    <ul class="nav navbar-nav">
+    {%- for item in menu %}
+        <li {%- if menu_current == item.id %} class="active" {%- endif -%}><a href="{{ item.url }}">{{ item.title }}</a></li>
+    {%- endfor -%}
+    </ul>
 {% endblock %}

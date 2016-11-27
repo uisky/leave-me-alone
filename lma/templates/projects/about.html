@@ -23,14 +23,14 @@
     {{ project.created|humantime }} ({{ project.age.days }} {{ project.age.days|plural('день', 'дня', 'дней') }} тому назад).
 </p>
 
-{% if project.can('edit') or project.can('members') %}
+{% if membership.can('edit') or membership.can('members') %}
     <p class="text-center">
-        {% if project.can('edit') %}
+        {% if membership.can('edit') %}
             <a href="{{ url_for('.project_edit', project_id=project.id) }}" class="btn btn-primary btn-sm">
                 <i class="fa fa-edit"></i> Редактировать свойства проекта
             </a>
         {% endif %}
-        {% if project.can('members') %}
+        {% if membership.can('members') %}
             <a href="#modal-add" class="btn btn-success btn-sm" data-toggle="modal">
                 <i class="fa fa-plus-circle"></i> Добавить участников
             </a>
@@ -58,7 +58,7 @@
             Карма
             <a href="#modal-help-karma" data-toggle="modal" title="WTF is karma?"><i class="fa fa-question-circle"></i></a>
         </th>
-        {% if project.can('members') %}<th></th>{% endif %}
+        {% if membership.can('members') %}<th></th>{% endif %}
     </tr>
     </thead>
     <tbody>
@@ -96,7 +96,7 @@
         <td class="karma-col">
             <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma|minus }}</a>
         </td>
-        {% if project.can('members') %}
+        {% if membership.can('members') %}
         <td>
             <a href="#modal-edit" data-toggle="modal" class="action-edit">
                 <span class="fa fa-pencil"></span>
@@ -129,7 +129,7 @@
 
 
 {% block tail %}
-{% if project.can('members') %}
+{% if membership.can('members') %}
     <form method="post" action="{{ url_for('.members_add', project_id=project.id) }}">
     <div class="modal" id="modal-add" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">

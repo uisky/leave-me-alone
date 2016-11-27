@@ -16,15 +16,18 @@ def task_comments(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
-    seen = TaskCommentsSeen.query.filter_by(task_id=task.id, user_id=current_user.id).first()
-    if not seen:
-        seen = TaskCommentsSeen(
-            task_id=task.id, user_id=current_user.id,
-            cnt_comments=0, seen=datetime(1981, 8, 8, tzinfo=pytz.timezone('Europe/Moscow'))
-        )
-        db.session.add(seen)
+    if current_user.is_authenticated:
+        seen = TaskCommentsSeen.query.filter_by(task_id=task.id, user_id=current_user.id).first()
+        if not seen:
+            seen = TaskCommentsSeen(
+                task_id=task.id, user_id=current_user.id,
+                cnt_comments=0, seen=datetime(1981, 8, 8, tzinfo=pytz.timezone('Europe/Moscow'))
+            )
+            db.session.add(seen)
+    else:
+        seen = None
 
-    if request.method == 'POST':
+    if request.method == 'POST' and membership.can('task.comment', task):
         comment = TaskComment(task_id=task.id, user_id=current_user.id)
         comment.body = request.form.get('body', '').strip()
         comment.task = task
@@ -32,7 +35,8 @@ def task_comments(project_id, task_id):
             db.session.add(comment)
 
             task.cnt_comments += 1
-            seen.cnt_comments += 1
+            if seen:
+                seen.cnt_comments += 1
 
             mail.mail_comment(comment)
 
@@ -44,10 +48,13 @@ def task_comments(project_id, task_id):
         else:
             return jsonify({'error': 'Давайте обойдёмся без дзенских реплик.'})
     else:
-        seen.cnt_comments = task.cnt_comments
-        lastseen = seen.seen
-        seen.seen = datetime.now()
-        db.session.commit()
+        if seen:
+            seen.cnt_comments = task.cnt_comments
+            lastseen = seen.seen
+            seen.seen = datetime.now()
+            db.session.commit()
+        else:
+            lastseen = datetime.now()
 
         comments = TaskComment.query\
             .filter_by(task_id=task.id)\

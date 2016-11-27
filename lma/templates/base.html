@@ -6,7 +6,7 @@
                 {% if page != pagination.page %}
                     <li><a href="{{ url_for(endpoint, page=page, **kwargs) }}">{{ page }}</a></li>
                 {% else %}
-                    <li class="active"><a href="#">{{ page }} <span class="sr-only">(current)</span></a></li>
+                    <li class="active"><a href="#">{{ page }}</a></li>
                 {% endif %}
             {% else %}
                 <li><span class=ellipsis>…</span></li>
@@ -42,9 +42,6 @@
         {% endblock %}
 
         {% block menu_main %}
-        <ul class="nav navbar-nav">
-            <li class="active"><a href="/projects/">Проекты</a></li>
-        </ul>
         {% endblock %}
 
         {% if current_user.is_authenticated %}

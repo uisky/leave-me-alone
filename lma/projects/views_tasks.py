@@ -5,17 +5,39 @@ from flask import render_template, request, redirect, flash, abort, make_respons
 
 from . import mod, forms, load_project
 from .mail import *
-from lma.models import Sprint, Task, TaskHistory
+from lma.models import Sprint, Task, TaskHistory, TaskCommentsSeen
 from lma.core import db
-from lma.utils import flash_errors, form_json_errors, defer_cookie
+from lma.utils import flash_errors, form_json_errors, defer_cookie, print_sql
 
 
-def load_tasks_tree(query):
+def load_tasks_tree(project, options):
     """
     Загружает дерево задач и TaskCommentSeen, считает статистику
     :param query: BaseQuery
     :return: (OrderedDict(Task), dict(Seen), dict {'total': кол-во задач, 'max_deadline': крайний дедлайн, status: count})
     """
+    query = db.session\
+        .query(Task)\
+        .filter_by(project_id=project.id)\
+        .order_by(Task.mp)\
+        .options(db.joinedload('user'), db.joinedload('assignee'))
+
+    if current_user.is_authenticated:
+        query = query\
+            .add_entity(TaskCommentsSeen)\
+            .outerjoin(
+                TaskCommentsSeen,
+                db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id)
+            )
+    else:
+        query = query.add_columns('NULL')
+
+    if project.has_sprints:
+        if options.sprint.data:
+            query = query.filter(Task.sprint_id == options.sprint.data)
+        else:
+            query = query.filter(Task.sprint_id == None)
+
     # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
     tasks = OrderedDict()
     seen = {}
@@ -70,9 +92,8 @@ def tasks(project_id):
 
     # Текущая веха, если проект с вехами
     if project.has_sprints:
-        sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
-        options.sprint.choices = [(x.id, x.name) for x in sprints] + [(0, 'Вне вех')]
-
+        # sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
+        options.sprint.choices = [(x.id, x.name) for x in project.sprints] + [(0, 'Вне вех')]
         if 'sprint' not in request.args:
             options.sprint.data = int(request.cookies.get('sprint', '0'))
 
@@ -82,7 +103,7 @@ def tasks(project_id):
             expires=datetime(2029, 8, 8)
         )
 
-    tasks, seen, stats = load_tasks_tree(project.get_tasks_query(options))
+    tasks, seen, stats = load_tasks_tree(project, options)
 
     # Выбранная задача
     task_id = request.args.get('task', type=int)
@@ -120,7 +141,7 @@ def task_edit(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
-    if not membership.can('edit', task):
+    if not membership.can('task.edit', task):
         abort(403, 'Вы не можете редактировать эту задачу.')
 
     form = forms.TaskForm(obj=task)
@@ -170,6 +191,9 @@ def task_delete(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
+    if not membership.can('task.delete', task):
+        abort(403, 'Вы не можете удалять эту задачу.')
+
     kw = {'project_id': task.project_id}
     if task.parent_id:
         kw['task'] = task.parent_id
@@ -201,11 +225,12 @@ def task_subtask(project_id, parent_id=None):
     project, membership = load_project(project_id)
     if parent_id:
         parent = Task.query.filter_by(id=parent_id, project_id=project.id).first_or_404()
+        if not membership.can('task.subtask', parent):
+            abort(403, 'Вы не можете создавать подзадачи к этой задаче.')
     else:
+        if not membership.can('project.task-level-0'):
+            abort(403, 'Вы не можете создавать задачи 1-го уровня в этом проекте.')
         parent = None
-
-    if not membership.can('subtask', parent):
-        abort(403, 'Вы не можете создавать подзадачи к этой задаче.')
 
     task = Task(project_id=project.id, user_id=current_user.id, status='open')
     form = forms.TaskForm(obj=task)
@@ -257,7 +282,7 @@ def task_subtask(project_id, parent_id=None):
 @mod.route('/<int:project_id>/<int:task_id>/status/', methods=('POST',))
 def task_status(project_id, task_id):
     def check():
-        if status not in task.allowed_statuses(current_user, membership):
+        if membership.can('task.set-status', task, status):
             flash('Вы не можете установить этой задаче такой статус.', 'danger')
             return False
 
@@ -289,22 +314,21 @@ def task_status(project_id, task_id):
 
 @mod.route('/<int:project_id>/<int:task_id>/sprint/', methods=('POST',))
 def task_sprint(project_id, task_id):
-    def check():
-        if 'lead' in membership.roles and task.parent_id is None:
-            return True
-        return False
-
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
-    if check():
-        task.sprint_id = request.form.get('sprint_id', type=int)
-        if task.sprint_id == 0:
-            task.sprint_id = None
-        Task.query\
-            .filter(Task.project_id == project.id, Task.mp[1] == task.mp[0])\
-            .update({'sprint_id': task.sprint_id}, synchronize_session=False)
-        db.session.commit()
+    if not membership.can('task.subtree', task):
+        abort(403, 'Вы не можете перенести эту задачу в другую веху.')
+
+    task.sprint_id = request.form.get('sprint_id', type=int)
+    if task.sprint_id == 0:
+        task.sprint_id = None
+
+    # @todo: юзать task.subtree(withme=True)
+    Task.query\
+        .filter(Task.project_id == project.id, Task.mp[1] == task.mp[0])\
+        .update({'sprint_id': task.sprint_id}, synchronize_session=False)
+    db.session.commit()
 
     return redirect(url_for('.tasks', **{'project_id': task.project_id, 'task': task.id, 'sprint': task.sprint_id}))
 
@@ -312,17 +336,14 @@ def task_sprint(project_id, task_id):
 @mod.route('/<int:project_id>/<int:task_id>/chparent/', methods=('POST',))
 def task_chparent(project_id, task_id):
     def check_parent():
-        if task.id == parent.id:
-            flash('Вы промахнулись.', 'danger')
-            return False
-        elif parent in subtree:
+        if parent in subtree:
             flash('Задача не станет собственной подзадачей.', 'danger')
             return False
         return True
 
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
-    subtree = task.subtree(withme=True).order_by(Task.mp).all()
+
     if task.parent_id:
         old_parent = Task.query.get(task.parent_id)
     else:
@@ -341,11 +362,16 @@ def task_chparent(project_id, task_id):
     else:
         parent = Task(mp=[])
 
+    if not membership.can('task.chparent', task, parent):
+        abort(403, 'Вы не можете менять родителя этой задаче.')
+
+    subtree = task.subtree(withme=True).order_by(Task.mp).all()
+
     # Создаём префикс mp для поддерева
-    max_mp = db.session\
-        .query(db.func.coalesce(db.func.max(Task.mp[len(parent.mp)]), 0))\
-        .filter(Task.project_id == project.id, Task.parent_id == parent.id)\
-        .scalar() + 1
+    max_mp = db.session \
+                 .query(db.func.coalesce(db.func.max(Task.mp[len(parent.mp)]), 0)) \
+                 .filter(Task.project_id == project.id, Task.parent_id == parent.id) \
+                 .scalar() + 1
     prefix = parent.mp + [max_mp]
     task.parent_id = parent.id
 

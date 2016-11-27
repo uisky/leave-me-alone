@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DecimalField, \
-    HiddenField
+    HiddenField, RadioField
 from wtforms import validators as v
 
 from lma.models import Task
@@ -17,6 +17,12 @@ class ProjectPropertiesForm(FlaskForm):
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
     # type = RadioField('Тип', [v.required()], choices=PROJECT_TYPES)
     # has_sprints = BooleanField('Использовать вехи')
+
+
+class ProjectAccessForm(FlaskForm):
+    access_levels = [('watcher', 'Член команды'), ('any', 'Кто угодно по сссылке')]
+    ac_read = RadioField('Этот проект видят', [v.required()], choices=access_levels)
+    ac_comment = RadioField('Кто может оставлять комментарии', [v.required()], choices=access_levels)
 
 
 class ProjectFolderForm(FlaskForm):

@@ -21,7 +21,54 @@ access levels:
 - bylink - любой, кто пришёл по специальной ссылке (включая анонимусов?)
 - any - любой
 
+Новые свойства Project:
+    ac_link_code
+    ac_read
+    ac_comment
 
-ac_link_code
-ac_read
-ac_comment
+API прав доступа
+================
+
+API действий с проектом:
+
+| Действие                                                  | API Call                                              |
+| ----------------------------------------------------------|-------------------------------------------------------|
+| Редактировать проект                                      | membership.can('project.edit')                        |
+| Приглашать людей в проект и менять их уровень доступа     | membership.can('project.members')                     |
+| Ставить задачи в корень проекта                           | membership.can('project.task-level-0')                |
+
+API действий с задачей (нужны task, user, roles):
+
+| Действие                                                  | API Call                                              |
+| ----------------------------------------------------------|-------------------------------------------------------|
+| Редактировать задачу                                      | membership.can('task.edit', task)                     |
+| Удалить задачу                                            | membership.can('task.delete', task)                   |
+| Создать подзадачу                                         | membership.can('task.subtask', task)                  |
+| Комментировать задачу                                     | membership.can('task.comment', task)                  |
+| Поставить задаче хоть какой-нибудь статус                 | membership.can('task.set-status', task)               |
+| Поставить задаче статус status                            | membership.can('task.set-status', task, status)       |
+
+API действий с комментарием (нужны task, comment, user, roles):
+
+| Действие                                                  | API Call                                              |
+| ----------------------------------------------------------|-------------------------------------------------------|
+| Редактировать                                             | membership.can('comment.edit', comment)               |
+| Удалить                                                   | membership.can('comment.delete', comment)             |
+
+
+
+
+
+Доступ по ссылке:
+ac_link_code IS NULL - обычная
+ac_link_code IS NOT NULL:
+    http://leave-me-alone.ru/projects/-randomStringLaLaLa/
+    http://leave-me-alone.ru/projects/-randomStringLaLaLa/12343/comments/
+    http://leave-me-alone.ru/projects/-randomStringLaLaLa/12343/history/
+    http://leave-me-alone.ru/projects/-randomStringLaLaLa/members/12/
+    http://leave-me-alone.ru/projects/-randomStringLaLaLa/12343/about/
+    http://leave-me-alone.ru/projects/-randomStringLaLaLa/12343/history/
+
+Как генерить ссылки на задачи?
+    - Если мы пришли по ссылке /projects/-(.*), то генерить по этой ссылке
+    - Если мы пришли по ссылке /projects/(\d+), то по этой

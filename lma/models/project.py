@@ -31,16 +31,17 @@ class Project(db.Model):
     ac_read = db.Column(ENUM_ACCESS_LEVEL, nullable=False, default='watcher', server_default='watcher')
     ac_comment = db.Column(ENUM_ACCESS_LEVEL, nullable=False, default='watcher', server_default='watcher')
 
-
-    tasks = db.relationship('Task', backref='project', passive_deletes=True)
-    members = db.relationship('ProjectMember', backref='project', passive_deletes=True)
     owner = db.relationship('User', backref='projects')
+    sprints = db.relationship('Sprint', backref='project', order_by='Sprint.sort', passive_deletes=True)
+    members = db.relationship('ProjectMember', back_populates='project', passive_deletes=True)
+    tasks = db.relationship('Task', backref='project', passive_deletes=True)
 
     _members_users = None
 
     def members_users(self, use_cache=True):
         """
-        Возвращает список [ProjectMember]'ов проекта с жадно подгруженными реляциями ProjectMember.user. Кеширует его.
+        Возвращает список [ProjectMember]'ов проекта с жадно подгруженными реляциями ProjectMember.user.
+        Кеширует его в self._members_users.
         :return: list
         """
         if self._members_users is None or not use_cache:
@@ -55,40 +56,8 @@ class Project(db.Model):
     def __repr__(self):
         return '<Project %d:%s>' % (self.id or 0, self.name)
 
-    def can(self, what, user=None):
-        if user is None:
-            user = current_user
-
-        if what == 'members':
-            # Управлять списком участников
-            return user.id == self.user_id
-        elif what == 'edit':
-            # Редактировать свойства проекта
-            return user.id == self.user_id
-        return False
-
     def get_tasks_query(self, options):
-        query = db.session.query(Task, TaskCommentsSeen).filter_by(project_id=self.id)
-
-        if self.type == 'tree':
-            query = query.order_by(Task.mp)
-            query = query.options(db.joinedload('user'), db.joinedload('assignee'))
-        else:
-            sort = {'created': 'created', 'deadline': 'deadline', 'importance': 'importance desc', 'custom': 'mp[1]'}
-            query = query.order_by(sort.get(options.sort.data, 'deadline'))
-
-        query = query.outerjoin(
-            TaskCommentsSeen,
-            db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id)
-        )
-
-        if self.has_sprints:
-            if options.sprint.data is not None and options.sprint.data != 0:
-                query = query.filter(Task.sprint_id == options.sprint.data)
-            else:
-                query = query.filter(Task.sprint_id == None)
-
-        return query
+        raise NotImplementedError
 
     @property
     def age(self):
@@ -108,8 +77,6 @@ class Sprint(db.Model):
     sort = db.Column(db.SmallInteger(), nullable=False, default=0, server_default='0')
     name = db.Column(db.String(255), nullable=False)
 
-    project = db.relationship('Project', backref='sprints')
-
 
 class ProjectFolder(db.Model):
     __tablename__ = 'project_folders'
@@ -125,15 +92,20 @@ class ProjectFolder(db.Model):
         return '<Folder #%d: %d/%s>' % (self.id, self.user_id, self.name)
 
 
-class ProjectMember(db.Model):
-    __tablename__ = 'project_members'
-
+class MembershipBase:
     ROLES = ('lead', 'developer', 'tester')
     role_meanings = {
         'lead': 'Вождь',
         'developer': 'Разработчик',
         'tester': 'Тестировщик'
     }
+
+    def can(self, what, *args):
+        raise NotImplementedError
+
+
+class ProjectMember(MembershipBase, db.Model):
+    __tablename__ = 'project_members'
 
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
                         nullable=False, primary_key=True)
@@ -145,31 +117,92 @@ class ProjectMember(db.Model):
     folder_id = db.Column(db.Integer, db.ForeignKey('project_folders.id', ondelete='SET NULL', onupdate='CASCADE'),
                           nullable=True)
 
+    project = db.relationship('Project', back_populates='members')
     user = db.relationship('User', backref='membership')
 
-    # last_seen = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-    # seen_tasks = int, seen_my_tasks = int  - для отслеживания количества новых тасков
+    def can(self, what, *args):
+        """
+        Решает, можно ли совершать действие what:
 
-    def can(self, what, task=None):
-        if what == 'subtask':
-            if 'lead' in self.roles:
-                return True
-            if 'developer' in self.roles and task and \
-                    (task.assigned_id == self.user_id or task.assigned_id == self.user_id):
-                return True
+          project.edit
+          project.members
+          project.task-level-0
 
-        if what == 'edit':
-            if task is None:
-                return False
-            if 'lead' in self.roles:
-                return True
-            if 'developer' in self.roles and task and task.user_id == self.user_id:
-                return True
+          task.edit, task
+          task.delete, task
+          task.subtask, task
+          task.comment, task
+          task.set-status, task - можно ли изменить статус задачи
+          task.set-status, task, status - можно ли изменить статус задачи на status
+          task.sprint, task - можно ли перенести задачу в другую веху
+          task.chparent, task - можно ли задаче task сменить родителя на кого-нибудь в этом проекте
+          task.chparent, task, parent - можно ли задаче task сменить родителя на parent (parent = None: поставить в корень)
+
+        :param what: str
+        :return: bool
+        """
+        patrimony, action = what.split('.')
+
+        if patrimony == 'project':
+            if action == 'edit':
+                return self.project.user_id == self.user_id
+            elif action == 'members':
+                return self.project.user_id == self.user_id
+            elif action == 'task-level-0':
+                return 'lead' in self.roles
+            else:
+                raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
+
+        elif patrimony == 'task':
+            task = args[0]
+            if action == 'edit':
+                if task.user_id == self.user_id or 'lead' in self.roles:
+                    return True
+            elif action == 'delete':
+                return self.can('task.edit', task)
+            elif action == 'subtask':
+                if 'lead' in self.roles:
+                    return True
+                if 'developer' in self.roles and (task.user_id == self.user_id or task.assigned_id == self.user_id):
+                    return True
+            elif action == 'comment':
+                return self.roles != []
+            elif action == 'set-status':
+                if len(args) >= 2:
+                    status = args[1]
+                    return status in task.allowed_statuses(self.user, self)
+                else:
+                    return task.allowed_statuses(self.user, self)
+            elif action == 'sprint':
+
+                return self.project.has_sprints and task.parent_id is None and 'lead' in self.roles
+            elif action == 'chparent':
+                if task.user_id != self.user_id and 'lead' not in self.roles:
+                    return False
+
+                if len(args) == 1:
+                    return self.can('task.edit', task)
+
+                parent = args[1]
+            else:
+                raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
+
+        else:
+            raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
 
         return False
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class ProjectNotMember(MembershipBase):
+    def __init__(self, project, user):
+        self.project = project
+        self.user = user
+
+    def can(self, what, *args):
+        return False
 
 
 class KarmaRecord(db.Model):
