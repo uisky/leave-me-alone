@@ -1,12 +1,13 @@
-{% macro render_comment(c, lastseen, current_user, project, task) %}
+{% macro render_comment(c, lastseen, current_user, project, membership, task) %}
     <li {% if c.created > lastseen and c.user_id != current_user.id %} class="new" {% endif %}
-        data-id="{{ c.id }}" data-url="{{ url_for('.task_comment', project_id=project.id, task_id=task.id, comment_id=c.id) }}">
+        data-id="{{ c.id }}"
+        data-url="{{ url_for('.task_comment', project_id=project.id, task_id=task.id, comment_id=c.id) }}">
         <div class="body">
             {{ c.body|markdown }}
         </div>
         <div class="meta">
             {{ c.created|humantime }} — {{ c.user.name }}
-            {% if c.can('edit') %}<a href="#modal-comment-edit" data-toggle="modal" class="action-edit" title="Редактировать"><i class="fa fa-edit"></i></a>{% endif %}
+            {% if membership.can('comment.edit', c) %}<a href="#modal-comment-edit" data-toggle="modal" class="action-edit" title="Редактировать"><i class="fa fa-edit"></i></a>{% endif %}
         </div>
     </li>
 {% endmacro %}

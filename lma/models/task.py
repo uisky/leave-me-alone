@@ -251,18 +251,6 @@ class TaskComment(db.Model):
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-    def can(self, what, user=None):
-        if user is None:
-            user = current_user
-
-        if what == 'edit':
-            if user.is_anonymous:
-                return False
-            if user.id == self.user_id or self.task.project.can('edit'):
-                return True
-
-        return False
-
 
 class TaskCommentsSeen(db.Model):
     __tablename__ = 'task_comments_seen'

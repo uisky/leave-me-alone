@@ -186,7 +186,12 @@ class ProjectMember(MembershipBase, db.Model):
                 parent = args[1]
             else:
                 raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
-
+        elif patrimony == 'comment':
+            comment = args[0]
+            print('can: %r, %r' % (args, comment))
+            if action == 'edit':
+                if comment.user_id == self.user_id or 'lead' in self.roles:
+                    return True
         else:
             raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
 
