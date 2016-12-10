@@ -192,6 +192,8 @@ class ProjectMember(MembershipBase, db.Model):
                 else:
                     # Сменить на какого-нибудь родителя: любую свою задачу
                     return True
+            elif action == 'swap':
+                return self.can('task.chparent', *args)
             else:
                 raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
         elif patrimony == 'comment':
@@ -215,7 +217,7 @@ class ProjectNotMember(MembershipBase):
         self.user = user
 
     def can(self, what, *args):
-        return 'Аноним' == 'может всё!'
+        return False
 
 
 class KarmaRecord(db.Model):

@@ -261,7 +261,9 @@
                                 {% if membership.can('task.chparent', selected) %}
                                     <button type="button" class="btn btn-info" id="btn-chparent"><i class="fa fa-share-alt"></i> Сменить надзадачу</button>
                                 {% endif %}
-                                <button type="button" class="btn btn-info" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
+                                {% if membership.can('task.swap', selected) %}
+                                    <button type="button" class="btn btn-info" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
+                                {% endif %}
                                 {% if membership.can('task.sprint', selected) %}
                                     <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint"><i class="fa fa-map"></i> В другую веху</button>
                                 {% endif %}
@@ -289,7 +291,8 @@
                     </form>
                     {% endif %}
 
-                    <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, task_id=selected.id) }}">
+                    {% if membership.can('task.swap', selected) %}
+                        <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, task_id=selected.id) }}">
                         <h2>Сортировка</h2>
                         <p>
                             Выберите задачу того же уровня, с которой нужно поменяться местами.
@@ -299,6 +302,7 @@
                             <span class="fa fa-remove"></span> Отмена
                         </button>
                     </form>
+                    {% endif %}
 
                     {% if membership.can('task.sprint', selected) %}
                         <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
