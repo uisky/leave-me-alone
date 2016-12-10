@@ -47,6 +47,8 @@ API действий с задачей (нужны task, user, roles):
 | Комментировать задачу                                     | membership.can('task.comment', task)                  |
 | Поставить задаче хоть какой-нибудь статус                 | membership.can('task.set-status', task)               |
 | Поставить задаче статус status                            | membership.can('task.set-status', task, status)       |
+| Перенести задачу в другой спринт                          | membership.can('task.sprint', task)                   |
+| Сменить родителя задаче                                   | membership.can('task.chparent', task, parent)         |
 
 API действий с комментарием (нужны task, comment, user, roles):
 

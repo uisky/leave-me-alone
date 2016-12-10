@@ -174,16 +174,24 @@ class ProjectMember(MembershipBase, db.Model):
                 else:
                     return task.allowed_statuses(self.user, self)
             elif action == 'sprint':
-
                 return self.project.has_sprints and task.parent_id is None and 'lead' in self.roles
             elif action == 'chparent':
-                if task.user_id != self.user_id and 'lead' not in self.roles:
+                # Лид может всё
+                if 'lead' in self.roles:
+                    return True
+
+                # Остальные могут двигать только свои задачи
+                if task.user_id != self.user_id or task.assigned_id != self.user_id:
                     return False
 
-                if len(args) == 1:
-                    return self.can('task.edit', task)
-
-                parent = args[1]
+                if len(args) >= 2:
+                    # Сменить на конкретного родителя
+                    parent = args[1]
+                    if parent.user_id == self.user_id or parent.assigned_id == self.user_id:
+                        return True
+                else:
+                    # Сменить на какого-нибудь родителя: любую свою задачу
+                    return True
             else:
                 raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
         elif patrimony == 'comment':

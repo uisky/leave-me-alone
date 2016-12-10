@@ -335,37 +335,33 @@ def task_sprint(project_id, task_id):
 
 @mod.route('/<int:project_id>/<int:task_id>/chparent/', methods=('POST',))
 def task_chparent(project_id, task_id):
-    def check_parent():
-        if parent in subtree:
-            flash('Задача не станет собственной подзадачей.', 'danger')
-            return False
-        return True
-
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
-
+    subtree = task.subtree(withme=True).order_by(Task.mp).all()
+    back = redirect(url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id))
     if task.parent_id:
         old_parent = Task.query.get(task.parent_id)
     else:
         old_parent = None
+    new_parent_id = request.form.get('parent_id', 0, int)
 
-    if request.form.get('parent_id', 0, int):
-        parent = Task.query.filter_by(project_id=project.id, id=request.form.get('parent_id')).first_or_404()
-        if not check_parent():
-            return redirect(url_for('.tasks', project_id=project.id, task=task.id))
+    if new_parent_id:
+        parent = Task.query.filter_by(project_id=project.id, id=new_parent_id).first_or_404()
+        if parent in subtree:
+            flash('Задача не станет собственной подзадачей.', 'danger')
+            return back
 
         # Удаляем статус у нового родителя
         parent.status = None
 
-        # Ставим спринт нового родителя
+        # Ставим спринт нового родителя - на случай, если сейчас спринты отключены, а потом их включат.
         task.sprint_id = parent.sprint_id
     else:
-        parent = Task(mp=[])
+        parent = Task(project_id=project.id, mp=[])
 
     if not membership.can('task.chparent', task, parent):
-        abort(403, 'Вы не можете менять родителя этой задаче.')
-
-    subtree = task.subtree(withme=True).order_by(Task.mp).all()
+        flash('Вы не можете переместить эту задачу сюда. Задачу можно сделать только подзадачей другой вашей задачи.', 'danger')
+        return back
 
     # Создаём префикс mp для поддерева
     max_mp = db.session \
@@ -375,23 +371,20 @@ def task_chparent(project_id, task_id):
     prefix = parent.mp + [max_mp]
     task.parent_id = parent.id
 
+    # Меняем mp у всего поддерева исходной задачи
+    cut = len(task.mp)
+    for t in subtree:
+        t.mp = prefix + t.mp[cut:]
+
     # Остались ли у детки у старого родителя?
     if old_parent:
         kids = db.session.execute('SELECT count(*) FROM tasks WHERE parent_id = :id', {'id': old_parent.id}).scalar()
         if kids:
             old_parent.status = task.status
 
-    # Меняем mp у всего поддерева исходной задачи
-    cut = len(task.mp)
-    for t in subtree:
-        t.mp = prefix + t.mp[cut:]
-
     db.session.commit()
 
-    kw = {'project_id': task.project_id, 'task': task.id}
-    if project.has_sprints:
-        kw['sprint'] = task.sprint_id
-    return redirect(url_for('.tasks', **kw))
+    return back
 
 
 @mod.route('/<int:project_id>/<int:task_id>/swap/', methods=('POST',))
