@@ -123,6 +123,11 @@
             // Обвес формы добавления комментария
             $tab.find('#form-comment').ajaxForm({
                 success: function(data) {
+                    if(data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
                     $tab.find('ul.comments').append(data);
                     $tab.find('div.comments-empty-message').hide();
 

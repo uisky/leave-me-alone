@@ -28,6 +28,9 @@ def task_comments(project_id, task_id):
         seen = None
 
     if request.method == 'POST' and membership.can('task.comment', task):
+        if not membership.can('task.comment', task):
+            return 'Вы не можете комментировать эту задачу :('
+
         comment = TaskComment(task_id=task.id, user_id=current_user.id)
         comment.body = request.form.get('body', '').strip()
         comment.task = task
@@ -41,9 +44,10 @@ def task_comments(project_id, task_id):
             mail.mail_comment(comment)
 
             db.session.commit()
+
             return render_template_string("""
                 {% from '_macros.html' import render_comment %}
-                {{ render_comment(comment, lastseen, current_user, membership, project, task) }}
+                {{ render_comment(comment, lastseen, current_user, project, membership, task) }}
             """, project=project, membership=membership, task=task, comment=comment, lastseen=seen.seen)
         else:
             return jsonify({'error': 'Давайте обойдёмся без дзенских реплик.'})
@@ -76,6 +80,8 @@ def task_comment(project_id, task_id, comment_id):
     if request.method == 'POST':
         comment.body = request.form.get('body', '').strip()
         if comment.body == '':
+            if not membership.can('comment.delete', comment):
+                return jsonify({'error': 'Сорян, вы не можете удалить этот комментарий.'})
             db.session.delete(comment)
             task.cnt_comments -= 1
             TaskCommentsSeen.query\
@@ -86,6 +92,8 @@ def task_comment(project_id, task_id, comment_id):
 
             return jsonify({'action': 'deleted', 'id': comment.id})
         else:
+            if not membership.can('comment.edit', comment):
+                return jsonify({'error': 'Редактировать этот коментарий вам не позволено.'})
             d = comment.as_dict()
             d['action'] = 'saved'
             d['body_html'] = jinja_markdown(comment.body)
