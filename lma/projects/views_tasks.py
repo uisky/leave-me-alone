@@ -390,22 +390,27 @@ def task_chparent(project_id, task_id):
 @mod.route('/<int:project_id>/<int:task_id>/swap/', methods=('POST',))
 def task_swap(project_id, task_id):
     project, membership = load_project(project_id)
-    sisters = (
-        Task.query.filter_by(id=task_id, project_id=project.id).first_or_404(),
-        Task.query.filter_by(id=request.form.get('sister_id', 0, type=int), project_id=project.id).first_or_404()
-    )
+    sisters = [
+        Task.query.filter_by(project_id=project.id, id=x).first_or_404()
+        for x in (task_id, request.form.get('sister_id', 0, type=int))
+    ]
 
     def check():
         if sisters[0].parent_id != sisters[1].parent_id:
             flash('Задачи должны быть подзадачами одной задачи.', 'danger')
             return False
+
+        if not membership.can('task.swap', *sisters):
+            flash('Вы можете менять местами только свои задачи одного уровня.', 'danger')
+            return False
+
         return True
 
     if not check():
         return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % sisters[0].id)
 
-    mps = (sisters[0].mp[:], sisters[1].mp[:])
-    trees = [x.subtree(withme=True).all() for x in sisters]
+    mps = [sister.mp[:] for sister in sisters]
+    trees = [sister.subtree(withme=True).all() for sister in sisters]
 
     for t in trees[0]:
         t.mp = mps[1] + t.mp[len(mps[1]):]

@@ -215,7 +215,7 @@ class ProjectNotMember(MembershipBase):
         self.user = user
 
     def can(self, what, *args):
-        return False
+        return 'Аноним' == 'может всё!'
 
 
 class KarmaRecord(db.Model):
