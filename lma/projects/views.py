@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, flash, url_for, g, abort
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 from . import mod, forms, load_project
 from ..utils import flash_errors
@@ -9,6 +9,7 @@ from lma.models import Project, ProjectFolder, ProjectMember, Task
 
 @mod.route('/')
 @mod.route('/folder-<int:folder_id>/')
+@login_required
 def index(folder_id=None):
     folders = ProjectFolder.query.filter_by(user_id=current_user.id).order_by('id').all()
     if folder_id:
@@ -40,6 +41,7 @@ def index(folder_id=None):
 
 
 @mod.route('/folder-set', methods=('POST',))
+@login_required
 def folder_set():
     membership = ProjectMember.query\
         .filter_by(user_id=current_user.id, project_id=request.form.get('project_id', 0, type=int))\
@@ -64,6 +66,7 @@ def folder_set():
 
 @mod.route('/folder-new', methods=('POST',))
 @mod.route('/folder-<int:folder_id>/edit/', methods=('POST',))
+@login_required
 def folder_edit(folder_id=None):
     if folder_id:
         folder = ProjectFolder.query.filter_by(user_id=current_user.id, id=folder_id).first()
@@ -85,6 +88,7 @@ def folder_edit(folder_id=None):
 
 
 @mod.route('/folder-<int:folder_id>/delete/', methods=('POST',))
+@login_required
 def folder_delete(folder_id):
     folder = ProjectFolder.query.filter_by(user_id=current_user.id, id=folder_id).first()
     if not folder:
