@@ -1,5 +1,5 @@
-{% macro render_comment(c, lastseen, current_user, project, membership, task) %}
-    <li {% if c.created > lastseen and c.user_id != current_user.id %} class="new" {% endif %}
+{% macro render_comment(c, seen, current_user, project, membership, task) %}
+    <li {% if seen and c.created > seen.seen and c.user_id != current_user.id %} class="new" {% endif %}
         data-id="{{ c.id }}"
         data-url="{{ url_for('.task_comment', project_id=project.id, task_id=task.id, comment_id=c.id) }}">
         <div class="body">

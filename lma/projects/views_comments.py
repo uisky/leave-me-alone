@@ -27,7 +27,7 @@ def task_comments(project_id, task_id):
     else:
         seen = None
 
-    if request.method == 'POST' and membership.can('task.comment', task):
+    if request.method == 'POST':
         if not membership.can('task.comment', task):
             return 'Вы не можете комментировать эту задачу :('
 
@@ -47,18 +47,15 @@ def task_comments(project_id, task_id):
 
             return render_template_string("""
                 {% from '_macros.html' import render_comment %}
-                {{ render_comment(comment, lastseen, current_user, project, membership, task) }}
-            """, project=project, membership=membership, task=task, comment=comment, lastseen=seen.seen)
+                {{ render_comment(comment, seen, current_user, project, membership, task) }}
+            """, project=project, membership=membership, task=task, comment=comment, seen=seen)
         else:
             return jsonify({'error': 'Давайте обойдёмся без дзенских реплик.'})
     else:
         if seen:
             seen.cnt_comments = task.cnt_comments
-            lastseen = seen.seen
-            seen.seen = datetime.now()
+            seen.seen = datetime.now(tz=pytz.timezone('Europe/Moscow'))
             db.session.commit()
-        else:
-            lastseen = datetime.now()
 
         comments = TaskComment.query\
             .filter_by(task_id=task.id)\
@@ -68,7 +65,7 @@ def task_comments(project_id, task_id):
 
         return render_template('projects/_comments.html',
                                project=project, membership=membership, task=task,
-                               comments=comments, lastseen=lastseen)
+                               comments=comments, seen=seen)
 
 
 @mod.route('/<int:project_id>/<int:task_id>/comments/<int:comment_id>/', methods=('GET', 'POST'))
