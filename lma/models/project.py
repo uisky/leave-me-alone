@@ -196,12 +196,23 @@ class ProjectMember(MembershipBase, db.Model):
                 return self.can('task.chparent', *args)
             else:
                 raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
+
         elif patrimony == 'comment':
             comment = args[0]
-            print('can: %r, %r' % (args, comment))
-            if action == 'edit':
+            if action == 'edit' or action == 'delete':
                 if comment.user_id == self.user_id or 'lead' in self.roles:
                     return True
+            else:
+                raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
+
+        elif patrimony == 'karma':
+            member = args[0]
+            if action == 'set':
+                # Нельзя срать себе
+                return member.user_id != self.user_id
+            else:
+                raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
+
         else:
             raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
 

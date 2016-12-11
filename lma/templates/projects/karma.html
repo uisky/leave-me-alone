@@ -43,29 +43,20 @@
 </div>
 {% endif %}
 
-{%
-    if member.user_id != current_user.id and
-        ('lead' in membership.roles or 'lead' in member.roles)
-%}
-{% if 'lead' in membership.roles %}
-<p>Раз вы — вождь проекта, можете насрать в карму этому работнику.</p>
-{% else %}
-<p>Вы можете насрать в карму вождю.</p>
-{% endif %}
-
-<form method="post" class="form-horizontal">
-    {{ form.csrf_token() }}
-    <div class="col-sm-2">
-        {{ form.value(class='form-control') }}
-        <i>оценка</i>
-    </div>
-    <div class="col-sm-9">
-        {{ form.comment(class='form-control', rows=4) }}
-    </div>
-    <div class="col-sm-1">
-        <button type="submit" class="btn btn-primary">Ok</button>
-    </div>
-</form>
+{% if membership.can('karma.set', member) %}
+    <form method="post" class="form-horizontal">
+        {{ form.csrf_token() }}
+        <div class="col-sm-2">
+            {{ form.value(class='form-control') }}
+            <i>оценка</i>
+        </div>
+        <div class="col-sm-9">
+            {{ form.comment(class='form-control', rows=4) }}
+        </div>
+        <div class="col-sm-1">
+            <button type="submit" class="btn btn-primary">Ok</button>
+        </div>
+    </form>
 {% endif %}
 {% endblock %}
 

@@ -63,7 +63,7 @@ def member(project_id, member_id):
 def members_add(project_id):
     project, membership = load_project(project_id)
 
-    if not membership.can('members'):
+    if not membership.can('project.members'):
         abort(403, 'Вы недостаточно круты, чтобы управлять членством в этой команде.')
 
     clues = [x.strip() for x in re.split(r'[,\n]+', request.form.get('clues', ''))]
@@ -87,7 +87,8 @@ def members_add(project_id):
             users.add(user)
 
     if not_found:
-        flash('Кое-кого не удалось найти среди пользователей leave-me-alone, а именно ' + ', '.join(not_found), 'warning')
+        flash('Кое-кого не удалось найти среди пользователей leave-me-alone, а именно ' + ', '.join(not_found),
+              'warning')
 
     if already:
         flash(', '.join(not_found) + ' уже присутствуют в команде.', 'warning')
@@ -114,7 +115,7 @@ def members_add(project_id):
 def member_edit(project_id, member_id):
     project, membership = load_project(project_id)
 
-    if not membership.can('members'):
+    if not membership.can('project.members'):
         abort(403, 'Вы не имеете права!')
 
     member = ProjectMember.query.get_or_404((member_id, project_id))
@@ -131,7 +132,7 @@ def member_edit(project_id, member_id):
 def member_delete(project_id, member_id):
     project, membership = load_project(project_id)
 
-    if not membership.can('members'):
+    if not membership.can('project.members'):
         abort(403, 'Не позволено вам выгонять людей отсюда!')
 
     member = ProjectMember.query.get_or_404((member_id, project.id))
@@ -156,24 +157,24 @@ def karma(project_id, member_id):
 
     form = forms.KarmaRecordForm(value=0)
 
-    if form.validate_on_submit():
-        rec = KarmaRecord(project_id=project.id, from_id=current_user.id, to_id=member.user_id)
-        form.populate_obj(rec)
-        db.session.add(rec)
+    if membership.can('karma.set', member):
+        if form.validate_on_submit():
+            rec = KarmaRecord(project_id=project.id, from_id=current_user.id, to_id=member.user_id)
+            form.populate_obj(rec)
+            db.session.add(rec)
 
-        db.session.execute(
-            'UPDATE project_members SET karma = karma + :value WHERE project_id = :project_id and user_id = :member_id',
-            {'value': rec.value, 'project_id': project.id, 'member_id': member.user_id}
-        )
+            ProjectMember.query\
+                .filter_by(project_id=project.id, user_id=member.user_id)\
+                .update({ProjectMember.karma: ProjectMember.karma + rec.value})
 
-        db.session.commit()
+            db.session.commit()
 
-        mail.mail_karma(rec)
+            mail.mail_karma(rec)
 
-        flash('Ваша оценка юзеру %s навеки впечатана в его репутацию.' % member.user.name, 'success')
-        return redirect(url_for('.about', project_id=project.id))
-    else:
-        flash_errors(form)
+            flash('Ваша оценка юзеру %s навеки впечатана в его репутацию.' % member.user.name, 'success')
+            return redirect(url_for('.about', project_id=project.id))
+        else:
+            flash_errors(form)
 
     return render_template('projects/karma.html',
                            project=project, membership=membership, member=member, karma=karma, form=form)

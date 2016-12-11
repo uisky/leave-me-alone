@@ -58,6 +58,10 @@ API действий с комментарием (нужны task, comment, user
 | Редактировать                                             | membership.can('comment.edit', comment)               |
 | Удалить                                                   | membership.can('comment.delete', comment)             |
 
+Действия с кармой:
+| Действие                                                  | API Call                                              |
+| ----------------------------------------------------------|-------------------------------------------------------|
+| Насрать юзеру                                             | membership.can('karma.set', user)                     |
 
 
 
