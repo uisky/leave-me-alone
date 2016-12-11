@@ -37,16 +37,17 @@ def about(project_id):
     for worker_id, status, cnt in query.all():
         stat.setdefault(worker_id, {})[status] = cnt
 
-    return render_template('projects/about.html', project=project, members=members, editing=editing, stat=stat, ProjectMember=ProjectMember)
+    return render_template('projects/about.html',
+                           project=project, membership=membership, members=members, editing=editing, stat=stat, ProjectMember=ProjectMember)
 
 
-@mod.route('/add', methods=('POST',), endpoint='project_add')
+@mod.route('/add/', methods=('POST',), endpoint='project_add')
 def project_add():
     project = Project(user_id=current_user.id, type='tree')
 
     project.name = request.form.get('name', '').strip()
     if project.name == '':
-        flash('Проекту нужно имя!')
+        flash('Проекту нужно имя!', 'danger')
         return redirect(url_for('.index'))
 
     # project.type = request.form.get('type', 'tree')
@@ -73,17 +74,14 @@ def project_add():
 def project_edit(project_id=None):
     project, membership = load_project(project_id)
 
-    if not membership.can('edit'):
+    if not membership.can('project.edit'):
         abort(403, 'Вы не можете редактировать этот проект.')
 
     form = forms.ProjectPropertiesForm(obj=project)
 
     if form.validate_on_submit():
         form.populate_obj(project)
-
-        db.session.add(project)
         db.session.commit()
-
         return redirect(url_for('.about', project_id=project.id))
     else:
         flash_errors(form)
@@ -98,7 +96,7 @@ def project_edit(project_id=None):
 @mod.route('/<int:project_id>/delete/', methods=('POST',))
 def project_delete(project_id):
     project, membership = load_project(project_id)
-    if not membership.can('edit'):
+    if not membership.can('project.edit'):
         abort(403, 'Вы не имеете права удалять этот проект!')
 
     db.session.delete(project)
@@ -110,14 +108,14 @@ def project_delete(project_id):
 @mod.route('/<int:project_id>/edit/sprints/')
 def sprints(project_id):
     project, membership = load_project(project_id)
-    if not membership.can('edit'):
+    if not membership.can('project.edit'):
         abort(403, 'Вехами может управлять только владелец.')
 
     sprints = OrderedDict()
     if project.has_sprints:
         query = db.session.query(Sprint, Task.status, db.func.count(Task.id))\
             .outerjoin(Task)\
-            .filter_by(project_id=project.id).order_by(Sprint.sort)\
+            .filter(Sprint.project_id == project.id)\
             .group_by(Sprint.id, Task.status)\
             .order_by(Sprint.sort, Task.status)
         for sprint, status, cnt in query.all():
@@ -129,7 +127,7 @@ def sprints(project_id):
 @mod.route('/<int:project_id>/edit/sprints/onoff/', methods=('POST',))
 def sprints_onoff(project_id):
     project, membership = load_project(project_id)
-    if not membership.can('edit'):
+    if not membership.can('project.edit'):
         abort(403, 'Вехами может управлять только владелец.')
 
     project.has_sprints = bool(request.form.get('has_sprints', False))
@@ -138,11 +136,11 @@ def sprints_onoff(project_id):
     return redirect(url_for('.sprints', project_id=project.id))
 
 
-@mod.route('/<int:project_id>/sprints/add', methods=('POST',))
-@mod.route('/<int:project_id>/sprints/<int:sprint_id>/edit', methods=('POST',))
+@mod.route('/<int:project_id>/sprints/add/', methods=('POST',))
+@mod.route('/<int:project_id>/sprints/<int:sprint_id>/edit/', methods=('POST',))
 def sprint_edit(project_id, sprint_id=None):
     project, membership = load_project(project_id)
-    if not membership.can('edit'):
+    if not membership.can('project.edit'):
         abort(403)
 
     if sprint_id is not None:
@@ -167,8 +165,8 @@ def sprint_edit(project_id, sprint_id=None):
 @mod.route('/<int:project_id>/sprints/reorder/', methods=('POST',))
 def sprints_reorder(project_id):
     project, membership = load_project(project_id)
-    if not membership.can('edit'):
-        abort(403, 'Вы не можете редактировать этот проект')
+    if not membership.can('project.edit'):
+        abort(403, 'Вы не можете управлять вехами в этом проекте.')
 
     for k, v in request.form.items():
         if k.startswith('sort.'):
@@ -184,8 +182,8 @@ def sprints_reorder(project_id):
 @mod.route('/<int:project_id>/sprints/<int:sprint_id>/delete/', methods=('POST',))
 def sprint_delete(project_id, sprint_id=None):
     project, membership = load_project(project_id)
-    if not membership.can('edit'):
-        abort(403, 'Вы не можете редактировать этот проект')
+    if not membership.can('project.edit'):
+        abort(403, 'Вы не можете управлять вехами в этом проекте.')
 
     sprint = Sprint.query.filter_by(project_id=project.id, id=sprint_id).first()
     if not sprint:
@@ -204,8 +202,8 @@ def sprint_delete(project_id, sprint_id=None):
 @mod.route('/<int:project_id>/edit/access/', methods=('GET', 'POST'))
 def project_access(project_id):
     project, membership = load_project(project_id)
-    if not membership.can('edit'):
-        abort(403, 'Вы не можете редактировать этот проект')
+    if not membership.can('project.edit'):
+        abort(403, 'Вы не можете редактировать этот проект.')
 
     form = forms.ProjectAccessForm(obj=project)
 
