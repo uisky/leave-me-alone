@@ -24,23 +24,23 @@
 </h1>
 
 {% if karma.total == 0 %}
-<div class="alert alert-info">
-    {{ member.user.name }} ещё не получал оценок в карму в этом проекте.
-</div>
-{% else %}
-<div class="karma-list">
-{% for row in karma.items %}
-    <div class="row karma-row">
-        <div class="col-sm-1 karma-value karma-{{ row.value }}">{{ row.value }}</div>
-        <div class="col-sm-11 karma-info">
-            <p class="meta">
-                {{ row.created.strftime('%d.%m.%Y %H:%M') }} — от {{ row.from_user.name }}
-            </p>
-            <p class="comment">{{ row.comment|nl2br }}</p>
-        </div>
+    <div class="alert alert-info">
+        {{ member.user.name }} ещё не получал оценок в карму в этом проекте.
     </div>
-{% endfor %}
-</div>
+{% else %}
+    <div class="karma-list">
+    {% for row in karma.items %}
+        <div class="row karma-row">
+            <div class="col-sm-1 karma-value karma-{{ row.value }}">{{ row.value }}</div>
+            <div class="col-sm-11 karma-info">
+                <p class="meta">
+                    {{ row.created.strftime('%d.%m.%Y %H:%M') }} — от {{ row.from_user.name }}
+                </p>
+                <p class="comment">{{ row.comment|nl2br }}</p>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
 {% endif %}
 
 {% if membership.can('karma.set', member) %}

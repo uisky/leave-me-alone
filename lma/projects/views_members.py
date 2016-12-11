@@ -149,9 +149,11 @@ def member_delete(project_id, member_id):
 @mod.route('/<int:project_id>/members/<int:member_id>/karma/', methods=('GET', 'POST'))
 def karma(project_id, member_id):
     project, membership = load_project(project_id)
-    member = ProjectMember.query.get_or_404((member_id, project_id))
+    member = ProjectMember.query.options(db.joinedload(ProjectMember.user)).get_or_404((member_id, project_id))
+
     karma = KarmaRecord.query\
         .filter_by(project_id=project.id, to_id=member.user_id)\
+        .options(db.joinedload(KarmaRecord.from_user))\
         .order_by(KarmaRecord.created.desc())\
         .paginate(request.args.get('page', 1), 20)
 
