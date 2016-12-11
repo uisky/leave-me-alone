@@ -141,7 +141,7 @@ def sprints_onoff(project_id):
 def sprint_edit(project_id, sprint_id=None):
     project, membership = load_project(project_id)
     if not membership.can('project.edit'):
-        abort(403)
+        abort(403, 'Вы не можете редактировать вехи в этом проекте.')
 
     if sprint_id is not None:
         sprint = Sprint.query.filter_by(project_id=project.id, id=sprint_id).first()

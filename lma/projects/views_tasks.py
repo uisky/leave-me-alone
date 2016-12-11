@@ -430,7 +430,7 @@ def task_swap(project_id, task_id):
 def reorder_tasks(project_id):
     project, membership = load_project(project_id)
     if project.type != 'list':
-        abort('400')
+        abort(400)
 
     ids = request.form.get('order').split(',')
     for o, id_ in enumerate(ids):

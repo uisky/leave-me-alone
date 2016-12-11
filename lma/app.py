@@ -1,7 +1,7 @@
 import locale
 import os
 
-from flask import Flask, g
+from flask import Flask, g, render_template
 
 from .core import db, csrf, mail, login_manager
 from .jinja import init_jinja_filters
@@ -36,6 +36,12 @@ def create_app(cfg=None, purpose=None):
         for args, kwargs in g.get('deferred_cookies', []):
             response.set_cookie(*args, **kwargs)
         return response
+
+    @app.errorhandler(401)
+    @app.errorhandler(403)
+    @app.errorhandler(404)
+    def error_401(e):
+        return render_template('errors/%d.html' % e.code, e=e)
 
     app.logger.info('%s %s загружен' % (app.name, app.config['ENVIRONMENT']))
 

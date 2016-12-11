@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ e.code }}: Вам сюда нельзя</h1>
+
+{% if current_user.is_authenticated %}
+    <p>
+        {{ e.description }}
+    </p>
+{% else %}
+    <p>
+        {{ e.description }}
+    </p>
+    <p>
+        Кстати, вы не залогинены. Можно попробовать авторизоваться под своим логином.
+        Не факт, что поможет, но давайте попробуем.
+    </p>
+
+    {% include 'errors/_login.html' %}
+{% endif %}
+
+{% endblock %}
