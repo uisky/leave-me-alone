@@ -16,11 +16,11 @@ class Task(db.Model):
     ENUM_STATUS = ENUM(*STATUSES, name='task_status')
 
     IMPORTANCE = OrderedDict([
-        (2, {'id': 2, 'name': 'Очень важно', 'icon': '<span class="importance important-2">&uarr;&uarr;</span>'}),
-        (1, {'id': 1, 'name': 'Важно', 'icon': '<span class="importance important-1">&uarr;</span>'}),
+        (2, {'id': 2, 'name': 'Очень важно', 'icon': '<span class="importance important-2" title="Очень важно">&uarr;&uarr;</span>'}),
+        (1, {'id': 1, 'name': 'Важно', 'icon': '<span class="importance important-1" title="Важно">&uarr;</span>'}),
         (0, {'id': 0, 'name': 'Обычная', 'icon': ''}),
-        (-1, {'id': -1, 'name': 'Незначительно', 'icon': '<span class="importance important--1">&darr;</span>'}),
-        (-2, {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2">&darr;&darr;</span>'}),
+        (-1, {'id': -1, 'name': 'Незначительно', 'icon': '<span class="importance important--1" title="Незначительно">&darr;</span>'}),
+        (-2, {'id': -2, 'name': 'Ничтожно', 'icon': '<span class="importance important--2" title="Ничтожно">&darr;&darr;</span>'}),
     ])
 
     CHARACTERS = OrderedDict([

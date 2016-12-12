@@ -5,7 +5,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
-<link rel="stylesheet" href="/static/tasks_tree.css">
+<link rel="stylesheet" href="/static/tasks_tree.css?1">
 <script type="text/javascript" src="/static/js.cookie.js"></script>
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
@@ -62,11 +62,11 @@
             </div>
         {% else %}
             {%- macro _task_li_class(task) -%}
-                {%- if task.status %}
+                {%- if task.status -%}
                     li-{{ task.status }}
                 {%- elif task.children_statuses.get('complete') == 100 %}
                     li-done li-100
-                {%- endif %}
+                {%- endif -%}
             {%- endmacro -%}
 
             {% macro _task_container_class(task, selected) -%}
@@ -108,12 +108,22 @@
 
                 <li data-id="{{ task.id }}" class="{{ _task_li_class(task) }}">
                     <div class="{{ _task_container_class(task, selected) }}">
-                        <div class="status">
-                            {% if task.children_statuses %}
-                                <small>{{ task.children_statuses['complete'] }}%</small>
-                            {% else %}
-                                {{ task.status|status_label }}
-                            {% endif %}
+                        <div class="subj">
+                            <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
+
+                            <span class="meta">
+                                {% if task.estimate %}
+                                    <span class="estimate">{{ task.estimate }}d</span>
+                                {% endif %}
+
+                                {{ task.importance|importance_icon|safe }}
+
+                                {{ task.character|character_icon|safe }}
+
+                                {% if task.cnt_comments %}
+                                    {{ _task_comments_icon(task, seen) }}
+                                {% endif %}
+                            </span>
                         </div>
 
                         <div class="deadline {% if task.deadline and task.status in ('open', 'progress', 'pause') and task.deadline < g.now %} late {% endif %}">
@@ -126,19 +136,11 @@
                             {% endif %}
                         </div>
 
-                        <div class="subj">
-                            {{ task.character|character_icon|safe }}
-
-                            <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
-
-                            {{ task.importance|importance_icon|safe }}
-
-                            {% if task.cnt_comments %}
-                                {{ _task_comments_icon(task, seen) }}
-                            {% endif %}
-
-                            {% if task.estimate %}
-                                <span class="estimate">{{ task.estimate }}d</span>
+                        <div class="status">
+                            {% if task.children_statuses %}
+                                <small>{{ task.children_statuses['complete'] }}%</small>
+                            {% else %}
+                                {{ task.status|status_label }}
                             {% endif %}
                         </div>
                     </div>

@@ -19,7 +19,6 @@ li.collapsed > ul { display: none; }
 .tasks-tree ul { list-style:none; margin: 0; padding-left: 20px; }
 .tasks-tree ul:first-child { padding-left: 10px; }
 .tasks-tree ul li {  margin: 0; padding: 0; position: relative; }
-.tasks-tree .task { padding: 4px 0; border-bottom: 1px dotted #ccc; clear: both; }
 
 .tasks-tree ul.hide-done li.li-done,
 .tasks-tree ul.hide-done li.li-canceled { display: none; }
@@ -27,19 +26,26 @@ li.collapsed > ul { display: none; }
 .tasks-tree > ul > li > .task .subj a { color: #516D86; font-weight: bold; }
 .tasks-tree > ul > li:first-child > .task { border-top: none; }
 
-.tasks-tree .task.active { background-color: #ffefb1; }
-.tasks-tree .task:hover { background-color: #eee; }
+.tasks-tree .task { border-bottom: 1px dotted #ccc; clear: both; display: table; }
+.tasks-tree .task.active { background-color: #ffe47d; }
+.tasks-tree .task:hover { background-color: #ffefb1; }
 
-.tasks-tree .task .subj { }
-.tasks-tree .task .estimate { color: #777; font-style: italic; display: inline-block; float: right; margin-right: 10px; }
+.tasks-tree .task .subj, .tasks-tree .task .users, .tasks-tree .task .deadline, .tasks-tree .task .status {
+    display: table-cell; padding: 4px 4px;
+    border-right: 1px dotted #eee;
+}
 
-.tasks-tree .task .users { float: right; width: 150px; overflow: hidden; white-space: nowrap; }
+.tasks-tree .task .subj { width: 100%; }
+.tasks-tree .task .subj .meta { float: right; }
+.tasks-tree .task .subj .meta .estimate { color: #777; font-style: italic; display: }
+
+.tasks-tree .task .users { max-width: 120px; min-width: 120px; overflow: hidden; white-space: nowrap; font-size: .8em;}
 .tasks-tree .task.my .users a.user { font-weight: bold; color: #3d8c2d; }
 
-.tasks-tree .task .status { float: right; width: 68px; text-align: right; }
+.tasks-tree .task .deadline { max-width: 40px; min-width: 40px; text-align: right; overflow: hidden; white-space: nowrap; }
+.tasks-tree .task .deadline:after { content:'.'; visibility: hidden; font-size:1px; }
 
-.tasks-tree .task .deadline { float:right; width: 40px; text-align: right; overflow: hidden; white-space: nowrap;}
-.tasks-tree .task .deadline:after {content:'.'; visibility: hidden; font-size:1px;}
+.tasks-tree .task .status { max-width: 68px; min-width: 68px; padding-right: 0; border-right: none; text-align: right; }
 
 .tasks-tree .li-100 .status { color: #090; }
 
