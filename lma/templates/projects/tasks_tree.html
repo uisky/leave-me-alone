@@ -47,7 +47,18 @@
 
         {% if not tasks %}
             <div class="alert alert-box alert-info">
-                {% if project.has_sprints %} Веха пуста {% else %} Проект пуст {% endif %}.
+                {% if project.has_sprints %}
+                    Веха пуста. Посмотрите в других вехах:
+                    <ul>
+                        {% for sprint in project.sprints %}
+                        <li>
+                            <a href="{{ url_for('.tasks', project_id=project.id, sprint=sprint.id) }}">{{ sprint.name }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    В проекте нет задач.
+                {% endif %}
             </div>
         {% else %}
             {%- macro _task_li_class(task) -%}
@@ -116,10 +127,11 @@
                         </div>
 
                         <div class="subj">
+                            {{ task.character|character_icon|safe }}
+
                             <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
 
                             {{ task.importance|importance_icon|safe }}
-                            {{ task.character|character_icon|safe }}
 
                             {% if task.cnt_comments %}
                                 {{ _task_comments_icon(task, seen) }}

@@ -27,6 +27,8 @@ a.user:before {
 .status-canceled { background-color: #333; color: #fff; }
 .status-canceled:hover { color: #fff; }
 
+.icon-character { margin-left: -19px; }
+
 .wait-stub { text-align: center; margin: 50px 0; font-size: 3em; }
 
 @keyframes blink {
