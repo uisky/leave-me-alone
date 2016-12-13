@@ -1,8 +1,8 @@
 from datetime import datetime
 import pytz
 
-from flask import Blueprint, abort, g
-from flask_login import redirect, request, url_for, current_user
+from flask import Blueprint, abort, g, redirect, request, url_for
+from flask_login import current_user
 
 from lma.models import Project, ProjectMember, ProjectFolder, Task, ProjectNotMember
 from lma.core import db

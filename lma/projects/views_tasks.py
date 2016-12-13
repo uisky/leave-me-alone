@@ -282,7 +282,7 @@ def task_subtask(project_id, parent_id=None):
 @mod.route('/<int:project_id>/<int:task_id>/status/', methods=('POST',))
 def task_status(project_id, task_id):
     def check():
-        if membership.can('task.set-status', task, status):
+        if not membership.can('task.set-status', task, status):
             flash('Вы не можете установить этой задаче такой статус.', 'danger')
             return False
 
