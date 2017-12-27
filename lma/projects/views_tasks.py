@@ -317,17 +317,15 @@ def task_sprint(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
-    if not membership.can('task.subtree', task):
+    if not membership.can('task.sprint', task):
         abort(403, 'Вы не можете перенести эту задачу в другую веху.')
 
-    task.sprint_id = request.form.get('sprint_id', type=int)
-    if task.sprint_id == 0:
-        task.sprint_id = None
+    # В какую веху переносим
+    sprint_id = request.form.get('sprint_id', type=int)
+    if sprint_id == 0:
+        sprint_id = None
 
-    # @todo: юзать task.subtree(withme=True)
-    Task.query\
-        .filter(Task.project_id == project.id, Task.mp[1] == task.mp[0])\
-        .update({'sprint_id': task.sprint_id}, synchronize_session=False)
+    task.subtree(withme=True).update({'sprint_id': sprint_id}, synchronize_session=False)
     db.session.commit()
 
     return redirect(url_for('.tasks', **{'project_id': task.project_id, 'task': task.id, 'sprint': task.sprint_id}))

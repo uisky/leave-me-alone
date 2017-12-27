@@ -115,6 +115,7 @@
                     <div class="{{ _task_container_class(task, selected) }}">
                         <div class="subj">
                             <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
+                            {% if request.args.get('debug-mp') %}<small>{{ task.mp }}</small>{% endif %}
 
                             <span class="meta">
                                 {% if task.estimate %}
