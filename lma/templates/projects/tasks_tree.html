@@ -96,8 +96,13 @@
             {% endmacro %}
 
             <div class="tasks-tree show-deadline">
-            {% set prev_depth = -1 %}
             {% for task in tasks %}
+                {% if loop.index0 == 0 %}
+                    {% set prev_depth = -1 %}
+                {% else %}
+                    {% set prev_depth = tasks[loop.index0 - 1].depth %}
+                {% endif %}
+
                 {% if task.depth == prev_depth %}
                     {% if loop.index0 > 0 %} </li> {% endif %}
                 {% elif task.depth > prev_depth %}
@@ -144,7 +149,6 @@
                             {% endif %}
                         </div>
                     </div>
-                {% set prev_depth = task.depth %}
             {% endfor %}
             {{ ('</li></ul>' * (tasks[-1].depth + 1)) | safe }}
         </div>
