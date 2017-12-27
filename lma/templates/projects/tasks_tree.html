@@ -143,10 +143,14 @@
                         </div>
 
                         <div class="status">
-                            {% if task.children_statuses %}
-                                <small>{{ task.children_statuses['complete'] }}%</small>
+                            {% if request.args.get('debug-status') %}
+                                <small>{{ task.status }}</small>
                             {% else %}
-                                {{ task.status|status_label }}
+                                {% if task.children_statuses %}
+                                    <small>{{ task.children_statuses['complete'] }}%</small>
+                                {% else %}
+                                    {{ task.status|status_label }}
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>

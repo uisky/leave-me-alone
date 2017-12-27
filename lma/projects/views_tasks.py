@@ -362,7 +362,7 @@ def task_chparent(project_id, task_id):
         return back
 
     # Создаём префикс mp для поддерева
-    max_mp = db.session \
+    max_mp = db.session\
                  .query(db.func.coalesce(db.func.max(Task.mp[len(parent.mp)]), 0)) \
                  .filter(Task.project_id == project.id, Task.parent_id == parent.id) \
                  .scalar() + 1
@@ -376,8 +376,11 @@ def task_chparent(project_id, task_id):
 
     # Остались ли у детки у старого родителя?
     if old_parent:
-        kids = db.session.execute('SELECT count(*) FROM tasks WHERE parent_id = :id', {'id': old_parent.id}).scalar()
-        if kids:
+        n_kids = db.session\
+            .query(db.func.count(Task.id))\
+            .filter(Task.parent_id == old_parent.id, Task.id != task.id)\
+            .scalar()
+        if not n_kids:
             old_parent.status = task.status
 
     db.session.commit()
