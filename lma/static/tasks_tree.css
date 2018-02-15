@@ -37,7 +37,7 @@ li.collapsed > ul { display: none; }
 
 .tasks-tree .task .subj { width: 100%; }
 .tasks-tree .task .subj .meta { float: right; }
-.tasks-tree .task .subj .meta .estimate { color: #777; font-style: italic; display: }
+.tasks-tree .task .subj .meta .estimate { color: #777; font-style: italic; display: inline-block; }
 
 .tasks-tree .task .users { max-width: 120px; min-width: 120px; overflow: hidden; white-space: nowrap; font-size: .8em;}
 .tasks-tree .task.my .users a.user { font-weight: bold; color: #3d8c2d; }
@@ -45,7 +45,7 @@ li.collapsed > ul { display: none; }
 .tasks-tree .task .deadline { max-width: 40px; min-width: 40px; text-align: right; overflow: hidden; white-space: nowrap; }
 .tasks-tree .task .deadline:after { content:'.'; visibility: hidden; font-size:1px; }
 
-.tasks-tree .task .status { max-width: 68px; min-width: 68px; padding-right: 0; border-right: none; text-align: right; }
+.tasks-tree .task .status { max-width: 73px; min-width: 73px; padding-right: 0; border-right: none; text-align: right; }
 
 .tasks-tree .li-100 .status { color: #090; }
 
