@@ -1,5 +1,5 @@
 {% extends 'project.html' %}
-{% from '_macros.html' import status_bar %}
+{% from '_macros.html' import status_bar, member_link %}
 
 {% set menu_current = 'tasks' %}
 
@@ -126,6 +126,12 @@
 
                                 {{ task.character|character_icon|safe }}
 
+                                {% if task.cnt_bugs %}
+                                    <span class="cnt-bugs">
+                                        <i class="fa fa-bug"></i> {{ task.cnt_bugs }}
+                                    </span>
+                                {% endif %}
+
                                 {% if task.cnt_comments %}
                                     {{ _task_comments_icon(task, seen) }}
                                 {% endif %}
@@ -182,6 +188,11 @@
                     {% if selected.cnt_comments %}({{ selected.cnt_comments }}){% endif %}
                 </a></li>
                 <li><a href="#task-history" data-toggle="tab">История</a></li>
+                <li>
+                    <a href="#task-bugs" data-toggle="tab">
+                        Баги
+                        {% if selected.cnt_bugs %}({{ selected.cnt_bugs }}){% endif %}
+                    </a></li>
             {% endif %}
             {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
                 <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
@@ -193,8 +204,8 @@
 
 
         <div class="tab-content">
-            {# Описание задачи #}
             {% if selected %}
+                {# Описание задачи #}
                 <div id="task-details" class="tab-pane active task-details">
                     <h1>{{ selected.subject }}</h1>
                     <div class="meta">
@@ -238,6 +249,11 @@
                 {# История #}
                 <div id="task-history" class="tab-pane task-history"
                     data-url="{{ url_for('.task_history', project_id=project.id, task_id=selected.id) }}">
+                </div>
+
+                {# Баги #}
+                <div id="task-bugs" class="tab-pane task-bugs"
+                     data-url="{{ url_for('.task_bugs', project_id=project.id, task_id=selected.id) }}">
                 </div>
             {% endif %}
 
@@ -359,6 +375,6 @@
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
-<script type="text/javascript" src="/static/tasks_tree.js?1"></script>
+<script type="text/javascript" src="/static/tasks_tree.js?2"></script>
 <script type="text/javascript" src="/static/plugins/wtfc/tree.js"></script>
 {% endblock %}

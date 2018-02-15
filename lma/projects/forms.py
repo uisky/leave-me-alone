@@ -58,6 +58,11 @@ class TaskForm(FlaskForm):
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
 
 
+class BugForm(FlaskForm):
+    subject = StringField('Тема', [v.required(message='Дайте хотя бы краткое описание')], filters=[strip_field])
+    description = TextAreaField('Подробнее', [v.optional()])
+
+
 class SprintPropertiesForm(FlaskForm):
     name = StringField('Название', [v.required(message='У вехи должно быть название')], filters=[strip_field])
 

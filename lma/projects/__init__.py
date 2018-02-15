@@ -46,5 +46,5 @@ def set_globals():
     g.now = datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
 
-from . import views, views_project, views_members, views_tasks, views_history, views_comments
+from . import views, views_project, views_members, views_tasks, views_history, views_comments, views_bugs
 

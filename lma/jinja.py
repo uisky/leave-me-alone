@@ -27,7 +27,7 @@ def jinja_status_class(status):
 def jinja_status_rus(status):
     meanings = {
         'open': 'todo', 'progress': 'в работе', 'pause': 'пауза',
-        'review': 'проверка', 'done': 'готово', 'canceled': 'отменено'
+        'review': 'проверка', 'tested': 'тестирование окончено', 'done': 'готово', 'canceled': 'отменено'
     }
     return meanings.get(status, status)
 
@@ -38,6 +38,21 @@ def jinja_status_label(status):
     else:
         return Markup('<label class="label %s">%s</label>' % (jinja_status_class(status), jinja_status_rus(status)))
 
+
+def jinja_bug_status_label(status):
+    if status is None:
+        return ''
+
+    statuses = {
+        'open': 'Открыто',
+        'progress': 'Чиним',
+        'pause': 'Пауза',
+        'test': 'Проверяйте',
+        'fixed': 'Починено',
+        'canceled': 'Отменено'
+    }
+
+    return Markup('<label class="label bug-%s">%s</label>' % (status, statuses.get(status, status)))
 
 def jinja_importance_icon(x):
     return _importance_icons.get(x, '')
@@ -112,6 +127,7 @@ def init_jinja_filters(app):
     app.add_template_filter(jinja_status_class, 'status_class')
     app.add_template_filter(jinja_status_rus, 'status_rus')
     app.add_template_filter(jinja_status_label, 'status_label')
+    app.add_template_filter(jinja_bug_status_label, 'bug_status_label')
     app.add_template_filter(jinja_importance_icon, 'importance_icon')
     app.add_template_filter(character_icon, 'character_icon')
     app.add_template_filter(minus, 'minus')

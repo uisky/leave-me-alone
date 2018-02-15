@@ -1,0 +1,84 @@
+{% from '_macros.html' import member_link %}
+
+<p class="text-center" style="margin-top: 10px; ">
+    <a href="#modal-bug-report" data-toggle="modal" class="btn btn-success"><i class="fa fa-bug"></i> Зарепортить</a>
+</p>
+
+
+{% if not bugs %}
+    <div class="alert alert-info">Багов не нарепорчено, но они есть.</div>
+{% else %}
+    <ul class="bugs">
+    {% for bug in bugs %}
+        <li>
+                <div class="pull-right">{{ bug.status|bug_status_label }}</div>
+            <h2>{{ bug.subject }}</h2>
+
+            <div class="meta">
+                {{ bug.created|humantime }}
+
+                {{ member_link(project, bug.reporter) }}
+                {% if bug.assignee_id %}
+                    &rarr; {{ member_link(project, bug.assignee) }}
+                {% endif %}
+
+            </div>
+
+            <div class="description">{{ bug.description|markdown }}</div>
+
+            <div class="actions">
+                <form class="form-bug-setstatus" method="post" action="{{ url_for('.task_bug_status', project_id=project.id, task_id=bug.task_id, bug_id=bug.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status">
+                    {% for status, msg in bug.allowed_statuses(current_user, membership) %}
+                        <button type="button" class="btn btn-sm btn-bug-status-{{ status }} setter" data-status="{{ status }}">
+                            {{ msg }}
+                        </button>
+                    {% endfor %}
+                </form>
+            </div>
+
+        </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
+
+<form method="post" id="form-bug-report" action="{{ url_for('.task_bug_edit', project_id=project.id, task_id=task.id) }}">
+<div class="modal" id="modal-bug-report"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        <h4 class="modal-title">Зарепортить баг</h4>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <label class="control-label">Вкрации:</label>
+            <input type="text" name="subject" class="form-control">
+        </div>
+        <div class="form-group">
+            <label class="control-label">Грязные подробности:</label>
+            <textarea name="description" class="form-control" rows="10"></textarea>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Зарепортить</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+    </div>
+</div></div></div>
+</form>
+<script type="text/javascript">
+(function() {
+    $('#modal-bug-report').on('shown.bs.modal', function() {
+        $('#form-bug-report').find('input[name=subject]').focus();
+    });
+
+    // Установка статуса
+    $('.form-bug-setstatus').on('click', 'button.setter', function(e) {
+        var $form = $(this).parents('form');
+        $form.find('input[name=status]').val($(this).data('status'));
+        $form.submit();
+    });
+
+})();
+</script>

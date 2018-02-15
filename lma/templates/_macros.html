@@ -27,3 +27,7 @@
         {% endfor %}
     </div>
 {% endmacro %}
+
+{%- macro member_link(project, user) -%}
+    <a href="{{ url_for('.member', project_id=project.id, member_id=user.id) }}" class="user">{{ user.name }}</a>
+{%- endmacro -%}

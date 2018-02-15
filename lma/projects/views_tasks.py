@@ -5,7 +5,7 @@ from flask import render_template, request, redirect, flash, abort, make_respons
 
 from . import mod, forms, load_project
 from .mail import *
-from lma.models import Sprint, Task, TaskHistory, TaskCommentsSeen
+from lma.models import Sprint, Task, TaskHistory, TaskCommentsSeen, Bug
 from lma.core import db
 from lma.utils import flash_errors, form_json_errors, defer_cookie, print_sql
 
@@ -13,7 +13,8 @@ from lma.utils import flash_errors, form_json_errors, defer_cookie, print_sql
 def load_tasks_tree(project, options):
     """
     Загружает дерево задач и TaskCommentSeen, считает статистику
-    :param query: BaseQuery
+    :param options: forms.OutputOptions
+    :param project: Project
     :return: (OrderedDict(Task), dict(Seen), dict {'total': кол-во задач, 'max_deadline': крайний дедлайн, status: count})
     """
     query = db.session\
@@ -22,13 +23,19 @@ def load_tasks_tree(project, options):
         .order_by(Task.mp)\
         .options(db.joinedload('user'), db.joinedload('assignee'))
 
+    query = query\
+        .add_columns(db.func.count(Bug.id))\
+        .outerjoin(Bug, db.and_(Bug.task_id == Task.id, ~Bug.status.in_(('fixed', 'canceled'))))\
+        .group_by(Task.id, 'users_1.id', 'users_2.id')
+
     if current_user.is_authenticated:
         query = query\
             .add_entity(TaskCommentsSeen)\
             .outerjoin(
                 TaskCommentsSeen,
                 db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id)
-            )
+            )\
+            .group_by(TaskCommentsSeen.task_id, TaskCommentsSeen.user_id)
     else:
         query = query.add_columns('NULL')
 
@@ -42,7 +49,8 @@ def load_tasks_tree(project, options):
     tasks = OrderedDict()
     seen = {}
 
-    for task, seen_ in query.all():
+    for task, cnt_bugs, seen_ in query.all():
+        task.cnt_bugs = cnt_bugs
         if seen_:
             seen[task.id] = seen_
         task.children_statuses = {}
@@ -61,6 +69,7 @@ def load_tasks_tree(project, options):
                 print('Ну, пиздец, приплыли! У задачи [%d %r %s] нет родителя id=%d' % (t.id, t.mp, t.subject, t.parent_id))
                 pass
 
+    # Сводная стстиатика по всему спринту
     stats = {}
     max_deadline = None
     for id_, task in tasks.items():

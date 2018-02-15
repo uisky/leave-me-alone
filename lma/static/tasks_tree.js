@@ -234,4 +234,11 @@
         $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
         $tab.load($tab.data('url'));
     });
+
+    // Баги
+    $('#tabs-task a[href="#task-bugs"]').on('shown.bs.tab', function() {
+        var $tab = $('#task-bugs');
+        $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
+        $tab.load($tab.data('url'));
+    })
 })();

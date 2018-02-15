@@ -3,6 +3,7 @@
     WTForm edit_form
     Task edit_task
 #}
+{% from '_macros.html' import member_link %}
 
 {{ edit_form.csrf_token }}
 <input type="hidden" name="parent_id" value="0">

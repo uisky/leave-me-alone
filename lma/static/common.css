@@ -23,9 +23,18 @@ a.user:before {
 .status-progress { background-color: #5cb85c; }
 .status-pause { background-color: #f0ad4e; }
 .status-review { background-color: #AA4FAD; color: #ff0; }
+.status-tested { background-color: #2982bc; color: #fff; }
 .status-done { background-color: #888; }
 .status-canceled { background-color: #333; color: #fff; }
 .status-canceled:hover { color: #fff; }
+
+.bug-open { background-color: #5bc0de; }
+.bug-progress { background-color: #5cb85c; }
+.bug-pause { background-color: #f0ad4e; }
+.bug-test { background-color: #AA4FAD; color: #ff0; }
+.bug-fixed { background-color: #888; }
+.bug-canceled { background-color: #333; color: #fff; }
+.bug-canceled:hover { color: #fff; }
 
 /* .icon-character { margin-left: -19px; } */
 
@@ -37,7 +46,9 @@ a.user:before {
 }
 
 .cnt-comments { font-size: 0.8em; }
-.cnt-comments i.new { color: red; font-size: 1.2em; animation: blink .5s infinite ease alternate; }
+.cnt-comments i.new { color: #0d9104; font-size: 1.2em; animation: blink .5s infinite ease alternate; }
+
+.cnt-bugs { font-size: 0.8em; background: red; padding: 2px; margin: 0px 2px; color: #ff0; }
 
 .task-comments ul.comments { list-style: none; padding: 0; margin: 0; }
 .task-comments ul.comments > li { margin: 10px 0 20px; }
@@ -74,3 +85,28 @@ body.dragging, body.dragging * {
 
 ul.menu-projects li.folder { font-weight: bold; padding: 3px 20px 3px 6px; background: #eee; margin-top: 10px; }
 ul.menu-projects li.folder:first-child { margin-top: 0px; }
+
+/* Баги */
+ul.bugs { list-style: none; margin: 0; padding: 0; }
+ul.bugs > li { margin: 10px 0; border-bottom: 1px solid #bbb; }
+ul.bugs > li > h2 { margin-top: 10px; }
+ul.bugs > li > .meta { font-size: 0.8em; margin: 10px 0; }
+ul.bugs > li > .description { margin: 10px 0; }
+ul.bugs > li > .actions { margin: 10px 0; }
+ul.bugs > li > .actions .btn-bug-status-open { background-color: #5bc0de }
+ul.bugs > li > .actions .btn-bug-status-progress { background-color: #5cb85c }
+ul.bugs > li > .actions .btn-bug-status-pause { background-color: #f0ad4e }
+ul.bugs > li > .actions .btn-bug-status-test { background-color: #AA4FAD; color: #ff0; }
+ul.bugs > li > .actions .btn-bug-status-fixed { background-color: #888 }
+ul.bugs > li > .actions .btn-bug-status-canceled { background-color: #333; color: #fff; }
+ul.bugs > li > .actions .btn-bug-status-canceled:hover { color: #fff; }
+
+
+
+.status-open { background-color: #5bc0de; }
+.status-progress { background-color: #5cb85c; }
+.status-pause { background-color: #f0ad4e; }
+.status-review { background-color: #AA4FAD; color: #ff0; }
+.status-done { background-color: #888; }
+.status-canceled { background-color: #333; color: #fff; }
+.status-canceled:hover { color: #fff; }

@@ -12,7 +12,7 @@ from lma.core import db
 class Task(db.Model):
     __tablename__ = 'tasks'
 
-    STATUSES = ('open', 'progress', 'pause', 'review', 'done', 'canceled')
+    STATUSES = ('open', 'progress', 'pause', 'review', 'tested', 'done', 'canceled')
     ENUM_STATUS = ENUM(*STATUSES, name='task_status')
 
     IMPORTANCE = OrderedDict([
@@ -25,7 +25,6 @@ class Task(db.Model):
 
     CHARACTERS = OrderedDict([
         (1, {'id': 1, 'name': 'Фича', 'icon': ''}),
-        (2, {'id': 2, 'name': 'Баг', 'icon': '<i class="icon-character fa fa-bug text-danger"></i>'}),
         (3, {'id': 3, 'name': 'Подумать', 'icon': '<i class="icon-character fa fa-lightbulb-o"></i>'}),
     ])
 
@@ -95,8 +94,9 @@ class Task(db.Model):
             variants = {
                 'open': ('progress', 'done', 'canceled'),
                 'progress': ('done', 'review', 'pause', 'open', 'canceled'),
-                'pause': ('open', 'progress', 'canceled'),
+                'pause': ('open', 'progress', 'done', 'canceled'),
                 'review': ('open', 'done', 'canceled'),
+                'tested': ('open', 'progress', 'done', 'canceled'),
                 'done': ('open',),
                 'canceled': ('open',)
             }
@@ -107,8 +107,13 @@ class Task(db.Model):
                 'progress': ('open', 'pause', 'review', 'done', 'canceled'),
                 'pause': ('progress',),
                 'review': ('open', 'progress'),
+                'tested': ('open', 'progress', 'done', 'canceled'),
                 'done': ('open', 'review', 'canceled'),
                 'canceled': ('open',)
+            }
+        elif membership and 'tester' in membership.roles:
+            variants = {
+                'review': ('tested', )
             }
         else:
             return ()
