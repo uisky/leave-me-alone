@@ -7,7 +7,7 @@ from blinker import Namespace
 
 db = SQLAlchemy(session_options={'expire_on_commit': False})
 
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 
 login_manager = LoginManager()
 
