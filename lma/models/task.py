@@ -95,7 +95,7 @@ class Task(db.Model):
                 'open': ('progress', 'done', 'canceled'),
                 'progress': ('done', 'review', 'pause', 'open', 'canceled'),
                 'pause': ('open', 'progress', 'done', 'canceled'),
-                'review': ('open', 'done', 'canceled'),
+                'review': ('open', 'done', 'tested', 'canceled'),
                 'tested': ('open', 'progress', 'done', 'canceled'),
                 'done': ('open',),
                 'canceled': ('open',)
