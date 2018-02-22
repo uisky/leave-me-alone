@@ -6,7 +6,7 @@ import pytz
 from flask import Markup, get_flashed_messages
 from flask_login import current_user
 
-from lma.models import Task, Project, ProjectMember, ProjectFolder
+from lma.models import Task, Project, ProjectMember, ProjectFolder, Bug
 from lma.utils import sanitize_html, plural
 from lma.core import db
 
@@ -200,4 +200,25 @@ def init_jinja_filters(app):
 
             return stat
 
-        return {'flashes': make_flashes, 'projects_menu': projects_menu, 'tasks_stat': tasks_stat}
+        def bugs_stat(project):
+            """
+            Возвращает количество багов по статусу словарём {status: count}
+            :param project: Project
+            :return: dict
+            """
+            stat = {}
+
+            query = db.session.query(Bug.status, db.func.count('*')) \
+                .join(Task)\
+                .filter(Task.project_id == project.id) \
+                .group_by(Bug.status)
+
+            for status, count in query.all():
+                    stat[status] = count
+
+            return stat
+
+        return {'flashes': make_flashes,
+                'projects_menu': projects_menu,
+                'tasks_stat': tasks_stat,
+                'bugs_stat': bugs_stat}

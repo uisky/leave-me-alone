@@ -1,0 +1,82 @@
+{% extends 'project.html' %}
+{% from '_macros.html' import status_bar, member_link %}
+
+{% set menu_current = 'bugs' %}
+{% set container_class = 'container' %}
+
+{% block head %}
+<style type="text/css">
+    #form-filter { margin-bottom: 10px; }
+    #form-filter .btn-filter-status { opacity: .5; }
+    #form-filter .btn-filter-status.active { opacity: 1; }
+    #form-filter .datepick { width: 130px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Баги</h1>
+
+    <form id="form-filter" method="get" class="form-inline">
+        <div class="form-group">
+            <label>
+                {{ filters.with_closed() }}
+                включая закрытые
+            </label>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary pull-right">
+                Показать
+            </button>
+        </div>
+    </form>
+
+    {% if not bugs.total %}
+        <div class="alert alert-info">
+            В проекте нет багов.
+        </div>
+    {% else %}
+        <table class="table table-bordered table-list">
+            <thead>
+            <tr>
+                <th>Дата</th>
+                <th class="tt" colspan="2">Задача</th>
+                <th class="tt" colspan="2">Баг</th>
+            </tr>
+            </thead>
+            {% for bug in bugs.items %}
+            <tr>
+                <td>{{ bug.created.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td class="text-right">
+                    {{ bug.task.status | status_label }}
+                </td>
+                <td class="tt">
+                    <small>
+                        {{ member_link(project, bug.task.user) }}
+                        {% if bug.task.assigned_id %}
+                            &rarr; {{ member_link(project, bug.task.assignee) }}
+                        {% endif %}
+                    </small>
+                    <br>
+                    <a href="{{ url_for('.tasks', project_id=project.id, task=bug.task.id) }}">{{ bug.task.subject }}</a>
+                </td>
+                <td class="text-right">
+                    {{ bug.status | bug_status_label }}
+                </td>
+                <td class="tt">
+                    <small>
+                        {{ member_link(project, bug.reporter) }}
+                        {% if bug.assigned_id %}
+                            &rarr; {{ member_link(project, bug.assignee) }}
+                        {% endif %}
+                    </small>
+                    <br>
+                    {{ bug.subject }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {{ render_pagination(bugs, '.bugs', project_id=project.id, **filters.as_dict) }}
+    {% endif %}
+
+{% endblock %}

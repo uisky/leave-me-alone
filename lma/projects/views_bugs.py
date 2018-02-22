@@ -10,6 +10,25 @@ from lma.utils import print_sql, flash_errors
 from lma.core import db
 
 
+@mod.route('/<int:project_id>/bugs/')
+def bugs(project_id):
+    project, membership = load_project(project_id)
+
+    filters = forms.BugsFilterForm(request.args)
+
+    bugs = Bug.query.join(Task)\
+        .filter(Task.project_id == project.id)\
+        .order_by(Task.created.desc(), Bug.created.desc())\
+        .options(db.joinedload(Bug.task))
+
+    if not filters.with_closed.data:
+        bugs = bugs.filter(Bug.status.notin_(('fixed', 'canceled')))
+
+    bugs = bugs.paginate(request.args.get('page', 1, type=int), 50)
+
+    return render_template('projects/bugs.html', project=project, bugs=bugs, filters=filters)
+
+
 @mod.route('/<int:project_id>/<int:task_id>/bugs/', methods=('GET', 'POST'))
 def task_bugs(project_id, task_id):
     project, membership = load_project(project_id)
@@ -21,7 +40,7 @@ def task_bugs(project_id, task_id):
         .options(db.joinedload(Bug.reporter), db.joinedload(Bug.assignee))\
         .all()
 
-    return render_template('projects/_bugs.html', project=project, task=task, bugs=bugs)
+    return render_template('projects/_bugs.html', project=project, membership=membership, task=task, bugs=bugs)
 
 
 @mod.route('/<int:project_id>/<int:task_id>/bugs/add/', methods=('POST',))

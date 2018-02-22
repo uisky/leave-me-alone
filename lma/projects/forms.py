@@ -85,3 +85,8 @@ class MemberFiltersForm(FiltersForm):
 
     status = HiddenField('Статусы', default='')
     sprint = SelectField('Веха', default='')
+
+
+class BugsFilterForm(FiltersForm):
+    with_closed = BooleanField('Включая закрытые', default=False)
+    my_tasks = BooleanField('Только к моим задачам', default=False)

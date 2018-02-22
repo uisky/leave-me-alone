@@ -12,6 +12,7 @@
             'id': 'my', 'url': purl_for('.member', member_id=current_user.id),
             'title': 'Мои задачи' + tasks_stat(project, current_user) | status_counters
         },
+        {'id': 'bugs', 'url': purl_for('.bugs'), 'title': 'Баги' + bugs_stat(project)},
         {'id': 'about', 'url': purl_for('.about'), 'title': 'О проекте'},
         {'id': 'history', 'url': purl_for('.history'), 'title': 'История'},
     )
@@ -19,6 +20,7 @@
 {% else %}
     {% set menu = (
         {'id': 'tasks', 'url': purl_for('.tasks'), 'title': 'Задачи'},
+        {'id': 'bugs', 'url': purl_for('.bugs'), 'title': 'Баги'},
         {'id': 'about', 'url': purl_for('.about'), 'title': 'О проекте'},
         {'id': 'history', 'url': purl_for('.history'), 'title': 'История'},
     )
