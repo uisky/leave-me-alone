@@ -54,6 +54,7 @@ def jinja_bug_status_label(status):
 
     return Markup('<label class="label bug-%s">%s</label>' % (status, statuses.get(status, status)))
 
+
 def jinja_importance_icon(x):
     return _importance_icons.get(x, '')
 
@@ -81,6 +82,20 @@ def status_counters(data):
     for status, count in data.items():
         if status is not None:
             x.append('<span class="label %s">%d</span>' % (jinja_status_class(status), count))
+    if x:
+        return Markup(' ' + ' '.join(x))
+    else:
+        return ''
+
+
+def bugs_status_counters(data):
+    if not isinstance(data, dict):
+        return ''
+
+    x = []
+    for status, count in data.items():
+        if status is not None:
+            x.append('<span class="label bug-%s" title="%s">%d</span>' % (status, status, count))
     if x:
         return Markup(' ' + ' '.join(x))
     else:
@@ -133,6 +148,7 @@ def init_jinja_filters(app):
     app.add_template_filter(minus, 'minus')
     app.add_template_filter(nl2br, 'nl2br')
     app.add_template_filter(status_counters, 'status_counters')
+    app.add_template_filter(bugs_status_counters, 'bugs_status_counters')
     app.add_template_filter(datetime_, 'datetime')
     app.add_template_filter(humantime, 'humantime')
     app.add_template_filter(humandelta, 'humandelta')
@@ -211,6 +227,7 @@ def init_jinja_filters(app):
             query = db.session.query(Bug.status, db.func.count('*')) \
                 .join(Task)\
                 .filter(Task.project_id == project.id) \
+                .filter(~Bug.status.in_(['fixed', 'canceled']))\
                 .group_by(Bug.status)
 
             for status, count in query.all():

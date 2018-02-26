@@ -12,7 +12,10 @@
             'id': 'my', 'url': purl_for('.member', member_id=current_user.id),
             'title': 'Мои задачи' + tasks_stat(project, current_user) | status_counters
         },
-        {'id': 'bugs', 'url': purl_for('.bugs'), 'title': 'Баги' + bugs_stat(project)},
+        {
+            'id': 'bugs', 'url': purl_for('.bugs'),
+            'title': 'Баги' + bugs_stat(project) | bugs_status_counters
+        },
         {'id': 'about', 'url': purl_for('.about'), 'title': 'О проекте'},
         {'id': 'history', 'url': purl_for('.history'), 'title': 'История'},
     )
