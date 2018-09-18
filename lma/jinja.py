@@ -26,7 +26,7 @@ def jinja_status_class(status):
 
 def jinja_status_rus(status):
     meanings = {
-        'open': 'todo', 'progress': 'в работе', 'pause': 'пауза',
+        'planning': 'план', 'open': 'todo', 'progress': 'в работе', 'pause': 'пауза',
         'review': 'проверка', 'tested': 'проверено', 'done': 'готово', 'canceled': 'отменено'
     }
     return meanings.get(status, status)

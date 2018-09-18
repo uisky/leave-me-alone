@@ -83,11 +83,15 @@
 <div class="form-group">
     <label class="control-label col-sm-1">Время</label>
     <div class="col-sm-5">
-        {{ edit_form.estimate(class='form-control') }}
+        <span class="input-group">
+            {{ edit_form.estimate(class='form-control') }}
+            <span class="input-group-addon" title="Можно использовать десятичные дроби">дней</span>
+        </span>
     </div>
-    <div class="col-sm-6">
-        <p class="form-static">
-            Оценка времени исполнения задачи в днях. Допускаются десятичные дроби.
-        </p>
-    </div>
+    {% if not edit_task.id %}
+        <label class="control-label col-sm-2">Статус</label>
+        <div class="col-sm-4">
+            {{ edit_form.status(class='form-control') }}
+        </div>
+    {% endif %}
 </div>

@@ -12,7 +12,7 @@ from lma.core import db
 class Task(db.Model):
     __tablename__ = 'tasks'
 
-    STATUSES = ('open', 'progress', 'pause', 'review', 'tested', 'done', 'canceled')
+    STATUSES = ('planning', 'open', 'progress', 'pause', 'review', 'tested', 'done', 'canceled')
     ENUM_STATUS = ENUM(*STATUSES, name='task_status')
 
     IMPORTANCE = OrderedDict([
@@ -92,17 +92,19 @@ class Task(db.Model):
         if user.id == self.user_id or (membership and 'lead' in membership.roles):
             # Владелец задачи или вождь. Права ограничены здравым смыслом.
             variants = {
-                'open': ('progress', 'done', 'canceled'),
-                'progress': ('done', 'review', 'pause', 'open', 'canceled'),
-                'pause': ('open', 'progress', 'done', 'canceled'),
+                'planning': ('open', 'progress'),
+                'open': ('progress', 'done', 'canceled', 'planning'),
+                'progress': ('done', 'review', 'pause', 'open', 'canceled', 'planning'),
+                'pause': ('open', 'progress', 'done', 'canceled', 'planning'),
                 'review': ('open', 'done', 'tested', 'canceled'),
                 'tested': ('open', 'progress', 'done', 'canceled'),
-                'done': ('open',),
-                'canceled': ('open',)
+                'done': ('open', 'planning'),
+                'canceled': ('open', 'planning')
             }
         elif user.id == self.assigned_id:
             # Назначенный исполнитель
             variants = {
+                'planning': ('open', 'progress'),
                 'open': ('progress', 'review'),
                 'progress': ('open', 'pause', 'review', 'done', 'canceled'),
                 'pause': ('progress',),
