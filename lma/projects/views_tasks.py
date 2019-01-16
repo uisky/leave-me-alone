@@ -166,6 +166,9 @@ def task_edit(project_id, task_id):
                 is_modified = True
         is_modified |= all([getattr(hist, field) is None for field in history_fields])
 
+        if form.status.data == 'None':
+            form.status.data = None
+
         form.populate_obj(task)
         if task.character == 0:
             task.character = None

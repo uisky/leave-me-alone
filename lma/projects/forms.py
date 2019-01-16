@@ -57,7 +57,7 @@ class TaskForm(FlaskForm):
                             coerce=int)
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
     status = SelectField('Начальный статус', [v.optional()],
-                            choices=[('open', 'To-Do'), ('planning', 'Планирование')])
+                            choices=[('open', 'To-Do'), ('planning', 'Планирование')], default=None)
 
 
 class BugForm(FlaskForm):
