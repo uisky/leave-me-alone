@@ -26,7 +26,7 @@ def load_tasks_tree(project, options):
     query = query\
         .add_columns(db.func.count(Bug.id))\
         .outerjoin(Bug, db.and_(Bug.task_id == Task.id, ~Bug.status.in_(('fixed', 'canceled'))))\
-        .group_by(Task.id, 'users_1.id', 'users_2.id')
+        .group_by(Task.id, db.text('users_1.id'), db.text('users_2.id'))
 
     if current_user.is_authenticated:
         query = query\

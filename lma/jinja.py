@@ -180,7 +180,7 @@ def init_jinja_filters(app):
 
             if user.is_authenticated:
                 query = db.session.query(Project, ProjectMember, ProjectFolder) \
-                    .join(ProjectMember) \
+                    .join(ProjectMember, ProjectMember.project_id == Project.id) \
                     .outerjoin(ProjectFolder) \
                     .filter(ProjectMember.user_id == user.id) \
                     .filter(db.or_(ProjectFolder.in_menu, ProjectMember.folder_id == None)) \

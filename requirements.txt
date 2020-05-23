@@ -13,3 +13,4 @@ flask-script
 # sqlparse
 ansicolors
 git+https://github.com/uisky/flask-sa-logger
+email_validator
