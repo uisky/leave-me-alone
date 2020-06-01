@@ -1,9 +1,9 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms import validators as v
 
 
-class RegisterForm(Form):
+class RegisterForm(FlaskForm):
     email = StringField('E-mail', [
         v.required(message='Введите e-mail.'),
         v.Email(message='Неправильный адрес электронной почты.')
