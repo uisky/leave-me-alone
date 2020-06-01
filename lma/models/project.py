@@ -76,6 +76,7 @@ class Sprint(db.Model):
     )
     sort = db.Column(db.SmallInteger(), nullable=False, default=0, server_default='0')
     name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
 
 
 class ProjectFolder(db.Model):

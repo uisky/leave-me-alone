@@ -328,6 +328,7 @@ def task_status(project_id, task_id):
 def task_sprint(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
+    old_sprint = task.sprint_id
 
     if not membership.can('task.sprint', task):
         abort(403, 'Вы не можете перенести эту задачу в другую веху.')
@@ -340,7 +341,7 @@ def task_sprint(project_id, task_id):
     task.subtree(withme=True).update({'sprint_id': sprint_id}, synchronize_session=False)
     db.session.commit()
 
-    return redirect(url_for('.tasks', **{'project_id': task.project_id, 'task': task.id, 'sprint': task.sprint_id}))
+    return redirect(url_for('.tasks', **{'project_id': task.project_id, 'sprint': old_sprint}))
 
 
 @mod.route('/<int:project_id>/<int:task_id>/chparent/', methods=('POST',))

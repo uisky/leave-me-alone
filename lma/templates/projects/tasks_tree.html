@@ -16,6 +16,14 @@
 {% endblock %}
 
 {% block content %}
+<ul class="nav nav-tabs">
+    {% for sprint in project.sprints %}
+    <li {% if sprint.id == options.sprint.data %} class="active" {% endif %}>
+        <a href="?sprint={{ sprint.id }}">{{ sprint.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+
 <div class="row">
     {#
      # Панель дерева задач
@@ -28,19 +36,11 @@
                 <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
             </div>
             <div class="col-sm-2">
-                {% if project.has_sprints %}
-                    {{ options.sprint(class='form-control', onchange='this.form.submit()') }}
-                {% endif %}
             </div>
             <div class="col-sm-6">
                 {{ status_bar(stats) }}
             </div>
             <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
-                {% if stats['max_deadline'] %}
-                    <i class="fa fa-bed"></i> {{ stats.max_deadline.strftime('%d.%m') }}
-                {% else %}
-                    <small>Без дедлайна</small>
-                {% endif %}
             </div>
         </div>
         </form>
