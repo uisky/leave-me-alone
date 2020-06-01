@@ -28,6 +28,8 @@ a.user:before {
 .status-canceled { background-color: #333; color: #fff; }
 .status-canceled:hover { color: #fff; }
 
+.label-tag { background-color: #8983ff; }
+
 .bug-open { background-color: #5bc0de; }
 .bug-progress { background-color: #5cb85c; }
 .bug-pause { background-color: #f0ad4e; }

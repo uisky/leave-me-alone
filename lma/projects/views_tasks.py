@@ -5,7 +5,7 @@ from flask import render_template, request, redirect, flash, abort, make_respons
 
 from . import mod, forms, load_project
 from .mail import *
-from lma.models import Sprint, Task, TaskHistory, TaskCommentsSeen, Bug
+from lma.models import Sprint, Task, TaskHistory, TaskTag, TaskCommentsSeen, Bug
 from lma.core import db
 from lma.utils import flash_errors, form_json_errors, defer_cookie, print_sql
 
@@ -21,7 +21,7 @@ def load_tasks_tree(project, options):
         .query(Task)\
         .filter_by(project_id=project.id)\
         .order_by(Task.mp)\
-        .options(db.joinedload('user'), db.joinedload('assignee'))
+        .options(db.joinedload('user'), db.joinedload('assignee'), db.noload('tags'))
 
     query = query\
         .add_columns(db.func.count(Bug.id))\
@@ -69,6 +69,14 @@ def load_tasks_tree(project, options):
                 print('Ну, пиздец, приплыли! У задачи [%d %r %s] нет родителя id=%d' % (t.id, t.mp, t.subject, t.parent_id))
                 pass
 
+    # Загружаем теги
+    q = TaskTag.query.join(Task).filter(Task.project_id == project.id)
+    if project.has_sprints:
+        q = q.filter(Task.sprint_id == options.sprint.data)
+
+    for tag in q.all():
+        tasks[tag.task_id].tags.append(tag)
+
     # Сводная стстиатика по всему спринту
     stats = {}
     max_deadline = None
@@ -91,6 +99,21 @@ def load_tasks_tree(project, options):
     stats['max_deadline'] = max_deadline
 
     return tasks, seen, stats
+
+
+def set_tags(task, tagslist):
+    TaskTag.query.filter_by(task_id=task.id).delete(synchronize_session=False)
+    tags = set()
+    for tagname in tagslist.split(','):
+        tagname = tagname.strip().lstrip('#').lower()
+        if tagname != '':
+            tags.add(tagname)
+
+    o = []
+    for tagname in tags:
+        o.append(TaskTag(task_id=task.id, name=tagname))
+
+    db.session.bulk_save_objects(o)
 
 
 @mod.route('/<int:project_id>/', methods=('GET', 'POST'))
@@ -126,6 +149,7 @@ def tasks(project_id):
             return redirect(url_for('.tasks', project_id=project.id, sprint=selected.sprint_id or 0, task=selected.id))
 
         form_edit = forms.TaskForm(obj=selected)
+        form_edit.tagslist.data = ', '.join([tag.name for tag in selected.tags])
     else:
         selected = None
         form_edit = None
@@ -172,6 +196,10 @@ def task_edit(project_id, task_id):
         form.populate_obj(task)
         if task.character == 0:
             task.character = None
+
+        # Теги
+        if form.tagslist:
+            set_tags(task, form.tagslist.data)
 
         if is_modified:
             db.session.add(hist)
@@ -265,6 +293,10 @@ def task_subtask(project_id, parent_id=None):
 
         task.setparent(parent)
         db.session.add(task)
+        db.session.flush()
+
+        if form.tagslist:
+            set_tags(task, form.tagslist.data)
 
         # Удаляем статус у родительской задачи
         if parent:

@@ -16,13 +16,18 @@
 {% endblock %}
 
 {% block content %}
-<ul class="nav nav-tabs">
-    {% for sprint in project.sprints %}
-    <li {% if sprint.id == options.sprint.data %} class="active" {% endif %}>
-        <a href="?sprint={{ sprint.id }}">{{ sprint.name }}</a>
+{% if project.has_sprints %}
+<ul class="nav nav-tabs" style="margin-bottom: 10px">
+    <li {% if options.sprint.data == 0 %} class="active" {% endif %}>
+        <a href="?sprint=0">*</a>
     </li>
+    {% for sprint in project.sprints %}
+        <li {% if sprint.id == options.sprint.data %} class="active" {% endif %}>
+            <a href="?sprint={{ sprint.id }}">{{ sprint.name }}</a>
+        </li>
     {% endfor %}
 </ul>
+{% endif %}
 
 <div class="row">
     {#
@@ -115,9 +120,14 @@
                     <div class="{{ _task_container_class(task, selected) }}">
                         <div class="subj">
                             <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
+
                             {% if request.args.get('debug-mp') %}<small>{{ task.mp }}</small>{% endif %}
 
                             <span class="meta">
+                                {% for tag in task.tags %}
+                                    <span class="label label-tag">#{{ tag.name }}</span>
+                                {% endfor %}
+
                                 {% if task.estimate %}
                                     <span class="estimate">{{ task.estimate }}d</span>
                                 {% endif %}
@@ -208,6 +218,9 @@
                 {# Описание задачи #}
                 <div id="task-details" class="tab-pane active task-details">
                     <h1>{{ selected.subject }}</h1>
+                    {% for tag in selected.tags %}
+                        <span class="label label-tag">#{{ tag.name }}</span>
+                    {% endfor %}
                     <div class="meta">
                         Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
                         {{ member_link(project, selected.user) }}

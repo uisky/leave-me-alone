@@ -58,6 +58,7 @@ class Task(db.Model):
     children = db.relationship('Task', backref=db.backref('parent', remote_side=id))
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created', passive_deletes=True)
     sprint = db.relationship('Sprint', backref='tasks')
+    tags = db.relationship('TaskTag', order_by='TaskTag.name')
 
     cnt_comments = db.Column(db.Integer, nullable=False, server_default='0', default=0)
 
@@ -192,6 +193,13 @@ class Task(db.Model):
         dct['allowed_statuses'] = self.allowed_statuses(user, membership)
 
         return json.dumps(dct, ensure_ascii=False)
+
+
+class TaskTag(db.Model):
+    __tablename__ = 'task_tags'
+
+    task_id = db.Column(db.Integer(), db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True, primary_key=True)
+    name = db.Column(db.String(32), nullable=False, primary_key=True)
 
 
 class TaskHistory(db.Model):

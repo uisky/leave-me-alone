@@ -45,8 +45,9 @@ class OutputOptions(FlaskForm):
 
 
 class TaskForm(FlaskForm):
-    subject = StringField('Пароль', [v.required(message='Опишите задачу.')], filters=[strip_field])
-    description = TextAreaField('Ник', [v.optional()])
+    subject = StringField('Название', [v.required(message='Опишите задачу.')], filters=[strip_field])
+    description = TextAreaField('Описание', [v.optional()])
+    tagslist = StringField('Тэги', [v.optional()])
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
     assigned_id = IntegerField('Исполнитель', [v.optional()])
     importance = SelectField('Важность', [v.optional()],
