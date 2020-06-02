@@ -40,7 +40,7 @@ def mail_changed(project, task, hist):
         if getattr(hist, prop) is not None:
             changed.append(descr)
     if not changed:
-        changed.append('не удалось установить, какие :(')
+        return
 
     msg_text = """Пссст, человек!
 
