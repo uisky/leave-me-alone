@@ -28,7 +28,8 @@ class Task(db.Model):
         (2, {'id': 2, 'name': 'Быстрофича', 'icon': '<i class="icon-character fas fa-bolt text-success"></i>'}),
         (3, {'id': 3, 'name': 'Хотфикс', 'icon': '<i class="icon-character fas fa-poo-storm text-danger"></i>'}),
         (4, {'id': 4, 'name': 'Баг', 'icon': '<i class="icon-character fas fa-bug"></i>'}),
-        (5, {'id': 5, 'name': 'Рефактор', 'icon': '<i class="icon-character fas fa-lightbulb"></i>'}),
+        (5, {'id': 5, 'name': 'Рефактор', 'icon': '<i class="icon-character fas fa-wrench"></i>'}),
+        (6, {'id': 6, 'name': 'Ресёрч', 'icon': '<i class="icon-character fas fa-lightbulb"></i>'}),
     ])
 
     id = db.Column(db.Integer(), primary_key=True)
