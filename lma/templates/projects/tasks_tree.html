@@ -119,22 +119,17 @@
                 <li data-id="{{ task.id }}" class="{{ _task_li_class(task) }}">
                     <div class="{{ _task_container_class(task, selected) }}">
                         <div class="subj">
+                            {{ task.character|character_icon|safe }}
                             <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
 
                             {% if request.args.get('debug-mp') %}<small>{{ task.mp }}</small>{% endif %}
 
                             <span class="meta">
-                                {% for tag in task.tags %}
-                                    <span class="label label-tag">#{{ tag.name }}</span>
-                                {% endfor %}
-
                                 {% if task.estimate %}
                                     <span class="estimate">{{ task.estimate }}d</span>
                                 {% endif %}
 
                                 {{ task.importance|importance_icon|safe }}
-
-                                {{ task.character|character_icon|safe }}
 
                                 {% if task.cnt_bugs %}
                                     <span class="cnt-bugs">
@@ -145,6 +140,10 @@
                                 {% if task.cnt_comments %}
                                     {{ _task_comments_icon(task, seen) }}
                                 {% endif %}
+
+                                {% for tag in task.tags %}
+                                    <span class="label label-tag">#{{ tag.name }}</span>
+                                {% endfor %}
                             </span>
                         </div>
 

@@ -25,7 +25,10 @@ class Task(db.Model):
 
     CHARACTERS = OrderedDict([
         (1, {'id': 1, 'name': 'Фича', 'icon': ''}),
-        (3, {'id': 3, 'name': 'Подумать', 'icon': '<i class="icon-character fa fa-lightbulb-o"></i>'}),
+        (2, {'id': 2, 'name': 'Быстрофича', 'icon': '<i class="icon-character fas fa-bolt text-danger"></i>'}),
+        (3, {'id': 3, 'name': 'Хотфикс', 'icon': '<i class="icon-character fas fa-poo-storm text-danger"></i>'}),
+        (4, {'id': 4, 'name': 'Баг', 'icon': '<i class="icon-character fas fa-bug"></i>'}),
+        (5, {'id': 5, 'name': 'Рефактор', 'icon': '<i class="icon-character fas fa-lightbulb"></i>'}),
     ])
 
     id = db.Column(db.Integer(), primary_key=True)
