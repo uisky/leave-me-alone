@@ -10,16 +10,17 @@ def mail_assigned(project, task):
     if task.assigned_id is None or task.assigned_id == task.user_id or task.assigned_id == current_user.id:
         return
 
-    msg_text = """Хэллоу май френд!
+    msg_text = """Вам назначена задача.
+Проект: "{0}"
+Задача: "{task.subject}"
+Описание:
+{task.description}
 
-Зэрэ из э нью джоб фо ю ин проджэкт "%s"!
+{1}
 
-  http://leave-me-alone.ru%s
+Не забудьте поставить статус «В работе», когда приступите.
+    """.format(project.name, url_for('.tasks', project_id=task.project_id, task=task.id, _external=True), task=task)
 
-Донт форгет ту пут ит ин "прогресс" статус, вэн ю бегин))))))))))))))))))))
-
-Гуд лак!
-    """ % (project.name, url_for('.tasks', project_id=task.project_id, task=task.id))
     mail.send_message(
         subject='Новая задача: %s' % task.subject,
         recipients=[task.assignee.email],
@@ -42,8 +43,7 @@ def mail_changed(project, task, hist):
     if not changed:
         return
 
-    msg_text = """Пссст, человек!
-
+    msg_text = """
 В задаче "%s" проекта "%s" поменялись свойства: %s.
 
   http://leave-me-alone.ru%s
