@@ -103,7 +103,7 @@ class Task(db.Model):
                 'pause': ('open', 'progress', 'done', 'canceled', 'planning'),
                 'review': ('open', 'done', 'tested', 'canceled'),
                 'tested': ('open', 'progress', 'done', 'canceled'),
-                'done': ('open', 'planning'),
+                'done': ('open', 'review', 'planning'),
                 'canceled': ('open', 'planning')
             }
         elif user.id == self.assigned_id:
