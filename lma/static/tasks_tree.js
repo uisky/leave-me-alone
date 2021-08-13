@@ -56,6 +56,13 @@
         $tree.off('click', 'a', swapSelectTask);
     });
 
+    // Перенести в другую веху
+    $('#form-sprint .act-select-sprint').on('click', function(e) {
+        $('#form-sprint button.act-select-sprint.btn-primary').removeClass('btn-primary').addClass('btn-default');
+        $(this).removeClass('btn-default').addClass('btn-primary');
+        $('#form-sprint [name=sprint_id]').val($(this).data('id'));
+    });
+
     // Развешиваем toggler'ы
     var collapsed_cookie = 'clps';
     var collapsed = Cookies.getJSON(collapsed_cookie) || [];

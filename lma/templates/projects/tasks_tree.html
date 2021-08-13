@@ -370,11 +370,13 @@
                             <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую веху</h4>
                         </div>
                         <div class="modal-body">
-                            <select name="sprint_id" class="form-control">
-                                {% for id, name in options.sprint.choices %}
-                                <option value="{{ id }}" {% if selected.sprint_id|default(0, true) == id %} selected {% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
+                            {% for sprint in project.sprints %}
+                                <button type="button" data-id="{{ sprint.id }}"
+                                        class="btn act-select-sprint {% if selected.sprint_id == sprint.id %} btn-primary {% else %}btn-default {% endif %}"
+                                >{{ sprint.name }}</button>
+                            {% endfor %}
+
+                            <input type="hidden" name="sprint_id" value="{{ selected.sprint_id }}">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
@@ -393,6 +395,6 @@
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
-<script type="text/javascript" src="/static/tasks_tree.js?2"></script>
+<script type="text/javascript" src="/static/tasks_tree.js?3"></script>
 <script type="text/javascript" src="/static/plugins/wtfc/tree.js"></script>
 {% endblock %}
