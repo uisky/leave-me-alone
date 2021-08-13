@@ -1,7 +1,7 @@
 from datetime import datetime
 from collections import OrderedDict
 
-import markdown
+import mistune
 import pytz
 from flask import Markup, get_flashed_messages
 from flask_login import current_user
@@ -17,7 +17,7 @@ _importance_icons = {id_: x['icon'] for id_, x in Task.IMPORTANCE.items()}
 def jinja_markdown(x):
     if x is None:
         return ''
-    return Markup(sanitize_html(markdown.markdown(x, output_format='html5')))
+    return Markup((mistune.html(sanitize_html(x))))
 
 
 def jinja_status_class(status):

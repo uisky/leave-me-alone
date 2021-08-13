@@ -4,7 +4,6 @@ flask
 flask-sqlalchemy
 flask-wtf
 flask-login>=0.3.0
-markdown
 pytz
 flask-mail
 bleach
@@ -17,3 +16,5 @@ email_validator
 
 Pillow
 git+https://github.com/Alt90/lagring.git
+
+mistune==2.0.0rc1

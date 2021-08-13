@@ -52,6 +52,12 @@ li.collapsed > ul { display: none; }
 .deadline.late { color: #f00; }
 
 .task-details .description { margin: 20px 0}
+.task-details .description table { border-spacing: 0; border-collapse: collapse; margin-bottom: 10px; }
+.task-details .description table td, .task-details .description table th { padding: 5px; border: 1px solid #ccc; vertical-align: top; }
+.task-details .description table th { background: #464f6d; color: #f9f990; }
+.task-details .description h1, .task-details .description h2, .task-details .description h3, .task-details .description h4, .task-details .description h5 {
+    border-bottom: 1px solid #ddd;
+}
 
 .task-details .image img { max-width: 100%; height: auto; margin-bottom: 10px; }
 

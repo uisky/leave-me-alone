@@ -5,7 +5,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
-<link rel="stylesheet" href="/static/tasks_tree.css?2">
+<link rel="stylesheet" href="/static/tasks_tree.css?3">
 <script type="text/javascript" src="/static/js.cookie.js"></script>
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
@@ -226,7 +226,7 @@
                         {% if selected.assigned_id %}
                             &rarr; {{ member_link(project, selected.assignee) }}
                         {% endif %}
-                        {{ selected.status|status_label }}
+                        {{ selected.status|status_label     }}
                         {% if selected.deadline %}
                             <p>
                                 Дедлайн:
