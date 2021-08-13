@@ -196,6 +196,12 @@ def task_edit(project_id, task_id):
         form.populate_obj(task)
         if task.character == 0:
             task.character = None
+        if form.image_.data:
+            db.session.add(task)
+            db.session.flush()
+            task.image = form.image_.data
+        elif form.image_delete.data:
+            del task.image
 
         # Теги
         if form.tagslist:
@@ -285,6 +291,10 @@ def task_subtask(project_id, parent_id=None):
 
     if form.validate_on_submit():
         form.populate_obj(task)
+        if form.image_.data:
+            db.session.add(task)
+            db.session.flush()
+            task.image = form.image_.data
 
         if parent:
             task.sprint_id = parent.sprint_id

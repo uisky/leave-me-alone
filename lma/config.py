@@ -14,3 +14,6 @@ WTF_CSRF_TIME_LIMIT = 60 * 60 * 24
 MAIL_DEFAULT_SENDER = 'no-reply@leave-me-alone.ru'
 
 JSON_AS_ASCII = False
+
+ASSET_STORAGE_ROOT = '/srv/leave-me-alone.ru/var/assets'
+ASSET_URL_ROOT = '/assets'

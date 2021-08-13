@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, DateTimeField, IntegerField, SelectField, BooleanField, DecimalField, \
-    HiddenField, RadioField
+    HiddenField, RadioField, FileField
 from wtforms import validators as v
 
 from lma.models import Task
@@ -47,6 +47,8 @@ class OutputOptions(FlaskForm):
 class TaskForm(FlaskForm):
     subject = StringField('Название', [v.required(message='Опишите задачу.')], filters=[strip_field])
     description = TextAreaField('Описание', [v.optional()])
+    image_ = FileField('Картинка', [v.optional()])
+    image_delete = BooleanField('Стереть картинку', [v.optional()])
     tagslist = StringField('Тэги', [v.optional()])
     deadline = DateTimeField('Дедлайн', [v.optional()], format='%d.%m.%Y %H:%M')
     assigned_id = IntegerField('Исполнитель', [v.optional()])

@@ -32,10 +32,15 @@ def task_comments(project_id, task_id):
             return 'Вы не можете комментировать эту задачу :('
 
         comment = TaskComment(task_id=task.id, user_id=current_user.id)
-        comment.body = request.form.get('body', '').strip()
         comment.task = task
-        if comment.body != '':
+        if comment.body or request.files.get('image'):
             db.session.add(comment)
+
+            comment.body = request.form.get('body', '').strip()
+
+            if request.files.get('image'):
+                db.session.flush()
+                comment.image = request.files['image']
 
             task.cnt_comments += 1
             if seen:
@@ -77,8 +82,10 @@ def task_comment(project_id, task_id, comment_id):
     if request.method == 'POST':
         comment.body = request.form.get('body', '').strip()
         if comment.body == '':
+            # Удаление комментария
             if not membership.can('comment.delete', comment):
                 return jsonify({'error': 'Сорян, вы не можете удалить этот комментарий.'})
+            del comment.image
             db.session.delete(comment)
             task.cnt_comments -= 1
             TaskCommentsSeen.query\

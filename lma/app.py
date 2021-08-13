@@ -3,7 +3,7 @@ import os
 
 from flask import Flask, g, render_template
 
-from .core import db, csrf, mail, login_manager
+from .core import db, csrf, mail, login_manager, storage
 from .jinja import init_jinja_filters
 import flask_sa_logger
 
@@ -30,6 +30,8 @@ def create_app(cfg=None, purpose=None):
     register_blueprints(app)
 
     init_jinja_filters(app)
+
+    storage.init_app(app)
 
     @app.after_request
     def deferred_cookies(response):

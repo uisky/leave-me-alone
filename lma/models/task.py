@@ -5,11 +5,12 @@ import markdown
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM
 from flask import Markup
 from flask_login import current_user
+from lagring.assets.image import ImageAsset
 
-from lma.core import db
+from lma.core import db, storage
 
 
-class Task(db.Model):
+class Task(db.Model, storage.Entity):
     __tablename__ = 'tasks'
 
     STATUSES = ('planning', 'open', 'progress', 'pause', 'review', 'tested', 'done', 'canceled')
@@ -56,6 +57,8 @@ class Task(db.Model):
     description = db.Column(db.Text(), nullable=False)
     deadline = db.Column(db.DateTime(timezone=True))
     estimate = db.Column(db.DECIMAL(precision=3, scale=1))
+
+    image = ImageAsset(width=2048, height=2048, transform='fit')
 
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
@@ -252,7 +255,7 @@ class TaskHistory(db.Model):
         return Markup('; '.join(deeds))
 
 
-class TaskComment(db.Model):
+class TaskComment(db.Model, storage.Entity):
     __tablename__ = 'task_comments'
 
     id = db.Column(db.Integer(), primary_key=True)
@@ -263,6 +266,8 @@ class TaskComment(db.Model):
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
                         nullable=False)
     body = db.Column(db.Text, nullable=False)
+
+    image = ImageAsset(width=2048, height=2048, transform='fit')
 
     user = db.relationship('User', backref='comments')
     task = db.relationship('Task', backref='comments')

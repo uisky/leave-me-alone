@@ -236,9 +236,15 @@
                             </p>
                         {% endif %}
                     </div>
+
                     <div class="description">
                         {{ selected.description|markdown|safe }}
                     </div>
+                    {% if selected.image %}
+                        <div class="image">
+                            <img src="{{ selected.image.url }}" width="{{ selected.image.width }}" height="{{ selected.image.height }}">
+                        </div>
+                    {% endif %}
 
                     {% if membership.can('task.set-status', selected) %}
                     <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
@@ -277,7 +283,7 @@
                     {% else %}
                         {% set url = url_for('.task_subtask', project_id=project.id) %}
                     {% endif %}
-                    <form id="form-subtask" method="post" action="{{ url }}" class="form-horizontal">
+                    <form id="form-subtask" method="post" action="{{ url }}" class="form-horizontal" enctype="multipart/form-data">
                         <h2>Создать подзадачу</h2>
                         {% if project.has_sprints %}
                             <input type="hidden" name="sprint_id" value="{{ options.sprint.data }}">
@@ -299,7 +305,7 @@
             {# Редактор задачи #}
             {% if selected and membership.can('task.edit', selected) %}
                 <div id="task-edit" class="tab-pane">
-                    <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal">
+                    <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal" enctype="multipart/form-data">
                         <h2>Редактировать задачу</h2>
                         {% set edit_form = form_edit %}
                         {% set edit_task = selected %}

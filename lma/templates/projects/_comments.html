@@ -14,8 +14,13 @@
 
 {% if membership.can('task.comment', task) %}
 <h2>Написать комментарий</h2>
-<form method="post" action="{{ url_for('.task_comments', project_id=project.id, task_id=task.id) }}" id="form-comment">
+<form method="post" action="{{ url_for('.task_comments', project_id=project.id, task_id=task.id) }}" id="form-comment" enctype="multipart/form-data">
     <p><textarea name="body" rows="4" class="form-control"></textarea></p>
+
+    <p>
+        Картиночку приложить:
+        <input type="file" name="image" class="form-control">
+    </p>
     <p class="help-block">Здесь можно использовать Markdown</p>
     <p><button type="submit" class="btn btn-primary" title="Можно просто нажать Ctrl+Enter">Отправить</button></p>
 </form>

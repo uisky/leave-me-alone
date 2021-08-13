@@ -14,3 +14,6 @@ flask-script
 ansicolors
 git+https://github.com/uisky/flask-sa-logger
 email_validator
+
+Pillow
+git+https://github.com/Alt90/lagring.git
