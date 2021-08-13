@@ -137,6 +137,8 @@
 
                     $tab.find('ul.comments').append(data);
                     $tab.find('div.comments-empty-message').hide();
+                    let $image = $tab.find('#form-comment [name=image]');
+                    $image.wrap('<form>').closest('form').get(0).reset();
 
                     // Увеличиваем счётчики комментариев, где надо:
                     // 1. Таб

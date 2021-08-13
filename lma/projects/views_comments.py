@@ -33,7 +33,7 @@ def task_comments(project_id, task_id):
 
         comment = TaskComment(task_id=task.id, user_id=current_user.id)
         comment.task = task
-        if comment.body or request.files.get('image'):
+        if comment.body != '' or request.files.get('image'):
             db.session.add(comment)
 
             comment.body = request.form.get('body', '').strip()
