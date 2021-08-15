@@ -21,7 +21,10 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Leave Me Alone</title>
+    {% if page_title %}
+        {% set page_title = page_title + " | Leave Me Alone" %}
+    {% endif %}
+    <title>{{ page_title|default("Leave Me Alone") }}</title>
     <link rel="stylesheet" href="http://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css">
     <script src="https://kit.fontawesome.com/bdb74cc4ec.js" crossorigin="anonymous"></script>
 

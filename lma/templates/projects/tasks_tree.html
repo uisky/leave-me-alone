@@ -2,6 +2,11 @@
 {% from '_macros.html' import status_bar, member_link %}
 
 {% set menu_current = 'tasks' %}
+{% if selected %}
+    {% set page_title = selected.subject + ' @ ' + project.name %}
+{% else %}
+    {% set page_title = project.name %}
+{% endif %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
@@ -16,6 +21,7 @@
 {% endblock %}
 
 {% block content %}
+
 {% if project.has_sprints %}
 <ul class="nav nav-tabs" style="margin-bottom: 10px">
     <li {% if options.sprint.data == 0 %} class="active" {% endif %}>
