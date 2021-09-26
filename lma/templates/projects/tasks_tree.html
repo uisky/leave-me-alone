@@ -232,7 +232,7 @@
                         {% if selected.assigned_id %}
                             &rarr; {{ member_link(project, selected.assignee) }}
                         {% endif %}
-                        {{ selected.status|status_label     }}
+                        {{ selected.status|status_label }}
                         {% if selected.deadline %}
                             <p>
                                 Дедлайн:
@@ -252,7 +252,9 @@
                         </div>
                     {% endif %}
 
+                    {{ membership.can('task.set-status', selected) }}
                     {% if membership.can('task.set-status', selected) %}
+                        <h1>Статус</h1>
                     <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status">

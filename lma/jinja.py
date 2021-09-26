@@ -21,13 +21,34 @@ def jinja_markdown(x):
 
 
 def jinja_status_class(status):
+    return 'label-default'
     return 'status-%s' % status
 
 
 def jinja_status_rus(status):
     meanings = {
-        'planning': 'план', 'open': 'todo', 'progress': 'в работе', 'pause': 'пауза',
-        'review': 'проверка', 'tested': 'проверено', 'done': 'готово', 'canceled': 'отменено'
+        'design.open': 'Проектировать',
+        'design.progress': 'Проектирование: идет',
+        'design.pause': 'Проектирование: пауза',
+        'dev.open': 'Кодить',
+        'dev.progress': 'Кодить: идёт',
+        'dev.pause': 'Кодить: пауза',
+        'qa.open': 'QA хочу',
+        'qa.progress': 'QA идёт',
+        'qa.pause': 'QA пауза',
+        'qa.done': 'QA готово',
+        'review.open': 'Review хочу',
+        'review.progress': 'Review идёт',
+        'review.pause': 'Review пауза',
+        'review.done': 'Review готово',
+        'debug.open': 'Допилить',
+        'debug.progress': 'Допил: идёт',
+        'debug.pause': 'Допил: пауза',
+        'release.open': 'Релизить',
+        'release.progress': 'Релиз идёт',
+        'release.pause': 'Релиз: пауза',
+        'complete': 'Готово',
+        'canceled': 'Отменено'
     }
     return meanings.get(status, status)
 
@@ -35,7 +56,18 @@ def jinja_status_rus(status):
 def jinja_status_label(status):
     if status is None:
         return ''
-    else:
+    if status in ('complete', 'canceled'):
+        return Markup('<label class="label status-{}">{}</label>'.format(status, status))
+    elif '.' in status:
+        states = {
+            'open': '<i class="fa fa-envelope-open"></i>',
+            'progress': '<i class="fa fa-play"></i>',
+            'pause': '<i class="fa fa-pause"></i>',
+            'done': '<i class="fa fa-check"></i>',
+        }
+        phase, state = status.split('.')
+        return Markup('<label title={status} class="label state-{state}">{icon} {phase}</label>'.format(status=status, state=state, phase=phase, icon=states.get(state, '?')))
+
         return Markup('<label class="label %s">%s</label>' % (jinja_status_class(status), jinja_status_rus(status)))
 
 
@@ -208,7 +240,6 @@ def init_jinja_filters(app):
                         Task.assigned_id == user.id,
                         db.and_(Task.assigned_id == None, Task.user_id == user.id))
                     )\
-                    .filter(Task.status.in_(['open', 'progress', 'pause', 'review']))\
                     .group_by(Task.status)
 
                 for status, count in query.all():

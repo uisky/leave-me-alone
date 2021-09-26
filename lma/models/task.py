@@ -13,7 +13,16 @@ from lma.core import db, storage
 class Task(db.Model, storage.Entity):
     __tablename__ = 'tasks'
 
-    STATUSES = ('planning', 'open', 'progress', 'pause', 'review', 'tested', 'done', 'canceled')
+    STATUSES = (
+        'design.open', 'design.progress', 'design.pause',
+        'dev.open', 'dev.progress', 'dev.pause',
+        'qa.open', 'qa.progress', 'qa.pause', 'qa.done',
+        'review.open', 'review.progress', 'review.pause', 'review.done',
+        'debug.open', 'debug.progress', 'debug.pause',
+        'release.open', 'release.progress', 'release.pause',
+        'complete',
+        'canceled'
+    )
     ENUM_STATUS = ENUM(*STATUSES, name='task_status')
 
     IMPORTANCE = OrderedDict([
@@ -100,14 +109,28 @@ class Task(db.Model, storage.Entity):
         if user.id == self.user_id or (membership and 'lead' in membership.roles):
             # Владелец задачи или вождь. Права ограничены здравым смыслом.
             variants = {
-                'planning': ('open', 'progress'),
-                'open': ('progress', 'done', 'canceled', 'planning'),
-                'progress': ('done', 'review', 'pause', 'open', 'canceled', 'planning'),
-                'pause': ('open', 'progress', 'done', 'canceled', 'planning'),
-                'review': ('open', 'done', 'tested', 'canceled'),
-                'tested': ('open', 'progress', 'done', 'canceled'),
-                'done': ('open', 'review', 'planning'),
-                'canceled': ('open', 'planning')
+                'design.open': ('design.progress', 'canceled'),
+                'design.progress': ('design.open', 'design.pause', 'dev.open', 'canceled'),
+                'design.pause': ('design.open', 'design.progress', 'dev.open', 'canceled'),
+                'dev.open': ('dev.progress', 'canceled'),
+                'dev.progress': ('dev.open', 'dev.pause', 'canceled'),
+                'dev.pause': ('dev.open', 'dev.progress', 'cencaled'),
+                'qa.open': ('dev.open', 'qa.progress', 'qa.done'),
+                'qa.progress': ('qa.open', 'qa.pause', 'qa.done', 'debug.open'),
+                'qa.pause': ('dev.open', 'qa.open', 'qa.done'),
+                'qa.done': (),
+                'review.open': (),
+                'review.progress': (),
+                'review.pause': (),
+                'review.done': (),
+                'debug.open': (),
+                'debug.progress': (),
+                'debug.pause': (),
+                'release.open': (),
+                'release.progress': (),
+                'release.pause': (),
+                'complete': ('design.open', 'dev.open', 'qa.open', 'canceled'),
+                'canceled': ('design.open', 'dev.open', 'qa.open', 'complete'),
             }
         elif user.id == self.assigned_id:
             # Назначенный исполнитель

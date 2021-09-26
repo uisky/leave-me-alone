@@ -112,6 +112,16 @@ ul.bugs > li > .actions .btn-bug-status-canceled:hover { color: #fff; }
 .status-progress { background-color: #5cb85c; }
 .status-pause { background-color: #f0ad4e; }
 .status-review { background-color: #AA4FAD; color: #ff0; }
-.status-done { background-color: #888; }
+.status-complete { background-color: #888; }
 .status-canceled { background-color: #333; color: #fff; }
 .status-canceled:hover { color: #fff; }
+
+.phase-design { background-color: #b3d2de; }
+.phase-dev { background-color: #5bc0de; }
+.phase-qa { background-color: #deae77; }
+.phase-review { background-color: #de6f7d; }
+
+.state-open { background-color: #5bc0de; }
+.state-progress { background-color: #25aa25; }
+.state-pause { background-color: #deae77; }
+.state-done { background-color: #6e41de; }

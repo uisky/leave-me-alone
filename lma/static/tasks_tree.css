@@ -45,7 +45,7 @@ li.collapsed > ul { display: none; }
 .tasks-tree .task .deadline { max-width: 40px; min-width: 40px; text-align: right; overflow: hidden; white-space: nowrap; }
 .tasks-tree .task .deadline:after { content:'.'; visibility: hidden; font-size:1px; }
 
-.tasks-tree .task .status { max-width: 73px; min-width: 73px; padding-right: 0; border-right: none; text-align: right; }
+.tasks-tree .task .status { max-width: 73px; min-width: 73px; padding-right: 0; border-right: none; text-align: left; }
 
 .tasks-tree .li-100 .status { color: #090; }
 

@@ -94,11 +94,13 @@ class ProjectFolder(db.Model):
 
 
 class MembershipBase:
-    ROLES = ('lead', 'developer', 'tester')
     role_meanings = {
         'lead': 'Вождь',
         'developer': 'Разработчик',
-        'tester': 'Тестировщик'
+        'prm': 'Проектировщик',
+        'pjm': 'Проджект',
+        'qa': 'Тестировщик',
+        'review': 'Ревьюер',
     }
 
     def can(self, what, *args):
