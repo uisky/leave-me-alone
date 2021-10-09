@@ -57,7 +57,7 @@ class Task(db.Model, storage.Entity):
     parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
                           index=True)
 
-    status = db.Column(ENUM_STATUS, default='open')
+    status = db.Column(ENUM_STATUS, default='design.open')
     # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
     importance = db.Column(db.SmallInteger, nullable=False, server_default='0', default=0)
     # Тип задачи: баг, фича, подумать

@@ -252,7 +252,7 @@
                         </div>
                     {% endif %}
 
-                    {{ membership.can('task.set-status', selected) }}
+                    <pre>{{ selected.status }} => {{ membership.can('task.set-status', selected) }}</pre>
                     {% if membership.can('task.set-status', selected) %}
                         <h1>Статус</h1>
                     <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">

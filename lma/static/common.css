@@ -19,6 +19,7 @@ a.user:before {
 .important--1 { background-color: #58d258; }
 .important--2 { background-color: #AEEDBB; }
 
+/* юзается где-нибудь? */
 .status-open { background-color: #5bc0de; }
 .status-progress { background-color: #5cb85c; }
 .status-pause { background-color: #f0ad4e; }
@@ -115,6 +116,51 @@ ul.bugs > li > .actions .btn-bug-status-canceled:hover { color: #fff; }
 .status-complete { background-color: #888; }
 .status-canceled { background-color: #333; color: #fff; }
 .status-canceled:hover { color: #fff; }
+
+label.label-status {
+    display: inline-block;
+    padding: .2em .6em .3em;
+    width: 66px;
+    height: 18px;
+    font-size: 75%;
+    font-weight: 700;
+    color: #000;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25em;
+}
+label.label-status i.fa-pause, label.label-status i.fa-check { float: right! important; margin-top: 2px; }
+
+label.status-design_open { border: 1px solid #5CC0DE; color: #5CC0DE; }
+label.status-design_progress { background-color: #5CC0DE; color: white; }
+label.status-design_pause { background-color: #5CC0DE; color: white; }
+
+label.status-dev_open { border: 1px solid #2882BB; color: #2882BB; }
+label.status-dev_progress { background-color: #2882BB; color: white; }
+label.status-dev_pause { background-color: #89b1cb; color: white; }
+
+label.status-qa_open { border: 1px solid #EEAC4D; color: #EEAC4D; }
+label.status-qa_progress { background-color: #EEAC4D; color: white; }
+label.status-qa_pause { background-color: #EEAC4D; color: white; }
+label.status-qa_done { background-color: #EEAC4D; color: white; }
+
+label.status-review_open { border: 1px solid #A950AB; color: #A950AB; }
+label.status-review_progress { background-color: #A950AB; color: white; }
+label.status-review_pause { background-color: #A950AB; color: white; }
+label.status-review_done { background-color: #A950AB; color: white; }
+
+label.status-debug_open { border: 1px solid #2882BB; color: #2882BB; }
+label.status-debug_progress { background-color: #2882BB; color: white; }
+label.status-debug_pause { background-color: #2882BB; color: white; }
+
+label.status-release_open { border: 1px solid #5DB55C; color: #5DB55C; }
+label.status-release_progress { background-color: #5DB55C; color: white; }
+label.status-release_pause { background-color: #5DB55C; color: white; }
+
+label.status-complete { background-color: #BAE0BA; color: white; }
+label.status-canceled { background-color: #CED1D6; color: white; }
+
+
 
 .phase-design { background-color: #b3d2de; }
 .phase-dev { background-color: #5bc0de; }

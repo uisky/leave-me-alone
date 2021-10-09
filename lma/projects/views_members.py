@@ -33,15 +33,14 @@ def member(project_id, member_id):
         .outerjoin(Task.sprint)\
         .options(db.contains_eager(Task.sprint))\
         .filter(Task.project_id == project.id)\
-        .filter(db.or_(Task.assigned_id == member.user_id,
-                       db.and_(Task.assigned_id == None, Task.user_id == member.user_id)))\
+        .filter(db.or_(Task.assigned_id == member.user_id))\
         .order_by(Sprint.sort.desc().nullslast(), Task.deadline.nullslast(), Task.mp)
 
     statuses = filters.status.data
     if statuses:
         statuses = statuses.split(',')
     else:
-        statuses = ['open', 'progress', 'pause', 'review']
+        statuses = ['dev.open', 'dev.progress', 'dev.pause']
     query = query.filter(Task.status.in_(statuses))
 
     if project.has_sprints:

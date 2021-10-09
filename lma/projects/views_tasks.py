@@ -154,7 +154,7 @@ def tasks(project_id):
         selected = None
         form_edit = None
 
-    empty = Task(project_id=project.id, status='open', importance=0)
+    empty = Task(project_id=project.id, status='dev.open', importance=0)
     if selected:
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)
@@ -278,7 +278,7 @@ def task_subtask(project_id, parent_id=None):
             abort(403, 'Вы не можете создавать задачи 1-го уровня в этом проекте.')
         parent = None
 
-    task = Task(project_id=project.id, user_id=current_user.id, status='open')
+    task = Task(project_id=project.id, user_id=current_user.id)
     form = forms.TaskForm(obj=task)
 
     # Строим URL, куда пойти после добавления задачи
@@ -314,7 +314,7 @@ def task_subtask(project_id, parent_id=None):
 
         # История!
         db.session.flush()
-        hist = TaskHistory(task_id=task.id, status='open', user_id=task.user_id)
+        hist = TaskHistory(task_id=task.id, status=task.status, user_id=task.user_id)
         db.session.add(hist)
 
         db.session.commit()

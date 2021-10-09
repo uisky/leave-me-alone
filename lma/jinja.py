@@ -56,19 +56,45 @@ def jinja_status_rus(status):
 def jinja_status_label(status):
     if status is None:
         return ''
-    if status in ('complete', 'canceled'):
-        return Markup('<label class="label status-{}">{}</label>'.format(status, status))
-    elif '.' in status:
-        states = {
-            'open': '<i class="fa fa-envelope-open"></i>',
-            'progress': '<i class="fa fa-play"></i>',
-            'pause': '<i class="fa fa-pause"></i>',
-            'done': '<i class="fa fa-check"></i>',
-        }
-        phase, state = status.split('.')
-        return Markup('<label title={status} class="label state-{state}">{icon} {phase}</label>'.format(status=status, state=state, phase=phase, icon=states.get(state, '?')))
 
-        return Markup('<label class="label %s">%s</label>' % (jinja_status_class(status), jinja_status_rus(status)))
+    html = {
+        'design.open':      '<label class="label-status status-design_open" title="Надо проектировать">Proj</label>',
+        'design.progress':  '<label class="label-status status-design_progress" title="Идёт проектирование"><i class="fa fa-play"></i> Proj</label>',
+        'design.pause':     '<label class="label-status status-design_pause" title="Проектирование приостановлено"><i class="fa fa-pause"></i> Proj</label>',
+
+        'dev.open':         '<label class="label-status status-dev_open" title="Надо кодить">Dev</label>',
+        'dev.progress':     '<label class="label-status status-dev_progress" title="Идёт разработка"><i class="fa fa-play"></i> Dev</label>',
+        'dev.pause':        '<label class="label-status status-dev_pause" title="Разработка приостановлена"><i class="fa fa-pause"></i> Dev</label>',
+
+        'qa.open':          '<label class="label-status status-qa_open" title="Надо тестировать">QA</label>',
+        'qa.progress':      '<label class="label-status status-qa_progress" title="Идёт тестирование"><i class="fa fa-play"></i> QA</label>',
+        'qa.pause':         '<label class="label-status status-qa_pause" title="Тестирование приостановлено"><i class="fa fa-pause"></i> QA</label>',
+        'qa.done':          '<label class="label-status status-qa_done" title="Протестировано, ошибок нет"><i class="fa fa-check"></i> QA</label>',
+
+        'review.open':      '<label class="label-status status-review_open" title="Надо ревьюить">Review</label>',
+        'review.progress':  '<label class="label-status status-review_progress" title="Идёт ревью"><i class="fa fa-play"></i> Review</label>',
+        'review.pause':     '<label class="label-status status-review_pause" title="Ревью приостановлено"><i class="fa fa-pause"></i> Review</label>',
+        'review.done':      '<label class="label-status status-review_done" title="Ревью готово, добработок нет"><i class="fa fa-check"></i> Review</label>',
+
+        'debug.open':       '<label class="label-status status-debug_open" title="Надо допилить">Debug</label>',
+        'debug.progress':   '<label class="label-status status-debug_progress" title="Идёт допил"><i class="fa fa-play"></i> Debug</label>',
+        'debug.pause':      '<label class="label-status status-debug_pause" title="Допил приостановлен"><i class="fa fa-pause"></i> Debug</label>',
+
+        'release.open':       '<label class="label-status status-release_open" title="Надо релизить">Release</label>',
+        'release.progress':   '<label class="label-status status-release_progress" title="Идёт релиз"><i class="fa fa-play"></i> Release</label>',
+        'release.pause':      '<label class="label-status status-release_pause" title="Релиз приостановлен"><i class="fa fa-pause"></i> Release</label>',
+
+        'complete': '<label class="label-status status-complete" title="Готово: на проде, в релизе">Complete</label>',
+        'canceled': '<label class="label-status status-canceled" title="Задача отменена, причина — в комментах">Canceled</label>'
+    }
+
+    return Markup(html.get(status, status))
+
+    phase, state = status.split('.')
+    return Markup('<label title={status} class="label phase-{phase} state-{state}">{icon} {phase}</label>'
+                  .format(status=status, state=state, phase=phase, icon=states.get(state, '?')))
+
+    return Markup('<label class="label %s">%s</label>' % (jinja_status_class(status), jinja_status_rus(status)))
 
 
 def jinja_bug_status_label(status):

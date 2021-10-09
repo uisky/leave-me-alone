@@ -82,7 +82,7 @@
             <a href="{{ url_for('.member', project_id=project.id, member_id=member.user_id) }}">{{ member.user.name }}</a>
         </td>
             {% if stat[member.user_id] %}
-                {% for status in ('open', 'progress', 'pause', 'review', 'done', 'canceled') %}
+                {% for status in ('dev.open', 'dev.progress', 'proj.open', 'qa.open', 'complete', 'canceled') %}
                     {% set count = stat[member.user_id].get(status, 0) %}
                     <td class="status-cnt">
                     {% if count %}
