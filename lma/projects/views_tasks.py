@@ -154,7 +154,7 @@ def tasks(project_id):
         selected = None
         form_edit = None
 
-    empty = Task(project_id=project.id, status='dev.open', importance=0)
+    empty = Task(project_id=project.id, status='design.open', importance=0)
     if selected:
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)

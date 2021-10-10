@@ -128,8 +128,10 @@ label.label-status {
     white-space: nowrap;
     vertical-align: baseline;
     border-radius: .25em;
+    margin: 0;
 }
 label.label-status i.fa-pause, label.label-status i.fa-check { float: right! important; margin-top: 2px; }
+label.label-status i.fa-pause { animation: blink .5s infinite ease alternate; }
 
 label.status-design_open { border: 1px solid #5CC0DE; color: #5CC0DE; }
 label.status-design_progress { background-color: #5CC0DE; color: white; }
@@ -137,7 +139,7 @@ label.status-design_pause { background-color: #5CC0DE; color: white; }
 
 label.status-dev_open { border: 1px solid #2882BB; color: #2882BB; }
 label.status-dev_progress { background-color: #2882BB; color: white; }
-label.status-dev_pause { background-color: #89b1cb; color: white; }
+label.status-dev_pause { background-color: #2882BB; color: white; }
 
 label.status-qa_open { border: 1px solid #EEAC4D; color: #EEAC4D; }
 label.status-qa_progress { background-color: #EEAC4D; color: white; }
@@ -162,12 +164,17 @@ label.status-canceled { background-color: #CED1D6; color: white; }
 
 
 
-.phase-design { background-color: #b3d2de; }
-.phase-dev { background-color: #5bc0de; }
-.phase-qa { background-color: #deae77; }
-.phase-review { background-color: #de6f7d; }
+.phase-design { background-color: #5CC0DE; color: white; }
+.phase-dev { background-color: #2882BB; color: white; }
+.phase-qa { background-color: #EEAC4D; color: white; }
+.phase-review { background-color: #A950AB; color: white; }
+.phase-debug { background-color: #2882BB; color: white; }
+.phase-release { background-color: #5DB55C; color: white; }
 
-.state-open { background-color: #5bc0de; }
-.state-progress { background-color: #25aa25; }
-.state-pause { background-color: #deae77; }
-.state-done { background-color: #6e41de; }
+.phase-complete { background-color: #BAE0BA; }
+.phase-canceled { background-color: #CED1D6; }
+
+.state-open { }
+.state-progress { }
+.state-pause { }
+.state-done { }

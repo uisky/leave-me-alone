@@ -252,17 +252,26 @@
                         </div>
                     {% endif %}
 
-                    <pre>{{ selected.status }} => {{ membership.can('task.set-status', selected) }}</pre>
                     {% if membership.can('task.set-status', selected) %}
-                        <h1>Статус</h1>
                     <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status">
+                        <p>
                         {% for status in selected.allowed_statuses(current_user, membership) %}
-                            <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}">
-                                {{ status|status_rus }}
+                            {% if loop.index0 == 0 %}
+                                {% set prev_phase = '' %}
+                            {% else %}
+                                {% set prev_phase = selected.allowed_statuses(current_user, membership)[loop.index0 - 1].split('.')[0] %}
+                            {% endif %}
+
+                            {% if status.split('.')[0] != prev_phase %}
+                                </p><p>
+                            {% endif %}
+                            <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}" title="Задача получит статус «{{ status }}»">
+                                {{ status|status_button_text(selected) }}
                             </button>
                         {% endfor %}
+                        </p>
                     </form>
                     {% endif %}
                 </div>

@@ -21,8 +21,10 @@ def jinja_markdown(x):
 
 
 def jinja_status_class(status):
-    return 'label-default'
-    return 'status-%s' % status
+    if '.' in status:
+        phase, state = status.split('.')
+        return 'phase-{} state-{}'.format(phase, state)
+    return 'phase-{}'.format(status)
 
 
 def jinja_status_rus(status):
@@ -51,6 +53,198 @@ def jinja_status_rus(status):
         'canceled': 'Отменено'
     }
     return meanings.get(status, status)
+
+
+def status_button_text(new_status, task):
+    button_texts = {
+        'design.open': {
+            'design.progress': 'Начать проектирование',
+            'dev.open': 'Отдать в разработку',
+            'canceled': 'Отменить задачу'
+        },
+        'design.progress': {
+            'design.open': 'Бросить проектирование',
+            'design.pause': 'Поставить на паузу',
+            'dev.open': 'Отдать в разработку',
+            'canceled': 'Отменить задачу'
+        },
+        'design.pause': {
+            'design.open': 'Бросить проектирование',
+            'design.progress': 'Продолжить проектирование',
+            'dev.open': 'Отдать в разработку',
+            'canceled': 'Отменить задачу'
+        },
+
+        'dev.open': {
+            'design.open': 'Вернуть на допроектирование',
+            'dev.progress': 'Начать разработку',
+            'complete': 'Всё уже готово',
+            'canceled': 'Отменить задачу'
+        },
+        'dev.progress': {
+            'design.open': 'Вернуть на допроектирование',
+            'dev.open': 'Бросить разработку',
+            'dev.pause': 'Поставить на паузу',
+            'qa.open': 'Попросить QA',
+            'review.open': 'Попросить ревью',
+            'release.open': 'Отдать на релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу'
+        },
+        'dev.pause': {
+            'design.open': 'Вернуть на допроектирование',
+            'dev.open': 'Бросить разработку',
+            'dev.progress': 'Продолжить разработку',
+            'qa.open': 'Попросить QA',
+            'review.open': 'Попросить ревью',
+            'release.open': 'Отдать на релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу'
+        },
+
+        'qa.open': {
+            'dev.progress': 'Отменить тестирование и вернуть в разработку',
+            'qa.progress': 'Начать тестирование',
+        },
+        'qa.progress': {
+            'dev.progress': 'Отменить тестирование и вернуть в разработку',
+            'qa.open': 'Отказаться от тестирования',
+            'qa.pause': 'Поставить на паузу',
+            'qa.done': 'Протестировано, багов нет',
+            'debug.open': 'Отправить на допиливание',
+            'canceled': 'Отменить задачу',
+        },
+        'qa.pause': {
+            'dev.progress': 'Отменить тестирование и вернуть в разработку',
+            'qa.open': 'Отказаться от тестирования',
+            'qa.progress': 'Продолжить тестирование',
+            'qa.done': 'Протестировано, багов нет',
+            'debug.open': 'Отправить на допиливание',
+            'canceled': 'Отменить задачу',
+        },
+        'qa.done': {
+            'dev.progress': 'Продолжить разработку',
+            'review.open': 'Отправить на ревью',
+            'qa.open': 'Протестировать заново',
+            'release.open': 'Отправить на релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+
+        'review.open': {
+            'dev.progress': 'Отменить ревью и вернуть в разработку',
+            'review.progress': 'Начать ревью',
+        },
+        'review.progress': {
+            'dev.progress': 'Отменить ревью и вернуть в разработку',
+            'review.open': 'Отказаться от ревью',
+            'review.pause': 'Поставить на паузу',
+            'review.done': 'Ревью закончено, допиливать не надо',
+            'debug.open': 'Отправить на допиливание',
+            'canceled': 'Отменить задачу',
+        },
+        'review.pause': {
+            'dev.progress': 'Отменить ревью и вернуть в разработку',
+            'review.open': 'Отказаться от ревью',
+            'review.progress': 'Продолжить ревью',
+            'review.done': 'Ревью закончено, допиливать не надо',
+            'debug.open': 'Отправить на допиливание',
+            'canceled': 'Отменить задачу',
+        },
+        'review.done': {
+            'dev.progress': 'Продолжить разработку',
+            'qa.open': 'Отправить на тестирование',
+            'review.open': 'Переревьюить',
+            'release.open': 'Отправить на релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+
+        'debug.open': {
+            'dev.open': 'Веруть в разработку',
+            'debug.progress': 'Начать допиливание',
+            'qa.open': 'Вернуть на тестирование',
+            'review.open': 'Вернуть на ревью',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+        'debug.progress': {
+            'debug.open': 'Отказаться от допиливания',
+            'debug.pause': 'Поставить на паузу',
+            'qa.open': 'Отправить на тестирование',
+            'review.open': 'Отправить на ревью',
+            'release.open': 'Отправить на релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+        'debug.pause': {
+            'debug.open': 'Отказаться от допиливания',
+            'debug.progress': 'Продолжить допиливание',
+            'qa.open': 'Отправить на тестирование',
+            'review.open': 'Отправить на ревью',
+            'release.open': 'Отправить на релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+
+        'release.open': {
+            'debug.open': 'Отправить на допиливание',
+            'release.progress': 'Начать релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+        'release.progress': {
+            'debug.open': 'Отправить на допиливание',
+            'release.open': 'Отказаться от релиза',
+            'release.pause': 'Поставить на паузу',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+        'release.pause': {
+            'debug.open': 'Отправить на допиливание',
+            'release.open': 'Отказаться от релиза',
+            'release.progress': 'Продолжить релиз',
+            'complete': 'Всё готово',
+            'canceled': 'Отменить задачу',
+        },
+
+        'complete': {
+            'design.open': 'Вернуть на перепроектирование',
+            'dev.open': 'Вернуть в разработку',
+            'qa.open': 'Вернуть на тестирование',
+            'review.open': 'Вернуть на ревью',
+            'canceled': 'Отменить задачу'
+        },
+        'canceled': {
+            'design.open': 'Вернуть на перепроектирование',
+            'dev.open': 'Вернуть в разработку',
+            'complete': 'Всё готово'
+        },
+
+    }
+    """Возвращает текст для кнопки перевода задачи task в статус new_status"""
+
+    text = button_texts.get(task.status, {}).get(new_status, new_status)
+    if new_status.endswith('.pause'):
+        text = '<i class="fa fa-pause"></i> ' + text
+
+    return Markup(text)
+
+
+def jinja_bug_status_label(status):
+    if status is None:
+        return ''
+
+    statuses = {
+        'open': 'Открыто',
+        'progress': 'Чиним',
+        'pause': 'Пауза',
+        'test': 'Проверяйте',
+        'fixed': 'Починено',
+        'canceled': 'Отменено'
+    }
+
+    return Markup('<label class="label bug-%s">%s</label>' % (status, statuses.get(status, status)))
 
 
 def jinja_status_label(status):
@@ -89,28 +283,6 @@ def jinja_status_label(status):
     }
 
     return Markup(html.get(status, status))
-
-    phase, state = status.split('.')
-    return Markup('<label title={status} class="label phase-{phase} state-{state}">{icon} {phase}</label>'
-                  .format(status=status, state=state, phase=phase, icon=states.get(state, '?')))
-
-    return Markup('<label class="label %s">%s</label>' % (jinja_status_class(status), jinja_status_rus(status)))
-
-
-def jinja_bug_status_label(status):
-    if status is None:
-        return ''
-
-    statuses = {
-        'open': 'Открыто',
-        'progress': 'Чиним',
-        'pause': 'Пауза',
-        'test': 'Проверяйте',
-        'fixed': 'Починено',
-        'canceled': 'Отменено'
-    }
-
-    return Markup('<label class="label bug-%s">%s</label>' % (status, statuses.get(status, status)))
 
 
 def jinja_importance_icon(x):
@@ -200,6 +372,7 @@ def init_jinja_filters(app):
     app.add_template_filter(jinja_status_class, 'status_class')
     app.add_template_filter(jinja_status_rus, 'status_rus')
     app.add_template_filter(jinja_status_label, 'status_label')
+    app.add_template_filter(status_button_text, 'status_button_text')
     app.add_template_filter(jinja_bug_status_label, 'bug_status_label')
     app.add_template_filter(jinja_importance_icon, 'importance_icon')
     app.add_template_filter(character_icon, 'character_icon')
