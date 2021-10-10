@@ -46,7 +46,7 @@ def history(project_id):
     # Считаем статистику: количество
     q_stat = history.with_entities(_dcreated, db.func.count('*')).group_by(_dcreated).order_by(None)
     stat, project_start, project_stop = {}, date.today(), project.created.date()
-    for day, cnt in q_stat:
+    for day, cnt in q_stat.all():
         project_start = min(project_start, day)
         project_stop = max(project_stop, day)
         stat[day.strftime('%d.%m.%Y')] = cnt

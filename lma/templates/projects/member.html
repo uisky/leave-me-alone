@@ -10,6 +10,7 @@
 {% block head %}
 <style type="text/css">
     .btn.active { font-weight: bold; border: 2px solid black;}
+    #form-filter .statuses button { margin: 0 5px 5px 0; }
 </style>
 {% endblock %}
 
@@ -17,31 +18,29 @@
 {% block content %}
 <h1>Участие {{ member.user.name }} в {{ project.name }}</h1>
 
-<form id="form-filter" method="get" class="form-inline" style="margin-bottom: 20px;">
-    <a href="{{ url_for('.about', project_id=project.id) }}" class="btn btn-default btn-sm">
-        <span class="fa fa-chevron-circle-left"></span>
-        Назад
-    </a>
+<form id="form-filter" method="get" class="form-horizontal" style="margin-bottom: 20px;">
     <div class="form-group">
-        {{ filters.status() }}
-        {% for st in g.Task.STATUSES %}
-            <button type="button"
-                    class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in statuses %}active{% endif %}"
-                    data-status="{{ st }}">
-                {{ st|status_rus }}
-            </button>
-        {% endfor %}
+        <div class="col-sm-6">
+            {% if project.has_sprints %}
+                {{ filters.sprint(class='form-control', style='width: 200px') }}
+            {% endif %}
+        </div>
+        <div class="col-sm-6 text-right">
+            <button type="submit" class="btn btn-primary">Показать</button>
+        </div>
     </div>
-
-    {% if project.has_sprints %}
-    <div class="form-group">
-        {{ filters.sprint(class='form-control') }}
+    <div class="form-group statuses">
+        <div class="col-sm-12">
+            {{ filters.status() }}
+            {% for st in g.Task.STATUSES %}
+                <button type="button"
+                        class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in statuses %}active{% endif %}"
+                        data-status="{{ st }}">
+                    {{ st|status_rus }}
+                </button>
+            {% endfor %}
+        </div>
     </div>
-    {% endif %}
-
-    <button type="submit" class="btn btn-primary pull-right">
-        Показать
-    </button>
 </form>
 
 {% if not tasks.total %}
