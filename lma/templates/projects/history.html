@@ -14,6 +14,8 @@
     #form-filter .btn-filter-status.active { opacity: 1; }
     #form-filter .datepick { width: 130px; }
 
+    #form-filter .statuses button { width: 150px; margin-bottom: 3px; text-align: left; }
+
     .bootstrap-datetimepicker-widget table td.has-events { /* background-color: #9fffa3; */}
     .bootstrap-datetimepicker-widget table td.active { border: 2px solid black; padding: 3px; color: #000; background-color: inherit; }
     .bootstrap-datetimepicker-widget table td.active:hover { color: #000; }
@@ -36,7 +38,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-sm-2">
+        <div class="col-sm-2 statuses">
             {{ filters.status() }}
             {% set selected = (filters.status.data or '').split(',') %}
             <div class="list-group">
@@ -84,7 +86,7 @@
             <td>{{ row.created.strftime('%d.%m.%Y %H:%M') }}</td>
             <td><a href="{{ url_for('.history', project_id=project.id, user_id=row.user_id) }}">{{ row.user.name }}</a></td>
             <td>{{ row.status|status_label }}</td>
-            <td class="t"><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.subject }}</a></td>
+            <td class="t"><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.path }}</a></td>
         </tr>
         {% endfor %}
     </table>

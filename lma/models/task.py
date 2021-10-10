@@ -13,7 +13,16 @@ from lma.core import db, storage
 class Task(db.Model, storage.Entity):
     __tablename__ = 'tasks'
 
-    STATUSES = ('planning', 'open', 'progress', 'pause', 'review', 'tested', 'done', 'canceled')
+    STATUSES = (
+        'design.open', 'design.progress', 'design.pause',
+        'dev.open', 'dev.progress', 'dev.pause',
+        'qa.open', 'qa.progress', 'qa.pause', 'qa.done',
+        'review.open', 'review.progress', 'review.pause', 'review.done',
+        'debug.open', 'debug.progress', 'debug.pause',
+        'release.open', 'release.progress', 'release.pause',
+        'complete',
+        'canceled'
+    )
     ENUM_STATUS = ENUM(*STATUSES, name='task_status')
 
     IMPORTANCE = OrderedDict([
@@ -48,7 +57,7 @@ class Task(db.Model, storage.Entity):
     parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
                           index=True)
 
-    status = db.Column(ENUM_STATUS, default='open')
+    status = db.Column(ENUM_STATUS, default='design.open')
     # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
     importance = db.Column(db.SmallInteger, nullable=False, server_default='0', default=0)
     # Тип задачи: баг, фича, подумать
@@ -97,36 +106,30 @@ class Task(db.Model, storage.Entity):
         if self.status is None:
             return []
 
-        if user.id == self.user_id or (membership and 'lead' in membership.roles):
-            # Владелец задачи или вождь. Права ограничены здравым смыслом.
-            variants = {
-                'planning': ('open', 'progress'),
-                'open': ('progress', 'done', 'canceled', 'planning'),
-                'progress': ('done', 'review', 'pause', 'open', 'canceled', 'planning'),
-                'pause': ('open', 'progress', 'done', 'canceled', 'planning'),
-                'review': ('open', 'done', 'tested', 'canceled'),
-                'tested': ('open', 'progress', 'done', 'canceled'),
-                'done': ('open', 'review', 'planning'),
-                'canceled': ('open', 'planning')
-            }
-        elif user.id == self.assigned_id:
-            # Назначенный исполнитель
-            variants = {
-                'planning': ('open', 'progress'),
-                'open': ('progress', 'review'),
-                'progress': ('open', 'pause', 'review', 'done', 'canceled'),
-                'pause': ('progress',),
-                'review': ('open', 'progress'),
-                'tested': ('open', 'progress', 'done', 'canceled'),
-                'done': ('open', 'review', 'canceled'),
-                'canceled': ('open',)
-            }
-        elif membership and 'tester' in membership.roles:
-            variants = {
-                'review': ('tested', )
-            }
-        else:
-            return ()
+        variants = {
+            'design.open': ('design.progress', 'dev.open', 'canceled'),
+            'design.progress': ('design.open', 'design.pause', 'dev.open', 'canceled'),
+            'design.pause': ('design.open', 'design.progress', 'dev.open', 'canceled'),
+            'dev.open': ('design.open', 'dev.progress', 'complete', 'canceled'),
+            'dev.progress': ('design.open', 'dev.open', 'dev.pause', 'qa.open', 'review.open', 'release.open', 'complete', 'canceled'),
+            'dev.pause': ('design.open', 'dev.open', 'dev.progress', 'qa.open', 'review.open', 'release.open', 'complete', 'canceled'),
+            'qa.open': ('dev.progress', 'qa.progress'),
+            'qa.progress': ('dev.progress', 'qa.open', 'qa.pause', 'qa.done', 'debug.open', 'canceled'),
+            'qa.pause': ('dev.progress', 'qa.open', 'qa.progress', 'qa.done', 'debug.open', 'canceled'),
+            'qa.done': ('dev.progress', 'review.open', 'qa.open', 'release.open', 'complete', 'canceled'),
+            'review.open': ('dev.progress', 'review.progress'),
+            'review.progress': ('dev.progress', 'review.open', 'review.pause', 'review.done', 'debug.open', 'canceled'),
+            'review.pause': ('dev.progress', 'review.open', 'review.progress', 'review.done', 'debug.open', 'canceled'),
+            'review.done': ('dev.progress', 'qa.open', 'review.open', 'release.open', 'complete', 'canceled'),
+            'debug.open': ('dev.open', 'debug.progress', 'qa.open', 'review.open', 'complete', 'canceled'),
+            'debug.progress': ('debug.open', 'debug.pause', 'qa.open', 'review.open', 'release.open', 'complete', 'canceled'),
+            'debug.pause': ('debug.open', 'debug.progress', 'qa.open', 'review.open', 'release.open', 'complete', 'canceled'),
+            'release.open': ('debug.open', 'release.progress', 'complete', 'canceled'),
+            'release.progress': ('debug.open', 'release.open', 'release.pause', 'complete', 'canceled'),
+            'release.pause': ('debug.open', 'release.open', 'release.progress', 'complete', 'canceled'),
+            'complete': ('design.open', 'dev.open', 'qa.open', 'canceled'),
+            'canceled': ('design.open', 'dev.open', 'qa.open', 'complete'),
+        }
 
         return variants.get(self.status, ())
 

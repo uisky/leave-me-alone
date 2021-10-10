@@ -1,5 +1,5 @@
 {% extends 'project.html' %}
-{% from '_macros.html' import status_bar, member_link %}
+{% from '_macros.html' import member_link %}
 
 {% set menu_current = 'tasks' %}
 {% if selected %}
@@ -46,10 +46,7 @@
                 <button type="button" class="btn btn-xs" id="btn-toggle-collapsed" title="Свернуть/развернуть всё"><i class="fa fa-plus"></i></button>
                 <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
             </div>
-            <div class="col-sm-2">
-            </div>
-            <div class="col-sm-6">
-                {{ status_bar(stats) }}
+            <div class="col-sm-8">
             </div>
             <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
             </div>
@@ -59,7 +56,7 @@
         {% if not tasks %}
             <div class="alert alert-box alert-info">
                 {% if project.has_sprints %}
-                    Веха пуста. Посмотрите в других вехах:
+                    Доска пуста. Посмотрите в других досках:
                     <ul>
                         {% for sprint in project.sprints %}
                         <li>
@@ -168,7 +165,7 @@
                                 <small>{{ task.status }}</small>
                             {% else %}
                                 {% if task.children_statuses %}
-                                    <small>{{ task.children_statuses['complete'] }}%</small>
+                                    <small>{{ task.children_statuses['ready'] }}%</small>
                                 {% else %}
                                     {{ task.status|status_label }}
                                 {% endif %}
@@ -182,7 +179,7 @@
 
         {% if membership.can('project.task-level-0') %}
             <p style="margin: 10px 0">
-                <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
+                <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning">Поставить задачу в корень</a>
             </p>
         {% endif %}
     </div>
@@ -232,7 +229,7 @@
                         {% if selected.assigned_id %}
                             &rarr; {{ member_link(project, selected.assignee) }}
                         {% endif %}
-                        {{ selected.status|status_label     }}
+                        {{ selected.status|status_label }}
                         {% if selected.deadline %}
                             <p>
                                 Дедлайн:
@@ -256,11 +253,23 @@
                     <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status">
-                        {% for status in selected.allowed_statuses(current_user, membership) %}
-                            <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}">
-                                {{ status|status_rus }}
+                        <p>
+                        {% set allowed_statuses = selected.allowed_statuses(current_user, membership) %}
+                        {% for status in allowed_statuses %}
+                            {% if loop.index0 == 0 %}
+                                {% set prev_phase = '' %}
+                            {% else %}
+                                {% set prev_phase = allowed_statuses[loop.index0 - 1].split('.')[0] %}
+                            {% endif %}
+
+                            {% if status.split('.')[0] != prev_phase %}
+                                </p><p>
+                            {% endif %}
+                            <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}" title="Задача получит статус «{{ status }}»">
+                                {{ status|status_button_text(selected) }}
                             </button>
                         {% endfor %}
+                        </p>
                     </form>
                     {% endif %}
                 </div>
@@ -328,7 +337,7 @@
                                     <button type="button" class="btn btn-info" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
                                 {% endif %}
                                 {% if membership.can('task.sprint', selected) %}
-                                    <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint"><i class="fa fa-map"></i> В другую веху</button>
+                                    <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint"><i class="fa fa-map"></i> На другую доску</button>
                                 {% endif %}
                             </div>
                         </div>
@@ -373,7 +382,7 @@
                         <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую веху</h4>
+                            <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую доску</h4>
                         </div>
                         <div class="modal-body">
                             {% for sprint in project.sprints %}

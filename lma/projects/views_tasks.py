@@ -77,28 +77,13 @@ def load_tasks_tree(project, options):
     for tag in q.all():
         tasks[tag.task_id].tags.append(tag)
 
-    # Сводная стстиатика по всему спринту
-    stats = {}
-    max_deadline = None
+    # Приводим children_statuses к процентам
     for id_, task in tasks.items():
         if task.children_statuses:
             cs = task.children_statuses
-            cs['complete'] = int((cs.get('done', 0) + cs.get('canceled', 0)) / sum(cs.values()) * 100)
+            cs['ready'] = int((cs.get('complete', 0) + cs.get('canceled', 0)) / sum(cs.values()) * 100)
 
-        if task.status is not None:
-            stats.setdefault(task.status, 0)
-            stats[task.status] += 1
-
-        if task.deadline is not None:
-            if max_deadline is None:
-                max_deadline = task.deadline
-            else:
-                max_deadline = max(task.deadline, max_deadline)
-
-    stats['total'] = sum(stats.values())
-    stats['max_deadline'] = max_deadline
-
-    return tasks, seen, stats
+    return tasks, seen
 
 
 def set_tags(task, tagslist):
@@ -122,10 +107,10 @@ def tasks(project_id):
 
     options = forms.OutputOptions(request.args)
 
-    # Текущая веха, если проект с вехами
+    # Текущая доска, если проект с досками
     if project.has_sprints:
         # sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
-        options.sprint.choices = [(x.id, x.name) for x in project.sprints] + [(0, 'Вне вех')]
+        options.sprint.choices = [(x.id, x.name) for x in project.sprints] + [(0, 'Вне досок')]
         if 'sprint' not in request.args:
             options.sprint.data = int(request.cookies.get('sprint', '0'))
 
@@ -135,7 +120,7 @@ def tasks(project_id):
             expires=datetime(2029, 8, 8)
         )
 
-    tasks, seen, stats = load_tasks_tree(project, options)
+    tasks, seen = load_tasks_tree(project, options)
 
     # Выбранная задача
     task_id = request.args.get('task', type=int)
@@ -154,7 +139,7 @@ def tasks(project_id):
         selected = None
         form_edit = None
 
-    empty = Task(project_id=project.id, status='open', importance=0)
+    empty = Task(project_id=project.id, status='design.open', importance=0)
     if selected:
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)
@@ -163,7 +148,7 @@ def tasks(project_id):
     return render_template(
         'projects/tasks_%s.html' % project.type,
         project=project, membership=membership, options=options,
-        tasks=list(tasks.values()), stats=stats,
+        tasks=list(tasks.values()),
         selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit,
         seen=seen
     )
@@ -278,7 +263,7 @@ def task_subtask(project_id, parent_id=None):
             abort(403, 'Вы не можете создавать задачи 1-го уровня в этом проекте.')
         parent = None
 
-    task = Task(project_id=project.id, user_id=current_user.id, status='open')
+    task = Task(project_id=project.id, user_id=current_user.id)
     form = forms.TaskForm(obj=task)
 
     # Строим URL, куда пойти после добавления задачи
@@ -314,7 +299,7 @@ def task_subtask(project_id, parent_id=None):
 
         # История!
         db.session.flush()
-        hist = TaskHistory(task_id=task.id, status='open', user_id=task.user_id)
+        hist = TaskHistory(task_id=task.id, status=task.status, user_id=task.user_id)
         db.session.add(hist)
 
         db.session.commit()
@@ -373,9 +358,9 @@ def task_sprint(project_id, task_id):
     old_sprint = task.sprint_id
 
     if not membership.can('task.sprint', task):
-        abort(403, 'Вы не можете перенести эту задачу в другую веху.')
+        abort(403, 'Вы не можете перенести эту задачу на другую доску.')
 
-    # В какую веху переносим
+    # В какую доску переносим
     sprint_id = request.form.get('sprint_id', type=int)
     if sprint_id == 0:
         sprint_id = None

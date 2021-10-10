@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block h1 %}
-<h1>Вехи проекта</h1>
+<h1>Доски проекта</h1>
 {% endblock %}
 
 {% block content %}
@@ -15,17 +15,17 @@
 
 {% if not project.has_sprints %}
     <p>
-        Вехи — это типа подпроектов или, извините за выражение, спринтов. Когда задач становится слишком много,
-        их бывает удобно разделить. У каждой вехи своя статистика, а переключаться между ними можно в выпадающей
-        менюшке в дереве задач. Создавать вехи может только владелец проекта.
+        Доски — это типа подпроектов. Когда задач становится слишком много,
+        их бывает удобно разделить. У каждой доски своя статистика, а переключаться между ними можно в выпадающей
+        менюшке в дереве задач. Создавать доски может только владелец проекта.
     </p>
     <form method="post" action="{{ purl_for('.sprints_onoff') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="has_sprints" value="Илья, ты пиздян.">
-        <button type="submit" class="btn btn-primary">Включить вехи</button>
+        <button type="submit" class="btn btn-primary">Использовать доски</button>
     </form>
     <p class="help-block">
-        Вы всегда можете отменить вехи.
+        Вы всегда можете отменить доски.
     </p>
 {% else %}
     {% if sprints %}
@@ -59,11 +59,11 @@
         </tbody>
         </table>
     {% else %}
-        <div class="alert alert-info">В проекте ещё нет ни одной вехи.</div>
+        <div class="alert alert-info">В проекте ещё нет ни одной доски.</div>
     {% endif %}
 
-    <a href="#modal-add" data-toggle="modal" class="btn btn-success"> <i class="fa fa-plus-circle"></i> Добавить веху</a>
-    <a href="#modal-sprints-off" data-toggle="modal" class="btn btn-danger"> <i class="fa fa-remove"></i> Отказаться от вех</a>
+    <a href="#modal-add" data-toggle="modal" class="btn btn-success"> <i class="fa fa-plus-circle"></i> Добавить доску</a>
+    <a href="#modal-sprints-off" data-toggle="modal" class="btn btn-danger"> <i class="fa fa-remove"></i> Отказаться от досок</a>
 {% endif %}
 {% endblock %}
 
@@ -77,11 +77,11 @@
         <div class="modal" id="modal-sprints-off"><div class="modal-dialog"><div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                <h4 class="modal-title">Отказаться от вех</h4>
+                <h4 class="modal-title">Отказаться от досок</h4>
             </div>
             <div class="modal-body">
                 <p>
-                    Если вы потом решите вернуть вехи, то задачи останутся в своих вехах.
+                    Если вы потом решите вернуть доски, то задачи останутся на своих досках.
                 </p>
             </div>
             <div class="modal-footer">
@@ -96,7 +96,7 @@
     <div class="modal" id="modal-add"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-            <h4 class="modal-title">Создать веху</h4>
+            <h4 class="modal-title">Создать доску</h4>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -116,7 +116,7 @@
     <div class="modal" id="modal-edit"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-            <h4 class="modal-title">Свойства вехи</h4>
+            <h4 class="modal-title">Свойства доски</h4>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -136,10 +136,10 @@
     <div class="modal" id="modal-delete"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-            <h4 class="modal-title">Удалить веху?</h4>
+            <h4 class="modal-title">Удалить доску?</h4>
         </div>
         <div class="modal-body">
-            Если в ней были задачи, они останутся доступными, но попадут в раздел "Вне вех".
+            Если в ней были задачи, они останутся доступными, но попадут в раздел "Вне досок".
         </div>
         <div class="modal-footer">
             <button type="submit" class="btn btn-danger">Да</button>

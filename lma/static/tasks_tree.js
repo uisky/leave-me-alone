@@ -56,7 +56,7 @@
         $tree.off('click', 'a', swapSelectTask);
     });
 
-    // Перенести в другую веху
+    // Перенести в другую доску
     $('#form-sprint .act-select-sprint').on('click', function(e) {
         $('#form-sprint button.act-select-sprint.btn-primary').removeClass('btn-primary').addClass('btn-default');
         $(this).removeClass('btn-default').addClass('btn-primary');

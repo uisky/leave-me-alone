@@ -72,7 +72,7 @@ class Bug(db.Model):
                     ('open', 'Вернуть баг'),
                 )
             }
-        elif user.id == self.reporter_id or (membership and 'tester' in membership.roles):
+        elif user.id == self.reporter_id or (membership and 'qa' in membership.roles):
             # Тестировщик
             variants = {
                 'open': (

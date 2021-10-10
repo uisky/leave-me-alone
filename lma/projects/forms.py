@@ -16,7 +16,7 @@ class ProjectPropertiesForm(FlaskForm):
     name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[strip_field])
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
     # type = RadioField('Тип', [v.required()], choices=PROJECT_TYPES)
-    # has_sprints = BooleanField('Использовать вехи')
+    # has_sprints = BooleanField('Использовать доски')
 
 
 class ProjectAccessForm(FlaskForm):
@@ -41,7 +41,7 @@ class OutputOptions(FlaskForm):
             ('custom', 'Как сам расставил'),
         ])
 
-    sprint = SelectField('Веха', [v.optional()], default=0, coerce=int)
+    sprint = SelectField('Доска', [v.optional()], default=0, coerce=int)
 
 
 class TaskForm(FlaskForm):
@@ -59,8 +59,12 @@ class TaskForm(FlaskForm):
                             choices=[(0, '')] + [(x['id'], x['name']) for x in Task.CHARACTERS.values()],
                             coerce=int)
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
-    status = SelectField('Начальный статус', [v.optional()],
-                            choices=[('open', 'To-Do'), ('planning', 'Планирование')], default=None)
+    status = SelectField(
+        'Начальный статус',
+        [v.optional()],
+        choices=[('design.open', 'Надо проектировать'), ('dev.open', 'Можно разрабатывать'), ('qa.open', 'Надо потестить')],
+        default=None
+    )
 
 
 class BugForm(FlaskForm):
@@ -69,7 +73,7 @@ class BugForm(FlaskForm):
 
 
 class SprintPropertiesForm(FlaskForm):
-    name = StringField('Название', [v.required(message='У вехи должно быть название')], filters=[strip_field])
+    name = StringField('Название', [v.required(message='У доски должно быть название')], filters=[strip_field])
 
 
 class KarmaRecordForm(FlaskForm):
@@ -89,7 +93,7 @@ class MemberFiltersForm(FiltersForm):
     __remember_fields__ = ['sprint']
 
     status = HiddenField('Статусы', default='')
-    sprint = SelectField('Веха', default='')
+    sprint = SelectField('Доска', default='')
 
 
 class BugsFilterForm(FiltersForm):

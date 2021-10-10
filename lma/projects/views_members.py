@@ -25,7 +25,7 @@ def member(project_id, member_id):
     project, membership = load_project(project_id)
 
     filters = forms.MemberFiltersForm(request.args)
-    filters.sprint.choices = [('', 'Все')] + [(sprint.id, sprint.name) for sprint in project.sprints] + [('-', 'Вне вех')]
+    filters.sprint.choices = [('', 'Все')] + [(sprint.id, sprint.name) for sprint in project.sprints] + [('-', 'Вне досок')]
 
     member = ProjectMember.query.get_or_404((member_id, project_id))
 
@@ -33,15 +33,16 @@ def member(project_id, member_id):
         .outerjoin(Task.sprint)\
         .options(db.contains_eager(Task.sprint))\
         .filter(Task.project_id == project.id)\
-        .filter(db.or_(Task.assigned_id == member.user_id,
-                       db.and_(Task.assigned_id == None, Task.user_id == member.user_id)))\
+        .filter(db.or_(Task.assigned_id == member.user_id))\
         .order_by(Sprint.sort.desc().nullslast(), Task.deadline.nullslast(), Task.mp)
 
     statuses = filters.status.data
     if statuses:
         statuses = statuses.split(',')
     else:
-        statuses = ['open', 'progress', 'pause', 'review']
+        statuses = list(Task.STATUSES)
+        statuses.pop(statuses.index('complete'))
+        statuses.pop(statuses.index('canceled'))
     query = query.filter(Task.status.in_(statuses))
 
     if project.has_sprints:
