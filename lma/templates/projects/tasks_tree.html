@@ -1,5 +1,5 @@
 {% extends 'project.html' %}
-{% from '_macros.html' import status_bar, member_link %}
+{% from '_macros.html' import member_link %}
 
 {% set menu_current = 'tasks' %}
 {% if selected %}
@@ -46,10 +46,7 @@
                 <button type="button" class="btn btn-xs" id="btn-toggle-collapsed" title="Свернуть/развернуть всё"><i class="fa fa-plus"></i></button>
                 <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
             </div>
-            <div class="col-sm-2">
-            </div>
-            <div class="col-sm-6">
-                {{ status_bar(stats) }}
+            <div class="col-sm-8">
             </div>
             <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
             </div>
@@ -168,7 +165,7 @@
                                 <small>{{ task.status }}</small>
                             {% else %}
                                 {% if task.children_statuses %}
-                                    <small>{{ task.children_statuses['complete'] }}%</small>
+                                    <small>{{ task.children_statuses['ready'] }}%</small>
                                 {% else %}
                                     {{ task.status|status_label }}
                                 {% endif %}
@@ -182,7 +179,7 @@
 
         {% if membership.can('project.task-level-0') %}
             <p style="margin: 10px 0">
-                <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning btn-xs">Поставить задачу в корень</a>
+                <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning">Поставить задачу в корень</a>
             </p>
         {% endif %}
     </div>
