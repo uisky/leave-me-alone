@@ -10,7 +10,7 @@
         {'id': 'tasks', 'url': purl_for('.tasks'), 'title': 'Задачи'},
         {
             'id': 'my', 'url': purl_for('.member', member_id=current_user.id),
-            'title': 'Мои задачи' + tasks_stat(project, current_user) | status_counters
+            'title': 'Мои задачи' + tasks_stat(project, current_user) | status_counters(['complete', 'canceled'])
         },
         {
             'id': 'bugs', 'url': purl_for('.bugs'),

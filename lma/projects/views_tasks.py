@@ -122,10 +122,10 @@ def tasks(project_id):
 
     options = forms.OutputOptions(request.args)
 
-    # Текущая веха, если проект с вехами
+    # Текущая доска, если проект с досками
     if project.has_sprints:
         # sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
-        options.sprint.choices = [(x.id, x.name) for x in project.sprints] + [(0, 'Вне вех')]
+        options.sprint.choices = [(x.id, x.name) for x in project.sprints] + [(0, 'Вне досок')]
         if 'sprint' not in request.args:
             options.sprint.data = int(request.cookies.get('sprint', '0'))
 
@@ -373,9 +373,9 @@ def task_sprint(project_id, task_id):
     old_sprint = task.sprint_id
 
     if not membership.can('task.sprint', task):
-        abort(403, 'Вы не можете перенести эту задачу в другую веху.')
+        abort(403, 'Вы не можете перенести эту задачу на другую доску.')
 
-    # В какую веху переносим
+    # В какую доску переносим
     sprint_id = request.form.get('sprint_id', type=int)
     if sprint_id == 0:
         sprint_id = None

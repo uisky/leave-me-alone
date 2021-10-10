@@ -54,15 +54,17 @@
         <th>Роли</th>
         <th>Участник</th>
         <th colspan="6">Задачи</th>
+        {#
         <th class="karma-col">
             Карма
             <a href="#modal-help-karma" data-toggle="modal" title="WTF is karma?"><i class="fa fa-question-circle"></i></a>
         </th>
+         #}
         {% if membership.can('project.members') %}<th></th>{% endif %}
     </tr>
     </thead>
     <tbody>
-    {% set role_classes = {'lead': 'warning', 'developer': 'info', 'tester': 'success' } %}
+    {% set role_classes = {'lead': 'danger', 'developer': 'info', 'prm': 'info', 'pjm': 'success', 'qa': 'warning', 'review': 'warning' } %}
     {% for member in members %}
     <tr
             data-id="{{ member.user_id }}"
@@ -93,9 +95,11 @@
             {% else %}
                 {{ ('<td></td>' * 6) | safe }}
             {% endif %}
+        {#
         <td class="karma-col">
             <a href="{{ url_for('.karma', project_id=project.id, member_id=member.user_id) }}">{{ member.karma|minus }}</a>
         </td>
+        #}
         {% if membership.can('project.members') %}
         <td>
             <a href="#modal-edit" data-toggle="modal" class="action-edit">

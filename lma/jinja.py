@@ -29,7 +29,7 @@ def jinja_status_class(status):
 
 def jinja_status_rus(status):
     meanings = {
-        'design.open': 'Проектировать',
+        'design.open': 'Надо проектировать',
         'design.progress': 'Проектирование: идет',
         'design.pause': 'Проектирование: пауза',
         'dev.open': 'Кодить',
@@ -56,6 +56,8 @@ def jinja_status_rus(status):
 
 
 def status_button_text(new_status, task):
+    """Возвращает текст для кнопки перевода задачи task в статус new_status"""
+
     button_texts = {
         'design.open': {
             'design.progress': 'Начать проектирование',
@@ -222,7 +224,6 @@ def status_button_text(new_status, task):
         },
 
     }
-    """Возвращает текст для кнопки перевода задачи task в статус new_status"""
 
     text = button_texts.get(task.status, {}).get(new_status, new_status)
     if new_status.endswith('.pause'):
@@ -304,14 +305,14 @@ def nl2br(t):
     return Markup(t)
 
 
-def status_counters(data):
+def status_counters(data, ignore=()):
     if not isinstance(data, dict):
         return ''
 
     x = []
     for status, count in data.items():
-        if status is not None:
-            x.append('<span class="label %s">%d</span>' % (jinja_status_class(status), count))
+        if status is not None and status not in ignore:
+            x.append('<span class="label {}" title="{}">{}</span>'.format(jinja_status_class(status), status, count))
     if x:
         return Markup(' ' + ' '.join(x))
     else:
@@ -435,11 +436,9 @@ def init_jinja_filters(app):
             if user.is_authenticated:
                 query = db.session.query(Task.status, db.func.count('*'))\
                     .filter_by(project_id=project.id)\
-                    .filter(db.or_(
-                        Task.assigned_id == user.id,
-                        db.and_(Task.assigned_id == None, Task.user_id == user.id))
-                    )\
-                    .group_by(Task.status)
+                    .filter(Task.assigned_id == user.id)\
+                    .group_by(Task.status) \
+                    .order_by(Task.status)
 
                 for status, count in query.all():
                     stat[status] = count

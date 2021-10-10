@@ -109,7 +109,7 @@ def project_delete(project_id):
 def sprints(project_id):
     project, membership = load_project(project_id)
     if not membership.can('project.edit'):
-        abort(403, 'Вехами может управлять только владелец.')
+        abort(403, 'Досками может управлять только владелец.')
 
     sprints = OrderedDict()
     if project.has_sprints:
@@ -128,7 +128,7 @@ def sprints(project_id):
 def sprints_onoff(project_id):
     project, membership = load_project(project_id)
     if not membership.can('project.edit'):
-        abort(403, 'Вехами может управлять только владелец.')
+        abort(403, 'Досками может управлять только владелец.')
 
     project.has_sprints = bool(request.form.get('has_sprints', False))
     db.session.commit()
@@ -141,7 +141,7 @@ def sprints_onoff(project_id):
 def sprint_edit(project_id, sprint_id=None):
     project, membership = load_project(project_id)
     if not membership.can('project.edit'):
-        abort(403, 'Вы не можете редактировать вехи в этом проекте.')
+        abort(403, 'Вы не можете редактировать доски в этом проекте.')
 
     if sprint_id is not None:
         sprint = Sprint.query.filter_by(project_id=project.id, id=sprint_id).first()
@@ -166,7 +166,7 @@ def sprint_edit(project_id, sprint_id=None):
 def sprints_reorder(project_id):
     project, membership = load_project(project_id)
     if not membership.can('project.edit'):
-        abort(403, 'Вы не можете управлять вехами в этом проекте.')
+        abort(403, 'Вы не можете управлять досками в этом проекте.')
 
     for k, v in request.form.items():
         if k.startswith('sort.'):
@@ -183,11 +183,11 @@ def sprints_reorder(project_id):
 def sprint_delete(project_id, sprint_id=None):
     project, membership = load_project(project_id)
     if not membership.can('project.edit'):
-        abort(403, 'Вы не можете управлять вехами в этом проекте.')
+        abort(403, 'Вы не можете управлять досками в этом проекте.')
 
     sprint = Sprint.query.filter_by(project_id=project.id, id=sprint_id).first()
     if not sprint:
-        abort(404, 'Вы пытаетесь удалить веху, которой нет. Лучше похлопайте одной ладонью.')
+        abort(404, 'Вы пытаетесь удалить доску, которой нет. Лучше похлопайте одной ладонью.')
 
     db.session.execute(
         'UPDATE tasks SET sprint_id = NULL WHERE project_id = :project_id AND sprint_id = :sprint_id',

@@ -137,7 +137,7 @@ class ProjectMember(MembershipBase, db.Model):
           task.comment, task
           task.set-status, task - можно ли изменить статус задачи
           task.set-status, task, status - можно ли изменить статус задачи на status
-          task.sprint, task - можно ли перенести задачу в другую веху
+          task.sprint, task - можно ли перенести задачу в другую доску
           task.chparent, task - можно ли задаче task сменить родителя на кого-нибудь в этом проекте
           task.chparent, task, parent - можно ли задаче task сменить родителя на parent (parent = None: поставить в корень)
 
