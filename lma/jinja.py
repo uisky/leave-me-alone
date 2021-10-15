@@ -17,7 +17,7 @@ _importance_icons = {id_: x['icon'] for id_, x in Task.IMPORTANCE.items()}
 def jinja_markdown(x):
     if x is None:
         return ''
-    return Markup((mistune.html(sanitize_html(x))))
+    return Markup((sanitize_html(mistune.html(x))))
 
 
 def jinja_status_class(status):
