@@ -41,47 +41,39 @@
     <link rel="shortcut icon" href="/static/favicon.ico" />
 </head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top navbar-expand-lg">
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            {% block logo %}
-                <a class="navbar-brand" href="/">LMA</a>
-            {% endblock %}
-        </div>
+        {% block logo %}
+            <a class="navbar-brand" href="/">LMA</a>
+        {% endblock %}
 
-        <div class="collapse navbar-collapse" id="navbar-collapse">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
             {% block menu_main %}
             {% endblock %}
 
             {% if current_user.is_authenticated %}
-                <ul class="nav navbar-nav navbar-right">
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        Привет,                             {{ current_user.name }}!
+                <ul class="navbar-nav navbar-right">
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            Привет, {{ current_user.name }}!
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="/users/settings">Настройки</a></li>
-                            <li><a href="/users/logout/?next={{ request.url }}">Выйти</a></li>
+                            <li><a class="dropdown-item" href="/users/settings">Настройки</a></li>
+                            <li><a class="dropdown-item" href="/users/logout/?next={{ request.url }}">Выйти</a></li>
                         </ul>
                     </li>
                 </ul>
             {% else %}
-                <form method="post" action="/users/login/?next={{ request.url }}" class="navbar-form navbar-right">
-                    <div class="form-group">
-                        <input type="text" name="email" placeholder="E-mail" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <input type="password" name="password" placeholder="Пароль" class="form-control">
-                    </div>
+                <form method="post" action="/users/login/?next={{ request.url }}" class="d-flex">
+                    <input type="text" name="email" placeholder="E-mail" class="form-control me-2">
+                    <input type="password" name="password" placeholder="Пароль" class="form-control me-2">
                     <button type="submit" class="btn btn-success">Войти</button>
-                    <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
+                    <a href="/users/register/?next={{ request.url }}" class="btn btn-outline-success">Зарегистрироваться</a>
                 </form>
             {% endif %}
         </div>

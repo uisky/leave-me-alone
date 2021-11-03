@@ -312,7 +312,7 @@ def status_counters(data, ignore=()):
     x = []
     for status, count in data.items():
         if status is not None and status not in ignore:
-            x.append('<span class="label {}" title="{}">{}</span>'.format(jinja_status_class(status), status, count))
+            x.append('<span class="badge {}" title="{}">{}</span>'.format(jinja_status_class(status), status, count))
     if x:
         return Markup(' ' + ' '.join(x))
     else:
