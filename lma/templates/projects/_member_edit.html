@@ -1,7 +1,7 @@
 <form method="post" action="{{ url_for('.member_edit', project_id=project.id, member_id=member.user_id) }}" id='form-edit' class="form-horizontal">
 <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal">&times;</button>
-    <h4 class="modal-title">{{ member.user.name }}</h4>
+    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+    <h5 class="modal-title">{{ member.user.name }}</h5>
 </div>
 
 {% set role_classes = {'lead': 'danger', 'developer': 'info', 'prm': 'info', 'pjm': 'success', 'qa': 'warning', 'review': 'warning' } %}
@@ -24,7 +24,7 @@
 <div class="modal-footer">
     <button type="submit" class="btn btn-primary">Сохранить</button>
     <button type="button" class="btn btn-danger action-delete">Выгнать</button>
-    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
 </div>
 </form>
 

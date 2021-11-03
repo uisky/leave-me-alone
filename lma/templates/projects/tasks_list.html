@@ -78,7 +78,7 @@ var CHARACTERS = {
 
 <div class="container tasks-containter">
 {% if not tasks %}
-    <div class="alert alert-box alert-info">
+    <div class="alert alert-info">
         {% if project.has_sprints %}Доска пуста{% else %}Проект пуст{% endif %}.
     </div>
 {% else %}
@@ -91,8 +91,8 @@ var CHARACTERS = {
 <form method="post" class="form-horizontal" id="form-edit">
     {{ form_empty.csrf_token() }}
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-        <h4 class="modal-title">Modal title</h4>
+        <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
+        <h5 class="modal-title">Modal title</h5>
     </div>
     <div class="modal-body">
         <div class="form-group">
@@ -159,7 +159,7 @@ var CHARACTERS = {
         </div>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
         <button type="button" class="btn btn-danger action-delete">Удалить</button>
         <button type="submit" class="btn btn-primary">Сохранить</button>
     </div>

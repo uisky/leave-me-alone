@@ -54,7 +54,7 @@
         </form>
 
         {% if not tasks %}
-            <div class="alert alert-box alert-info">
+            <div class="alert alert-info">
                 {% if project.has_sprints %}
                     Доска пуста. Посмотрите в других досках:
                     <ul>
@@ -337,7 +337,7 @@
                                     <button type="button" class="btn btn-info" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
                                 {% endif %}
                                 {% if membership.can('task.sprint', selected) %}
-                                    <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint"><i class="fa fa-map"></i> На другую доску</button>
+                                    <button type="button" class="btn btn-info" id="btn-sprint" data-bs-toggle="modal" data-target="#modal-sprint"><i class="fa fa-map"></i> На другую доску</button>
                                 {% endif %}
                             </div>
                         </div>
@@ -353,7 +353,7 @@
                         </p>
                         <input type="hidden" name="parent_id">
                         {% if selected.parent_id %}
-                        <button type="button" class="btn btn-default" id="btn-chparent-root">
+                        <button type="button" class="btn btn-secondary" id="btn-chparent-root">
                             <span class="fa fa-hand-o-up"></span> В корень
                         </button>
                         {% endif %}
@@ -381,20 +381,20 @@
 
                         <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую доску</h4>
+                            <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                            <h5 class="modal-title" id="myModalLabel">Перенести ветку в другую доску</h5>
                         </div>
                         <div class="modal-body">
                             {% for sprint in project.sprints %}
                                 <button type="button" data-id="{{ sprint.id }}"
-                                        class="btn act-select-sprint {% if selected.sprint_id == sprint.id %} btn-primary {% else %}btn-default {% endif %}"
+                                        class="btn act-select-sprint {% if selected.sprint_id == sprint.id %} btn-primary {% else %}btn-secondary {% endif %}"
                                 >{{ sprint.name }}</button>
                             {% endfor %}
 
                             <input type="hidden" name="sprint_id" value="{{ selected.sprint_id }}">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                             <button type="submit" class="btn btn-primary">Ok</button>
                         </div>
                         </div></div></div>

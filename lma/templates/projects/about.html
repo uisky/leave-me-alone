@@ -31,7 +31,7 @@
             </a>
         {% endif %}
         {% if membership.can('project.members') %}
-            <a href="#modal-add" class="btn btn-success btn-sm" data-toggle="modal">
+            <a href="#modal-add" class="btn btn-success btn-sm" data-bs-toggle="modal">
                 <i class="fa fa-plus-circle"></i> Добавить участников
             </a>
         {% endif %}
@@ -57,7 +57,7 @@
         {#
         <th class="karma-col">
             Карма
-            <a href="#modal-help-karma" data-toggle="modal" title="WTF is karma?"><i class="fa fa-question-circle"></i></a>
+            <a href="#modal-help-karma" data-bs-toggle="modal" title="WTF is karma?"><i class="fa fa-question-circle"></i></a>
         </th>
          #}
         {% if membership.can('project.members') %}<th></th>{% endif %}
@@ -102,7 +102,7 @@
         #}
         {% if membership.can('project.members') %}
         <td>
-            <a href="#modal-edit" data-toggle="modal" class="action-edit">
+            <a href="#modal-edit" data-bs-toggle="modal" class="action-edit">
                 <span class="fa fa-pencil"></span>
             </a>
         </td>
@@ -115,8 +115,8 @@
 
 <div class="modal fade" id="modal-help-karma" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
 <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal">&times;</button>
-    <h4 class="modal-title">Что такое карма?</h4>
+    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+    <h5 class="modal-title">Что такое карма?</h5>
 </div>
 <div class="modal-body">
     <p>
@@ -125,7 +125,7 @@
     </p>
 </div>
 <div class="modal-footer">
-    <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
 </div>
 </div></div></div>
 {% endblock %}
@@ -137,8 +137,8 @@
     <form method="post" action="{{ url_for('.members_add', project_id=project.id) }}">
     <div class="modal" id="modal-add" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Добавить участников</h4>
+        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+        <h5 class="modal-title">Добавить участников</h5>
     </div>
     <div class="modal-body">
         <label>E-mail'ы новых пользователей:</label>
@@ -157,7 +157,7 @@
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Добавить</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
     </div>
     </div></div></div>
     </form>
@@ -175,8 +175,8 @@
             var $modal = $(this), $inside = $modal.find('.modal-content');
             $inside.html(
                 '<div class="modal-header">' +
-                '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
-                '<h4 class="modal-title">Свойства участника</h4>' +
+                '<button type="button" class="close" data-bs-dismiss="modal">&times;</button>' +
+                '<h5 class="modal-title">Свойства участника</h5>' +
                 '</div>' +
                 '<div class="modal-body">' +
                 '<p class="text-center"><i class="fa fa-spinner fa-spin fa-5x"></i><br><br>Минуточку...</p>' +

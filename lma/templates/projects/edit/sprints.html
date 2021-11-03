@@ -50,7 +50,7 @@
             </td>
             <td>{{ stat|status_counters }}</td>
             <td>
-                <a href="#modal-edit" data-toggle="modal" class="btn btn-xs btn-success action-edit">
+                <a href="#modal-edit" data-bs-toggle="modal" class="btn btn-xs btn-success action-edit">
                     <i class="fa fa-edit"></i>
                 </a>
             </td>
@@ -62,8 +62,8 @@
         <div class="alert alert-info">В проекте ещё нет ни одной доски.</div>
     {% endif %}
 
-    <a href="#modal-add" data-toggle="modal" class="btn btn-success"> <i class="fa fa-plus-circle"></i> Добавить доску</a>
-    <a href="#modal-sprints-off" data-toggle="modal" class="btn btn-danger"> <i class="fa fa-remove"></i> Отказаться от досок</a>
+    <a href="#modal-add" data-bs-toggle="modal" class="btn btn-success"> <i class="fa fa-plus-circle"></i> Добавить доску</a>
+    <a href="#modal-sprints-off" data-bs-toggle="modal" class="btn btn-danger"> <i class="fa fa-remove"></i> Отказаться от досок</a>
 {% endif %}
 {% endblock %}
 
@@ -76,8 +76,8 @@
         <input type="hidden" name="has_sprints" value="">
         <div class="modal" id="modal-sprints-off"><div class="modal-dialog"><div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                <h4 class="modal-title">Отказаться от досок</h4>
+                <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
+                <h5 class="modal-title">Отказаться от досок</h5>
             </div>
             <div class="modal-body">
                 <p>
@@ -86,7 +86,7 @@
             </div>
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary">Поехали</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
             </div>
         </div></div></div>
     </form>
@@ -95,8 +95,8 @@
     <form method="post" action="{{ purl_for('.sprint_edit') }}" id="form-add">
     <div class="modal" id="modal-add"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-            <h4 class="modal-title">Создать доску</h4>
+            <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
+            <h5 class="modal-title">Создать доску</h5>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -106,7 +106,7 @@
         </div>
         <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Создать</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
         </div>
     </div></div></div>
     </form>
@@ -115,8 +115,8 @@
     <form method="post" action="" id="form-edit">
     <div class="modal" id="modal-edit"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-            <h4 class="modal-title">Свойства доски</h4>
+            <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
+            <h5 class="modal-title">Свойства доски</h5>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -126,8 +126,8 @@
         </div>
         <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Сохранить</button>
-            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete">Удалить</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-target="#modal-delete">Удалить</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
         </div>
     </div></div></div>
     </form>
@@ -135,15 +135,15 @@
     <form method="post" action="" id="form-delete">
     <div class="modal" id="modal-delete"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-            <h4 class="modal-title">Удалить доску?</h4>
+            <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
+            <h5 class="modal-title">Удалить доску?</h5>
         </div>
         <div class="modal-body">
             Если в ней были задачи, они останутся доступными, но попадут в раздел "Вне досок".
         </div>
         <div class="modal-footer">
             <button type="submit" class="btn btn-danger">Да</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Нет, я передумал</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет, я передумал</button>
         </div>
     </div></div></div>
     </form>
