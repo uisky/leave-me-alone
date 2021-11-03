@@ -27,23 +27,23 @@
 
 
 <ul class="nav nav-tabs" id="folders">
-    <li {% if not folder %} class="active" {% endif %} data-id="0">
-        <a href="{{ url_for('.index') }}">
+    <li class="nav-item" data-id="0">
+        <a href="{{ url_for('.index') }}" class="nav-link {% if not folder %} active {% endif %}">
             <i class="fa fa-star" title="Проекты из этой папки показываются в меню"></i>
             Основные
         </a>
     </li>
     {% for f in folders %}
-        <li {% if folder and folder.id == f.id %} class="active" {% endif %} data-id="{{ f.id }}">
-            <a href="{{ url_for('.index', folder_id=f.id) }}">
+        <li class="nav-item {% if loop.last %} me-auto {% endif %}" data-id="{{ f.id }}">
+            <a href="{{ url_for('.index', folder_id=f.id) }}" class="nav-link {% if folder and folder.id == f.id %} active {% endif %}">
                 {% if f.in_menu %}<i class="fa fa-star" title="Проекты из этой папки показываются в меню"></i>{% endif %}
                 {{ f.name }}
             </a>
         </li>
     {% endfor %}
-    <li class="pull-right"><a href="#modal-new" data-toggle="modal" title="Создать папку"><i class="fa fa-plus"></i></a></li>
+    <li class="nav-item"><a href="#modal-new" data-bs-toggle="modal" title="Создать папку" class="nav-link"><i class="fa fa-plus"></i></a></li>
     {% if folder %}
-        <li class="pull-right"><a href="#modal-edit" data-toggle="modal" title="Свойства папки"><i class="fa fa-cog"></i></a></li>
+        <li class="nav-item "><a href="#modal-edit" data-bs-toggle="modal" title="Свойства папки" class="nav-link"><i class="fa fa-cog"></i></a></li>
     {% endif %}
 </ul>
 
@@ -71,13 +71,12 @@
     <input type="hidden" name="folder_id" value="{{ folder.id }}">
     {{ form_project_new.csrf_token }}
     <div class="row">
-        <div class="col-sm-10">
+        <div class="col-sm-9">
             {{ form_project_new.name(class="form-control", placeholder="Название") }}
         </div>
-        <div class="col-sm-2">
+        <div class="col-sm-3">
             <button type="submit" class="btn btn-success">
-                <span class="fa fa-bolt"></span>
-                Создать проект
+                <i class="fa fa-bolt"></i> Создать проект
             </button>
         </div>
     </div>

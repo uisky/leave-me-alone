@@ -5,10 +5,15 @@
 <h1>Вход</h1>
 
 <form method="post" id="form-login">
-    <input type="text" name="email" placeholder="E-mail" class="form-control">
-    <input type="password" name="password" placeholder="Пароль" class="form-control">
-    <button type="submit" class="btn btn-success">Войти</button>
-    <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
+    <div class="mb-3">
+        <input type="text" name="email" placeholder="E-mail" class="form-control">
+    </div>
+    <div class="mb-3">
+        <input type="password" name="password" placeholder="Пароль" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Войти</button>
+    <a href="{{ url_for('users.register', next=request.url) }}" class="btn btn-info">Зарегистрироваться</a>
+    <a href="{{ url_for('users.sclerosis', next=request.url) }}" class="btn btn-secondary">Забыли пароль?</a>
 </form>
 </div>
 {% endblock %}
