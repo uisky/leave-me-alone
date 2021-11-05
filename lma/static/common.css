@@ -1,4 +1,4 @@
-body { padding-top: 70px; padding-bottom: 20px; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 14px; }
+body { padding-top: 70px; padding-bottom: 20px; }
 h1 { margin-top: 5px; }
 
 a { text-decoration: underline; color: #337ab7; }
@@ -18,16 +18,6 @@ a.user:before {
 .important-1 { background-color: #D25858; }
 .important--1 { background-color: #58d258; }
 .important--2 { background-color: #AEEDBB; }
-
-/* юзается где-нибудь? */
-.status-open { background-color: #5bc0de; }
-.status-progress { background-color: #5cb85c; }
-.status-pause { background-color: #f0ad4e; }
-.status-review { background-color: #AA4FAD; color: #ff0; }
-.status-tested { background-color: #2982bc; color: #fff; }
-.status-done { background-color: #888; }
-.status-canceled { background-color: #333; color: #fff; }
-.status-canceled:hover { color: #fff; }
 
 .label-tag { background-color: #8983ff; }
 
