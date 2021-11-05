@@ -88,7 +88,7 @@ body.dragging, body.dragging * {
   z-index: 2000;
 }
 
-ul.menu-projects { padding-top: 0; }
+ul.menu-projects { padding-top: 0; font-size: 14px;}
 ul.menu-projects li.folder { font-weight: bold; padding: 3px 20px 3px 6px; background: #eee; margin-top: 10px; }
 ul.menu-projects li.folder:first-child { margin-top: 0px; }
 

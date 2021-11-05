@@ -1,10 +1,10 @@
-<form method="post" action="{{ url_for('users.login', next=request.url) }}" class="col-sm-6">
+<form method="post" action="{{ url_for('users.login', next=request.url) }}" class="col-md-6">
     <div class="mb-3">
         <label class="form-label">Ваш e-mail:</label>
         <input type="text" name="email" placeholder="E-mail" class="form-control">
     </div>
     <div class="mb-3">
-        <label class="form-label col-sm-2">Пароль:</label>
+        <label class="form-label">Пароль:</label>
         <input type="password" name="password" placeholder="Пароль" class="form-control">
     </div>
 

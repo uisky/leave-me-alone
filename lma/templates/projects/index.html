@@ -67,18 +67,16 @@
 
 
 <div class="container">
-<form method="post" action="{{ url_for('.project_add') }}">
+<form method="post" action="{{ url_for('.project_add') }}" class="row row-cols-2     g-3 align-items-center">
     <input type="hidden" name="folder_id" value="{{ folder.id }}">
     {{ form_project_new.csrf_token }}
-    <div class="row">
-        <div class="col-sm-9">
-            {{ form_project_new.name(class="form-control", placeholder="Название") }}
-        </div>
-        <div class="col-sm-3">
-            <button type="submit" class="btn btn-success">
-                <i class="fa fa-bolt"></i> Создать проект
-            </button>
-        </div>
+    <div class="col-9">
+        {{ form_project_new.name(class="form-control", placeholder="Название") }}
+    </div>
+    <div class="col-3">
+        <button type="submit" class="btn btn-success">
+            <i class="fa fa-bolt"></i> Создать проект
+        </button>
     </div>
 </form>
 </div>
