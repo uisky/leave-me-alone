@@ -15,10 +15,10 @@
         <h1>Свойства проекта</h1>
     {% endblock %}
 
-    <ul class="nav nav-tabs" style="margin-bottom: 20px">
+    <ul class="nav nav-tabs mb-3">
         {% for item in menu_edit %}
-        <li {% if menu_edit_current == item.endpoint %} class="active" {% endif %}>
-            <a href="{{ purl_for(item.endpoint) }}">{{ item.title }}</a>
+        <li class="nav-item">
+            <a href="{{ purl_for(item.endpoint) }}" class="nav-link {% if menu_edit_current == item.endpoint %}active{% endif %}">{{ item.title }}</a>
         </li>
         {% endfor %}
     </ul>

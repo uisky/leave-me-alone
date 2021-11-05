@@ -10,7 +10,7 @@
         background-color: #ddeef0; border-radius: 20px;
     }
     ul.project-list li.my {
-        box-shadow: inset 0px 0px 0px 6px #ccdde0;
+        box-shadow: inset 0 0 0 6px #ccdde0;
     }
     ul.project-list li a { font-size: 20px; }
     ul.project-list li .action-menu {
@@ -27,28 +27,28 @@
 
 
 <ul class="nav nav-tabs" id="folders">
-    <li {% if not folder %} class="active" {% endif %} data-id="0">
-        <a href="{{ url_for('.index') }}">
+    <li class="nav-item" data-id="0">
+        <a href="{{ url_for('.index') }}" class="nav-link {% if not folder %} active {% endif %}">
             <i class="fa fa-star" title="Проекты из этой папки показываются в меню"></i>
             Основные
         </a>
     </li>
     {% for f in folders %}
-        <li {% if folder and folder.id == f.id %} class="active" {% endif %} data-id="{{ f.id }}">
-            <a href="{{ url_for('.index', folder_id=f.id) }}">
+        <li class="nav-item {% if loop.last %} me-auto {% endif %}" data-id="{{ f.id }}">
+            <a href="{{ url_for('.index', folder_id=f.id) }}" class="nav-link {% if folder and folder.id == f.id %} active {% endif %}">
                 {% if f.in_menu %}<i class="fa fa-star" title="Проекты из этой папки показываются в меню"></i>{% endif %}
                 {{ f.name }}
             </a>
         </li>
     {% endfor %}
-    <li class="pull-right"><a href="#modal-new" data-toggle="modal" title="Создать папку"><i class="fa fa-plus"></i></a></li>
+    <li class="nav-item"><a href="#modal-new" data-bs-toggle="modal" title="Создать папку" class="nav-link"><i class="fa fa-plus"></i></a></li>
     {% if folder %}
-        <li class="pull-right"><a href="#modal-edit" data-toggle="modal" title="Свойства папки"><i class="fa fa-cog"></i></a></li>
+        <li class="nav-item "><a href="#modal-edit" data-bs-toggle="modal" title="Свойства папки" class="nav-link"><i class="fa fa-cog"></i></a></li>
     {% endif %}
 </ul>
 
 {% if not projects %}
-    <div class="alert alert-box alert-info" style="margin: 20px 0;">
+    <div class="alert alert-info m-5">
         Эта папка проектов пуста.
     </div>
 {% else %}
@@ -67,28 +67,17 @@
 
 
 <div class="container">
-<form method="post" action="{{ url_for('.project_add') }}">
+<form method="post" action="{{ url_for('.project_add') }}" class="row row-cols-2     g-3 align-items-center">
     <input type="hidden" name="folder_id" value="{{ folder.id }}">
     {{ form_project_new.csrf_token }}
-    <div class="row">
-        <div class="col-sm-10">
-            {{ form_project_new.name(class="form-control", placeholder="Название") }}
-        </div>
-        <div class="col-sm-2">
-            <button type="submit" class="btn btn-success">
-                <span class="fa fa-bolt"></span>
-                Создать проект
-            </button>
-        </div>
+    <div class="col-9">
+        {{ form_project_new.name(class="form-control", placeholder="Название") }}
     </div>
-    {#
-    <div class="row" style="margin-top: 10px;">
-        <div class="col-sm-10 text-center">
-            <label><input type="radio" name="type" value="list"> Список</label>
-            <label><input type="radio" name="type" value="tree" checked> Дерево</label>
-        </div>
+    <div class="col-3">
+        <button type="submit" class="btn btn-success">
+            <i class="fa fa-bolt"></i> Создать проект
+        </button>
     </div>
-    #}
 </form>
 </div>
 {% endblock %}
@@ -98,25 +87,23 @@
 <form method="post" action="{{ url_for('.folder_edit') }}">
     <div class="modal" id="modal-new" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Создать папку</h4>
+        <h5 class="modal-title">Создать папку</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
     <div class="modal-body">
-        <div class="form-group">
-            <label>Название:</label>
+        <div class="mb-3">
+            <label class="form-label">Название:</label>
             <input type="text" name="name" class="form-control">
         </div>
 
-        <div class="form-group">
-            <label>
-                <input type="checkbox" name="in_menu" checked>
-                Показывать проекты из этой папки в меню
-            </label>
+        <div class="form-check">
+            <input type="checkbox" name="in_menu" checked class="form-check-input">
+            <label class="form-check-label">Показывать проекты из этой папки в меню</label>
         </div>
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Создать</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
     </div>
     </div></div></div>
 </form>
@@ -125,26 +112,24 @@
 <form method="post" action="{{ url_for('.folder_edit', folder_id=folder.id) }}">
     <div class="modal" id="modal-edit" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Свойства папки</h4>
+        <h5 class="modal-title">Свойства папки</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
     <div class="modal-body">
-        <div class="form-group">
-            <label>Название:</label>
+        <div class="mb-3">
+            <label class="form-label">Название:</label>
             {{ form_folder_edit.name(class='form-control') }}
         </div>
 
-        <div class="form-group">
-            <label>
-                {{ form_folder_edit.in_menu() }}
-                Показывать проекты из этой папки в меню
-            </label>
+        <div class="form-check">
+            {{ form_folder_edit.in_menu(class='form-check-input') }}
+            <label class="form-check-label">Показывать проекты из этой папки в меню</label>
         </div>
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Сохранить</button>
-        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-delete">Удалить</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        <a href="#modal-delete" class="btn btn-danger" data-bs-toggle="modal">Удалить</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
     </div>
     </div></div></div>
 </form>
@@ -152,8 +137,8 @@
 <form method="post" action="{{ url_for('.folder_delete', folder_id=folder.id) }}">
     <div class="modal" id="modal-delete" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Удалить папку?</h4>
+        <h5 class="modal-title">Удалить папку?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
     <div class="modal-body">
         <p>
@@ -162,7 +147,7 @@
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Да</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Нет</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
     </div>
     </div></div></div>
 </form>

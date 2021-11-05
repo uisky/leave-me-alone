@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Leave Me Alone</title>
     <link href='https://fonts.googleapis.com/css?family=PT+Serif' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="http://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css">
@@ -44,9 +45,7 @@
             <div class="container">
             {% for class, message in messages %}
                 <div class="alert alert-{{ class }}" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     {{ message|safe }}
                 </div>
             {% endfor %}

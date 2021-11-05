@@ -23,13 +23,13 @@
 {% block content %}
 
 {% if project.has_sprints %}
-<ul class="nav nav-tabs" style="margin-bottom: 10px">
-    <li {% if options.sprint.data == 0 %} class="active" {% endif %}>
-        <a href="?sprint=0">*</a>
+<ul class="nav nav-tabs mb-1">
+    <li class="nav-item">
+        <a href="?sprint=0" class="nav-link {% if options.sprint.data == 0 %} active {% endif %}">*</a>
     </li>
     {% for sprint in project.sprints %}
-        <li {% if sprint.id == options.sprint.data %} class="active" {% endif %}>
-            <a href="?sprint={{ sprint.id }}">{{ sprint.name }}</a>
+        <li class="nav-item">
+            <a href="?sprint={{ sprint.id }}" class="nav-link {% if sprint.id == options.sprint.data %} active {% endif %}">{{ sprint.name }}</a>
         </li>
     {% endfor %}
 </ul>
@@ -39,22 +39,19 @@
     {#
      # Панель дерева задач
      #}
-    <div class="col-sm-6">
+    <div class="col">
+
         <form method="get">
-        <div class="row show-options">
-            <div class="col-sm-2">
-                <button type="button" class="btn btn-xs" id="btn-toggle-collapsed" title="Свернуть/развернуть всё"><i class="fa fa-plus"></i></button>
-                <button type="button" class="btn btn-xs" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+            <div class="row show-options">
+                <div class="col">
+                    <button type="button" class="btn btn-sm" id="btn-toggle-collapsed" title="Свернуть/развернуть всё"><i class="fa fa-plus"></i></button>
+                    <button type="button" class="btn btn-sm" id="btn-toggle-done"><i class="fa fa-eye"></i></button>
+                </div>
             </div>
-            <div class="col-sm-8">
-            </div>
-            <div class="col-sm-2 text-right max-deadline" title="Крайний срок">
-            </div>
-        </div>
         </form>
 
         {% if not tasks %}
-            <div class="alert alert-box alert-info">
+            <div class="alert alert-info">
                 {% if project.has_sprints %}
                     Доска пуста. Посмотрите в других досках:
                     <ul>
@@ -145,7 +142,7 @@
                                 {% endif %}
 
                                 {% for tag in task.tags %}
-                                    <span class="label label-tag">#{{ tag.name }}</span>
+                                    <span class="badge label-tag">#{{ tag.name }}</span>
                                 {% endfor %}
                             </span>
                         </div>
@@ -179,7 +176,7 @@
 
         {% if membership.can('project.task-level-0') %}
             <p style="margin: 10px 0">
-                <a href="?sprint={{ options.sprint.data }}" class="btn btn-warning">Поставить задачу в корень</a>
+                <a href="?sprint={{ options.sprint.data }}" class="btn btn-success">Поставить задачу в корень</a>
             </p>
         {% endif %}
     </div>
@@ -189,28 +186,31 @@
     {#
      # Панель задачи
      #}
-    <div class="col-sm-6">
+    <div class="col">
 
         {# Табы #}
         <ul class="nav nav-tabs" id="tabs-task">
             {% if selected %}
-                <li class="active"><a href="#task-details" data-toggle="tab">Задача</a></li>
-                <li><a href="#task-comments" data-toggle="tab">
-                    Комментарии
-                    {% if selected.cnt_comments %}({{ selected.cnt_comments }}){% endif %}
-                </a></li>
-                <li><a href="#task-history" data-toggle="tab">История</a></li>
-                <li>
-                    <a href="#task-bugs" data-toggle="tab">
+                <li class="nav-item"><a href="#task-details" class="nav-link active" data-bs-toggle="tab">Задача</a></li>
+                <li class="nav-item">
+                    <a href="#task-comments" class="nav-link" data-bs-toggle="tab">
+                        Комментарии
+                        {% if selected.cnt_comments %}({{ selected.cnt_comments }}){% endif %}
+                    </a>
+                </li>
+                <li class="nav-item"><a href="#task-history" class="nav-link" data-bs-toggle="tab">История</a></li>
+                <li class="nav-item me-auto">
+                    <a href="#task-bugs" class="nav-link" data-bs-toggle="tab">
                         Баги
                         {% if selected.cnt_bugs %}({{ selected.cnt_bugs }}){% endif %}
-                    </a></li>
-            {% endif %}
-            {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
-                <li class="pull-right {% if not selected %} active {% endif %}"><a href="#task-subtask" data-toggle="tab">Создать подзадачу</a></li>
+                    </a>
+                </li>
             {% endif %}
             {% if selected and membership.can('task.edit', selected) %}
-                <li class="pull-right"><a href="#task-edit" data-toggle="tab">Редактировать</a></li>
+                <li class="nav-item"><a href="#task-edit" data-bs-toggle="tab" class="nav-link">Редактировать</a></li>
+            {% endif %}
+            {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
+                <li class="nav-item"><a href="#task-subtask" data-bs-toggle="tab" class="nav-link {% if not selected %} active {% endif %}">Создать подзадачу</a></li>
             {% endif %}
         </ul>
 
@@ -221,7 +221,7 @@
                 <div id="task-details" class="tab-pane active task-details">
                     <h1>{{ selected.subject }}</h1>
                     {% for tag in selected.tags %}
-                        <span class="label label-tag">#{{ tag.name }}</span>
+                        <span class="badge label-tag">#{{ tag.name }}</span>
                     {% endfor %}
                     <div class="meta">
                         Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
@@ -253,23 +253,19 @@
                     <form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status">
-                        <p>
+                        <div class="mb-2">
                         {% set allowed_statuses = selected.allowed_statuses(current_user, membership) %}
                         {% for status in allowed_statuses %}
-                            {% if loop.index0 == 0 %}
-                                {% set prev_phase = '' %}
-                            {% else %}
-                                {% set prev_phase = allowed_statuses[loop.index0 - 1].split('.')[0] %}
-                            {% endif %}
+                            {% set prev_phase = '' if loop.index0 == 0 else allowed_statuses[loop.index0 - 1].split('.')[0] %}
 
                             {% if status.split('.')[0] != prev_phase %}
-                                </p><p>
+                                </div><div class="mb-2">
                             {% endif %}
                             <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}" title="Задача получит статус «{{ status }}»">
                                 {{ status|status_button_text(selected) }}
                             </button>
                         {% endfor %}
-                        </p>
+                        </div>
                     </form>
                     {% endif %}
                 </div>
@@ -298,7 +294,7 @@
                     {% else %}
                         {% set url = url_for('.task_subtask', project_id=project.id) %}
                     {% endif %}
-                    <form id="form-subtask" method="post" action="{{ url }}" class="form-horizontal" enctype="multipart/form-data">
+                    <form id="form-subtask" method="post" action="{{ url }}" enctype="multipart/form-data">
                         <h2>Создать подзадачу</h2>
                         {% if project.has_sprints %}
                             <input type="hidden" name="sprint_id" value="{{ options.sprint.data }}">
@@ -306,12 +302,8 @@
                         {% set edit_form = form_empty %}
                         {% set edit_task = empty %}
                         {% include 'projects/_task_edit.html' %}
-                        <div class="form-group">
-                            <div class="col-sm-offset-1 col-sm-11">
-                                <button type="submit" class="btn btn-success">
-                                    <span class="fa fa-check"></span> Создать
-                                </button>
-                            </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Создать</button>
                         </div>
                     </form>
                 </div>
@@ -320,26 +312,24 @@
             {# Редактор задачи #}
             {% if selected and membership.can('task.edit', selected) %}
                 <div id="task-edit" class="tab-pane">
-                    <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" class="form-horizontal" enctype="multipart/form-data">
+                    <form id="form-edit" method="post" action="{{ url_for('.task_edit', project_id=project.id, task_id=selected.id) }}" enctype="multipart/form-data">
                         <h2>Редактировать задачу</h2>
                         {% set edit_form = form_edit %}
                         {% set edit_task = selected %}
                         {% include 'projects/_task_edit.html' %}
 
-                        <div class="form-group">
-                            <div class="col-sm-offset-1 col-sm-11">
-                                <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Сохранить</button>
-                                <button type="button" class="btn btn-danger" id="btn-task-delete"><i class="fa fa-remove"></i> Удалить</button>
-                                {% if membership.can('task.chparent', selected) %}
-                                    <button type="button" class="btn btn-info" id="btn-chparent"><i class="fa fa-share-alt"></i> Сменить надзадачу</button>
-                                {% endif %}
-                                {% if membership.can('task.swap', selected) %}
-                                    <button type="button" class="btn btn-info" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
-                                {% endif %}
-                                {% if membership.can('task.sprint', selected) %}
-                                    <button type="button" class="btn btn-info" id="btn-sprint" data-toggle="modal" data-target="#modal-sprint"><i class="fa fa-map"></i> На другую доску</button>
-                                {% endif %}
-                            </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-success mb-1"><i class="fa fa-check"></i> Сохранить</button>
+                            <button type="button" class="btn btn-danger mb-1" id="btn-task-delete"><i class="fa fa-remove"></i> Удалить</button>
+                            {% if membership.can('task.chparent', selected) %}
+                                <button type="button" class="btn btn-info mb-1" id="btn-chparent"><i class="fa fa-share-alt"></i> Сменить надзадачу</button>
+                            {% endif %}
+                            {% if membership.can('task.swap', selected) %}
+                                <button type="button" class="btn btn-info mb-1" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
+                            {% endif %}
+                            {% if membership.can('task.sprint', selected) %}
+                                <button type="button" class="btn btn-info mb-1" id="btn-sprint" data-bs-toggle="modal" data-bs-target="#modal-sprint"><i class="fa fa-map"></i> На другую доску</button>
+                            {% endif %}
                         </div>
                     </form>
 
@@ -353,7 +343,7 @@
                         </p>
                         <input type="hidden" name="parent_id">
                         {% if selected.parent_id %}
-                        <button type="button" class="btn btn-default" id="btn-chparent-root">
+                        <button type="button" class="btn btn-secondary" id="btn-chparent-root">
                             <span class="fa fa-hand-o-up"></span> В корень
                         </button>
                         {% endif %}
@@ -379,22 +369,22 @@
                     {% if membership.can('task.sprint', selected) %}
                         <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, task_id=selected.id) }}">
 
-                        <div class="modal fade" id="modal-sprint" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+                        <div class="modal" id="modal-sprint" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title" id="myModalLabel">Перенести ветку в другую доску</h4>
+                            <h5 class="modal-title" id="myModalLabel">Перенести ветку в другую доску</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             {% for sprint in project.sprints %}
                                 <button type="button" data-id="{{ sprint.id }}"
-                                        class="btn act-select-sprint {% if selected.sprint_id == sprint.id %} btn-primary {% else %}btn-default {% endif %}"
+                                        class="btn act-select-sprint {% if selected.sprint_id == sprint.id %} btn-primary {% else %} btn-outline-secondary {% endif %} mb-1"
                                 >{{ sprint.name }}</button>
                             {% endfor %}
 
                             <input type="hidden" name="sprint_id" value="{{ selected.sprint_id }}">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                             <button type="submit" class="btn btn-primary">Ok</button>
                         </div>
                         </div></div></div>

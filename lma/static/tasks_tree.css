@@ -1,5 +1,6 @@
-.show-options {}
+.show-options { margin-bottom: 5px; }
 .show-options select { padding: 2px 0px; font-size: 10px; line-height: 1; height: 22px; }
+.show-options button { font-size: .75em; padding: 0.15rem 0.25rem; background-color: #eee; }
 .show-options .max-deadline { font-size: 12px; }
 
 .toggler {

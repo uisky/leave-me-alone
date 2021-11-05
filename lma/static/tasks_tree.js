@@ -40,7 +40,7 @@
     });
 
     // Поменять местами
-    swapSelectTask = function(e) {
+    let swapSelectTask = function(e) {
         e.preventDefault();
         $('#form-swap input[name=sister_id]').val($(this).closest('li').data('id'));
         $('#form-swap').submit();
@@ -58,8 +58,8 @@
 
     // Перенести в другую доску
     $('#form-sprint .act-select-sprint').on('click', function(e) {
-        $('#form-sprint button.act-select-sprint.btn-primary').removeClass('btn-primary').addClass('btn-default');
-        $(this).removeClass('btn-default').addClass('btn-primary');
+        $('#form-sprint button.act-select-sprint.btn-primary').removeClass('btn-primary').addClass('btn-secondary');
+        $(this).removeClass('btn-secondary').addClass('btn-primary');
         $('#form-sprint [name=sprint_id]').val($(this).data('id'));
     });
 

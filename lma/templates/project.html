@@ -32,18 +32,18 @@
 
 {% block logo %}
         {% if current_user.is_authenticated %}
-            <a class="navbar-brand dropdown-toggle" href="{{ url_for('front.index') }}" data-toggle="dropdown">
-                LMA: {{ project.name }}
-                <span class="caret"></span>
-            </a>
-
             {% macro menu_project_li(prj, project) %}
-                <li {%- if prj.id == project.id %} class="active" {%- endif -%}>
-                    <a href="{{ url_for('projects.tasks', project_id=prj.id) }}">
+                <li>
+                    <a href="{{ url_for('projects.tasks', project_id=prj.id) }}" class="dropdown-item {%- if prj.id == project.id %} active {%- endif -%}">
                     {{- prj.name -}}
                     </a>
                 </li>
             {% endmacro %}
+
+            <a class="navbar-brand dropdown-toggle" href="{{ url_for('front.index') }}" data-bs-toggle="dropdown">
+                LMA: {{ project.name }}
+                <span class="caret"></span>
+            </a>
 
             {% with pmenu = projects_menu(current_user) %}
                 <ul class="dropdown-menu menu-projects">
@@ -59,8 +59,8 @@
                             {% endfor %}
                         {%- endfor -%}
                     {% endif %}
-                    <li role="separator" class="divider"></li>
-                    <li><a href="/projects" title="Центр Управления Проектами"><i class="fa fa-rocket"></i> ЦУП</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a href="/projects" title="Центр Управления Проектами" class="dropdown-item"><i class="fa fa-rocket"></i> ЦУП</a></li>
                 </ul>
             {% endwith %}
         {% else %}
@@ -70,9 +70,9 @@
 {% endblock %}
 
 {% block menu_main %}
-    <ul class="nav navbar-nav">
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
     {%- for item in menu %}
-        <li {%- if menu_current == item.id %} class="active" {%- endif -%}><a href="{{ item.url }}">{{ item.title }}</a></li>
+        <li class="nav-item"><a href="{{ item.url }}" class="nav-link {% if menu_current == item.id %} active {% endif %}>">{{ item.title }}</a></li>
     {%- endfor -%}
     </ul>
 {% endblock %}

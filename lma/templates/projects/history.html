@@ -14,7 +14,7 @@
     #form-filter .btn-filter-status.active { opacity: 1; }
     #form-filter .datepick { width: 130px; }
 
-    #form-filter .statuses button { width: 150px; margin-bottom: 3px; text-align: left; }
+    #form-filter .statuses button { width: 200px; margin-bottom: 3px; text-align: left; }
 
     .bootstrap-datetimepicker-widget table td.has-events { /* background-color: #9fffa3; */}
     .bootstrap-datetimepicker-widget table td.active { border: 2px solid black; padding: 3px; color: #000; background-color: inherit; }
@@ -26,10 +26,10 @@
 
 <h1>История проекта</h1>
 
-<form id="form-filter" method="get" class="form-horizontal">
-    <div class="form-group">
-        <div class="col-sm-2">
-            <select name="user_id" class="form-control" style="width:150px;" size="10">
+<form id="form-filter" method="get">
+    <div class="row">
+        <div class="col">
+            <select name="user_id" class="form-control mb-3" style="width:150px;" size="10">
                 <option value="">Все</option>
                 {% for member in project.members_users() %}
                     <option value="{{ member.user_id }}"
@@ -37,11 +37,13 @@
                     >{{ member.user.name }}</option>
                 {% endfor %}
             </select>
+
+            <button type="submit" class="btn btn-primary">Показать</button>
         </div>
-        <div class="col-sm-2 statuses">
+        <div class="col statuses">
             {{ filters.status() }}
             {% set selected = (filters.status.data or '').split(',') %}
-            <div class="list-group">
+            <div class="">
             {% for st in statuses %}
                 <button type="button"
                         class="btn {{ st|status_class }} btn-sm btn-filter-status {% if st in selected %}active{% endif %}"
@@ -51,14 +53,9 @@
             {% endfor %}
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col">
             <div id="datetimepicker-when"></div>
             {{ filters.when() }}
-        </div>
-        <div class="col-sm-1">
-            <button type="submit" class="btn btn-primary pull-right">
-                Показать
-            </button>
         </div>
     </div>
 </form>
@@ -141,7 +138,11 @@
             format: 'YYYY-MM-DD',
             defaultDate: $fieldWhen.val(),
             minDate: '{{ project_start.strftime('%Y-%m-%d') }}',
-            maxDate: '{{ project_stop.strftime('%Y-%m-%d') }}'
+            maxDate: '{{ project_stop.strftime('%Y-%m-%d') }}',
+            icons: {
+                previous: 'fa fa-chevron-left',
+                next: 'fa fa-chevron-right'
+            }
         });
 
         $dp.on('dp.update dp.change', addStat);

@@ -12,7 +12,7 @@
         {% endif %}
         <div class="meta">
             {{ c.created|humantime }} — {{ c.user.name }}
-            {% if membership.can('comment.edit', c) %}<a href="#modal-comment-edit" data-toggle="modal" class="action-edit" title="Редактировать"><i class="fa fa-edit"></i></a>{% endif %}
+            {% if membership.can('comment.edit', c) %}<a href="#modal-comment-edit" data-bs-toggle="modal" class="action-edit" title="Редактировать"><i class="fa fa-edit"></i></a>{% endif %}
         </div>
     </li>
 {% endmacro %}

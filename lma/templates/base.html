@@ -1,15 +1,15 @@
 {% macro render_pagination(pagination, endpoint) %}
 <nav>
-    <ul class=pagination>
+    <ul class="pagination">
         {%- for page in pagination.iter_pages() %}
             {% if page %}
                 {% if page != pagination.page %}
-                    <li><a href="{{ url_for(endpoint, page=page, **kwargs) }}">{{ page }}</a></li>
+                    <li class="page-item"><a href="{{ url_for(endpoint, page=page, **kwargs) }}" class="page-link">{{ page }}</a></li>
                 {% else %}
-                    <li class="active"><a href="#">{{ page }}</a></li>
+                    <li class="page-item active"><a href="{{ url_for(endpoint, page=page, **kwargs) }}" class="page-link">{{ page }}</a></li>
                 {% endif %}
             {% else %}
-                <li><span class=ellipsis>…</span></li>
+                <li class="page-item"><span class="page-linkw">…</span></li>
             {% endif %}
         {%- endfor %}
     </ul>
@@ -25,63 +25,54 @@
         {% set page_title = page_title + " | Leave Me Alone" %}
     {% endif %}
     <title>{{ page_title|default("Leave Me Alone") }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-
-    {# <link rel="stylesheet" href="http://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css"> #}
+    <link rel="stylesheet" href="/static/build/bootstrap.css">
     <script src="https://kit.fontawesome.com/bdb74cc4ec.js" crossorigin="anonymous"></script>
-
-{#     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">  #}
     <link rel="stylesheet" href="/static/common.css?7">
+
     <script type="text/javascript" src="https://yastatic.net/jquery/3.1.0/jquery.min.js"></script>
-    {# <script type="text/javascript" src="http://yastatic.net/bootstrap/3.3.1/js/bootstrap.min.js"></script> #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://yastatic.net/jquery/form/3.14/jquery.form.min.js"></script>
     <script type="text/javascript" src="/static/common.js?2"></script>
+
     {% block head %}{% endblock %}
     <link rel="shortcut icon" href="/static/favicon.ico" />
 </head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top navbar-expand-lg">
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            {% block logo %}
-                <a class="navbar-brand" href="/">LMA</a>
-            {% endblock %}
-        </div>
+        {% block logo %}
+            <a class="navbar-brand" href="/">LMA</a>
+        {% endblock %}
 
-        <div class="collapse navbar-collapse" id="navbar-collapse">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
             {% block menu_main %}
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            </ul>
             {% endblock %}
 
             {% if current_user.is_authenticated %}
-                <ul class="nav navbar-nav navbar-right">
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        Привет,                             {{ current_user.name }}!
+                <ul class="navbar-nav navbar-right">
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            Привет, {{ current_user.name }}!
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="/users/settings">Настройки</a></li>
-                            <li><a href="/users/logout/?next={{ request.url }}">Выйти</a></li>
+                            <li><a class="dropdown-item" href="/users/settings">Настройки</a></li>
+                            <li><a class="dropdown-item" href="/users/logout/?next={{ request.url }}">Выйти</a></li>
                         </ul>
                     </li>
                 </ul>
             {% else %}
-                <form method="post" action="/users/login/?next={{ request.url }}" class="navbar-form navbar-right">
-                    <div class="form-group">
-                        <input type="text" name="email" placeholder="E-mail" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <input type="password" name="password" placeholder="Пароль" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-success">Войти</button>
-                    <a href="/users/register/?next={{ request.url }}">Зарегистрироваться</a>
+                <form method="post" action="/users/login/?next={{ request.url }}" class="d-flex">
+                    <input type="text" name="email" placeholder="E-mail" class="form-control me-1">
+                    <input type="password" name="password" placeholder="Пароль" class="form-control me-1">
+                    <button type="submit" class="btn btn-success me-1">Войти</button>
+                    <a href="/users/register/?next={{ request.url }}" class="btn btn-outline-success">Зарегистрироваться</a>
                 </form>
             {% endif %}
         </div>
@@ -94,9 +85,7 @@
             <div class="container">
             {% for class, message in messages %}
                 <div class="alert alert-{{ class }}" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     {{ message|safe }}
                 </div>
             {% endfor %}

@@ -1,21 +1,14 @@
-<form method="post" action="/users/login/?next={{ request.url }}" class="form-horizontal">
-    <div class="form-group">
-        <label class="control-label col-sm-2">Ваш e-mail:</label>
-        <div class="col-sm-4">
-            <input type="text" name="email" placeholder="E-mail" class="form-control">
-        </div>
+<form method="post" action="{{ url_for('users.login', next=request.url) }}" class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label">Ваш e-mail:</label>
+        <input type="text" name="email" placeholder="E-mail" class="form-control">
     </div>
-    <div class="form-group">
-        <label class="control-label col-sm-2">Пароль:</label>
-        <div class="col-sm-4">
-            <input type="password" name="password" placeholder="Пароль" class="form-control">
-        </div>
+    <div class="mb-3">
+        <label class="form-label">Пароль:</label>
+        <input type="password" name="password" placeholder="Пароль" class="form-control">
     </div>
-    <div class="form-group">
-        <div class="col-sm-4 col-sm-offset-2">
-            <button type="submit" class="btn btn-success">Войти</button>
-            <a href="{{ url_for('users.register', next=request.url) }}" class="btn btn-primary">Зарегистрироваться</a>
-            <a href="{{ url_for('users.sclerosis', next=request.url) }}" class="btn btn-default">Забыли пароль?</a>
-        </div>
-    </div>
+
+    <button type="submit" class="btn btn-primary">Войти</button>
+    <a href="{{ url_for('users.register', next=request.url) }}" class="btn btn-info">Зарегистрироваться</a>
+    <a href="{{ url_for('users.sclerosis', next=request.url) }}" class="btn btn-secondary">Забыли пароль?</a>
 </form>

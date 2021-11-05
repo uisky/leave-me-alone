@@ -6,3 +6,5 @@ __pycache__/
 /conf/
 /var/
 lma/config.local.py
+/node_modules/
+lma/static/build/

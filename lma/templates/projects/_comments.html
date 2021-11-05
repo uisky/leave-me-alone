@@ -15,35 +15,37 @@
 {% if membership.can('task.comment', task) %}
 <h2>Написать комментарий</h2>
 <form method="post" action="{{ url_for('.task_comments', project_id=project.id, task_id=task.id) }}" id="form-comment" enctype="multipart/form-data">
-    <p><textarea name="body" rows="4" class="form-control"></textarea></p>
+    <div class="mb-3">
+        <textarea name="body" rows="4" class="form-control"></textarea>
+        <div class="form-text">Здесь можно использовать Markdown</div>
+    </div>
 
-    <p>
-        Картиночку приложить:
+    <div class="mb-3">
+        <label class="label-form">Картиночку приложить:</label>
         <input type="file" name="image" class="form-control">
-    </p>
-    <p class="help-block">Здесь можно использовать Markdown</p>
-    <p><button type="submit" class="btn btn-primary" title="Можно просто нажать Ctrl+Enter">Отправить</button></p>
+    </div>
+    <button type="submit" class="btn btn-primary" title="Можно просто нажать Ctrl+Enter">Отправить</button>
 </form>
 {% endif %}
 
 <form method="post" id="form-comment-edit">
-<div class="modal" id="modal-comment-edit"><div class="modal-dialog"><div class="modal-content">
+<div class="modal" id="modal-comment-edit"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-        <h4 class="modal-title">Редактировать комментарий</h4>
+        <h5 class="modal-title">Редактировать комментарий</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
     <div class="modal-body">
         <p>
             <textarea name="body" class="form-control" rows="6"></textarea>
         </p>
-        <p class="help-block">
+        <p class="form-text">
             Если хотите удалить комментарий — просто сотрите его текст.
         </p>
 
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Сохранить</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
     </div>
 </div></div></div>
 </form>
