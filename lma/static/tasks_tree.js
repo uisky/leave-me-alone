@@ -40,7 +40,7 @@
     });
 
     // Поменять местами
-    swapSelectTask = function(e) {
+    let swapSelectTask = function(e) {
         e.preventDefault();
         $('#form-swap input[name=sister_id]').val($(this).closest('li').data('id'));
         $('#form-swap').submit();

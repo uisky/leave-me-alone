@@ -1,7 +1,7 @@
-body { padding-top: 70px; padding-bottom: 20px; }
+body { padding-top: 70px; padding-bottom: 20px; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 14px; }
 h1 { margin-top: 5px; }
 
-a { text-decoration: underline; }
+a { text-decoration: underline; color: #337ab7; }
 nav a, a.btn { text-decoration: none; }
 
 a.user { color: #57aa6f; text-decoration: underline; }

@@ -8,38 +8,28 @@
 {{ super() }}
 
 <form method="post" class="form-horizontal">
-    <div class="form-group">
-        <label class="control-label col-sm-2">Этот проект видят:</label>
-        <div class="col-sm-4">
-            <label for="ac_read-watcher" class="x-radio">
-                <input type="radio" name="ac_read" id="ac_read-watcher" value="watcher" {% if form.ac_read.data == 'watcher' %} checked {% endif %}>
-                Члены команды, которых вы пригласили
-            </label>
+    <div class="mb-3">
+        <label class="form-label">Этот проект видят:</label>
+        <div class="form-check">
+            <input type="radio" name="ac_read" id="ac_read-watcher" value="watcher" {% if form.ac_read.data == 'watcher' %} checked {% endif %} class="form-check-input">
+            <label for="ac_read-watcher" class="form-check-label">Члены команды, которых вы пригласили</label>
+        </div>
+        <div class="form-check">
+            <input type="radio" name="ac_read" id="ac_read-any" value="any" {% if form.ac_read.data == 'any' %} checked {% endif %} class="form-check-input">
+            <label for="ac_read-any" class="form-check-label">Кто угодно по ссылке</label>
         </div>
     </div>
-    <div class="form-group">
-        <div class="col-sm-10 col-sm-offset-2">
-            <label for="ac_read-any" class="x-radio">
-                <input type="radio" name="ac_read" id="ac_read-any" value="any" {% if form.ac_read.data == 'any' %} checked {% endif %}>
-                Кто угодно по ссылке
-            </label>
-            <input type="text" class="form-control" readonly value="
-                {%- if project.ac_link_code -%}
-                    {{ project.ac_link_code }}
-                {%- else -%}
-                    {{ purl_for('.tasks', _external=True) }}
-                {%- endif -%}
-                " onclick="$(this).select()">
-        </div>
-        <div class="col-sm-5">
-        </div>
+    <div class="mb-3">
+        <input type="text" class="form-control" readonly value="
+            {%- if project.ac_link_code -%}
+                {{ project.ac_link_code }}
+            {%- else -%}
+                {{ purl_for('.tasks', _external=True) }}
+            {%- endif -%}
+            " onclick="$(this).select()">
     </div>
 
-    <div class="control-group">
-        <div class="col-sm-10 col-sm-offset-2">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Сохранить</button>
-        </div>
-    </div>
+    <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Сохранить</button>
 </form>
 
 

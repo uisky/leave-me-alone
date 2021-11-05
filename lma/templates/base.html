@@ -1,15 +1,15 @@
 {% macro render_pagination(pagination, endpoint) %}
 <nav>
-    <ul class=pagination>
+    <ul class="pagination">
         {%- for page in pagination.iter_pages() %}
             {% if page %}
                 {% if page != pagination.page %}
-                    <li><a href="{{ url_for(endpoint, page=page, **kwargs) }}">{{ page }}</a></li>
+                    <li class="page-item"><a href="{{ url_for(endpoint, page=page, **kwargs) }}" class="page-link">{{ page }}</a></li>
                 {% else %}
-                    <li class="active"><a href="#">{{ page }}</a></li>
+                    <li class="page-item active"><a href="{{ url_for(endpoint, page=page, **kwargs) }}" class="page-link">{{ page }}</a></li>
                 {% endif %}
             {% else %}
-                <li><span class=ellipsis>…</span></li>
+                <li class="page-item"><span class="page-linkw">…</span></li>
             {% endif %}
         {%- endfor %}
     </ul>
@@ -85,9 +85,7 @@
             <div class="container">
             {% for class, message in messages %}
                 <div class="alert alert-{{ class }}" role="alert">
-                    <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     {{ message|safe }}
                 </div>
             {% endfor %}

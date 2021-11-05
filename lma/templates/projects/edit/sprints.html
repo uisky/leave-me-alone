@@ -24,7 +24,7 @@
         <input type="hidden" name="has_sprints" value="Илья, ты пиздян.">
         <button type="submit" class="btn btn-primary">Использовать доски</button>
     </form>
-    <p class="help-block">
+    <p class="form-text">
         Вы всегда можете отменить доски.
     </p>
 {% else %}
@@ -50,7 +50,7 @@
             </td>
             <td>{{ stat|status_counters }}</td>
             <td>
-                <a href="#modal-edit" data-bs-toggle="modal" class="btn btn-xs btn-success action-edit">
+                <a href="#modal-edit" data-bs-toggle="modal" class="btn btn-sm btn-success action-edit">
                     <i class="fa fa-edit"></i>
                 </a>
             </td>
@@ -76,13 +76,11 @@
         <input type="hidden" name="has_sprints" value="">
         <div class="modal" id="modal-sprints-off"><div class="modal-dialog"><div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
                 <h5 class="modal-title">Отказаться от досок</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>
-                    Если вы потом решите вернуть доски, то задачи останутся на своих досках.
-                </p>
+                Если вы потом решите вернуть доски, то задачи останутся на своих досках.
             </div>
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary">Поехали</button>
@@ -95,14 +93,12 @@
     <form method="post" action="{{ purl_for('.sprint_edit') }}" id="form-add">
     <div class="modal" id="modal-add"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
             <h5 class="modal-title">Создать доску</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-            <div class="form-group">
-                <label class="control-label">Название</label>
-                <input type="text" name="name" class="form-control">
-            </div>
+            <label class="form-label">Название</label>
+            <input type="text" name="name" class="form-control">
         </div>
         <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Создать</button>
@@ -115,12 +111,12 @@
     <form method="post" action="" id="form-edit">
     <div class="modal" id="modal-edit"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
             <h5 class="modal-title">Свойства доски</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label class="control-label">Название</label>
+                <label class="form-label">Название</label>
                 <input type="text" name="name" class="form-control">
             </div>
         </div>
@@ -135,8 +131,8 @@
     <form method="post" action="" id="form-delete">
     <div class="modal" id="modal-delete"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span></button>
             <h5 class="modal-title">Удалить доску?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
             Если в ней были задачи, они останутся доступными, но попадут в раздел "Вне досок".

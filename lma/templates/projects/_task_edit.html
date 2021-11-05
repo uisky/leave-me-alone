@@ -9,58 +9,55 @@
 <input type="hidden" name="parent_id" value="0">
 
 {% if edit_task.id %}
-<div class="form-group">
-    <label class="control-label col-sm-1">Создал</label>
-    <div class="col-sm-5">
-        <p class="form-control-static">
-            {{ member_link(project, edit_task.user) }}
-        </p>
+<div class="row mb-3">
+    <div class="col">
+        <strong>Создал: </strong>
+        {{ member_link(project, edit_task.user) }}
+        {{ edit_task.created|humantime }}
     </div>
-    <label class="control-label col-sm-2">Статус</label>
-    <div class="col-sm-4">
-        <p class="form-control-static">
-            {{ edit_task.status|status_label }}
-        </p>
+
+    <div class="col">
+        <strong>Статус: </strong>
+        {{ edit_task.status|status_label }}
     </div>
 </div>
 {% endif %}
 
-<div class="form-group">
-    <label class="control-label col-sm-1">Задача</label>
-    <div class="col-sm-11">
-        {{ edit_form.subject(class='form-control') }}
-    </div>
+<div class="mb-3">
+    <label class="form-label">Задача</label>
+    {{ edit_form.subject(class='form-control') }}
 </div>
-<div class="form-group">
-    <label class="control-label col-sm-1">Детали</label>
-    <div class="col-sm-11">
-        {{ edit_form.description(class='form-control', rows=8) }}
-        <p class="help-block">Здесь можно использовать Markdown</p>
-    </div>
+
+<div class="mb-3">
+    <label class="form-label">Детали</label>
+    {{ edit_form.description(class='form-control', rows=8) }}
+    <p class="form-text">Здесь можно использовать Markdown</p>
 </div>
-<div class="form-group">
-    <label class="control-label col-sm-1">Картинка</label>
-    <div class="col-sm-11">
-        {% if edit_task.image %}
-            <label>{{ edit_form.image_delete() }} загружена, стереть её</label>
-        {% endif %}
-        {{ edit_form.image_(class='form-control') }}
-    </div>
+
+<div class="mb-3">
+    <label class="form-label">Приложить картинку</label>
+    {% if edit_task.image %}
+        <div class="form-check">
+            {{ edit_form.image_delete(class='form-check-input') }}
+            <label class="form-check-label">Стереть ту, что уже приложена</label>
+        </div>
+    {% endif %}
+    {{ edit_form.image_(class='form-control') }}
 </div>
-<div class="form-group">
-    <label class="control-label col-sm-1">Теги</label>
-    <div class="col-sm-11">
-        {{ edit_form.tagslist(class='form-control', placeholder='Через запятую') }}
-    </div>
+
+<div class="mb-3">
+    <label class="form-label">Теги</label>
+    {{ edit_form.tagslist(class='form-control', placeholder='Через запятую') }}
 </div>
-<div class="form-group">
-    <label class="control-label col-sm-1">Дедлайн</label>
-    <div class="col-sm-5">
+
+<div class="row mb-3">
+    <div class="col">
+        {% set deadline_id = 'deadline-%d' % (edit_task.id or 0) %}
+        <label class="form-label">Дедлайн</label>
         <div class='input-group date'>
-            {% set deadline_id = 'deadline-%d' % (edit_task.id or 0) %}
             {{ edit_form.deadline(class='form-control', id=deadline_id) }}
-            <span class="input-group-addon">
-                <span class="fa fa-remove" id="{{ deadline_id }}-clear"></span>
+            <span class="input-group-text">
+                <i class="fa fa-remove" id="{{ deadline_id }}-clear"></i>
             </span>
         </div>
         <script type="text/javascript">
@@ -68,14 +65,18 @@
                 'sideBySide': true,
                 'showTodayButton': true,
                 'stepping': 10,
-                'locale': 'ru'
+                'locale': 'ru',
+                    icons: {
+                    previous: 'fa fa-chevron-left',
+                    next: 'fa fa-chevron-right'
+                }
             });
             $('#{{ deadline_id }}-clear').click(function(e) { $('#{{ deadline_id }}').val(''); });
         </script>
     </div>
-    <label class="control-label col-sm-2">Исполнитель</label>
-    <div class="col-sm-4">
-        <select name="assigned_id" class="form-control">
+    <div class="col">
+        <label class="form-label">Исполнитель</label>
+        <select name="assigned_id" class="form-select">
             <option value="">Никто</option>
             {% for member in project.members_users() %}
                 <option value="{{ member.user_id }}" {% if member.user_id == edit_task.assigned_id %} selected {% endif %}>
@@ -85,28 +86,30 @@
         </select>
     </div>
 </div>
-<div class="form-group">
-    <label class="control-label col-sm-1">Характер</label>
-    <div class="col-sm-5">
+
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label">Характер</label>
         {{ edit_form.character(class='form-control') }}
     </div>
-    <label class="control-label col-sm-2">Важность</label>
-    <div class="col-sm-4">
-        {{ edit_form.importance(class='form-control') }}
+    <div class="col">
+        <label class="form-label">Важность</label>
+        {{ edit_form.importance(class='form-select') }}
     </div>
 </div>
-<div class="form-group">
-    <label class="control-label col-sm-1">Время</label>
-    <div class="col-sm-5">
+
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label">Эстимейт</label>
         <span class="input-group">
             {{ edit_form.estimate(class='form-control', placeholder="Можно десятичные дроби, 1 час = 0.1 дня") }}
-            <span class="input-group-addon">дней</span>
+            <span class="input-group-text">дней</span>
         </span>
     </div>
+    <div class="col">
     {% if not edit_task.id %}
-        <label class="control-label col-sm-2">Статус</label>
-        <div class="col-sm-4">
-            {{ edit_form.status(class='form-control') }}
-        </div>
+        <label class="form-label">Начальный статус</label>
+        {{ edit_form.status(class='form-select') }}
     {% endif %}
+    </div>
 </div>
