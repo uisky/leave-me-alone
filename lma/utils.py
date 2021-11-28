@@ -46,25 +46,25 @@ def plural(x, var1, var2, var5=None):
 
 
 ALLOWED_TAGS = [
-    'strong', 'em', 'del', 'b', 'i', 'u', 's', 'span', 'a',
+    'strong', 'em', 'del', 'b', 'i', 'u', 's', 'span', 'a', 'abbr',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
     'p', 'code', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'img', 'pre'
+    'img', 'pre', 'br'
 ]
 
 ALLOWED_ATTRIBUTES = {
-    '*': ['style'],
+    '*': ['style', 'title'],
     'img': ['src', 'width', 'height', 'alt'],
     'a': ['href', 'target', 'rel'],
-    'table': ['class']
+    'table': ['class'],
 }
 
 STYLES_WHITELIST = [
-    'color', 'background', 'font-size', 'font-style', 'font-weight',
+    'color', 'background', 'background-color', 'background-image', 'font-size', 'font-style', 'font-weight',
     'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
     'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
-    'border', 'box-shadow'
+    'border', 'box-shadow', 'cursor'
 ]
 
 
