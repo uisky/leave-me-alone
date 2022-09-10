@@ -13,20 +13,20 @@ def strip_field(s):
 
 
 class ProjectPropertiesForm(FlaskForm):
-    name = StringField('Название', [v.required(message='Проекту нужно имя.')], filters=[strip_field])
+    name = StringField('Название', [v.data_required(message='Проекту нужно имя.')], filters=[strip_field])
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
-    # type = RadioField('Тип', [v.required()], choices=PROJECT_TYPES)
+    # type = RadioField('Тип', [v.data_required()], choices=PROJECT_TYPES)
     # has_sprints = BooleanField('Использовать доски')
 
 
 class ProjectAccessForm(FlaskForm):
     access_levels = [('watcher', 'Член команды'), ('any', 'Кто угодно по сссылке')]
-    ac_read = RadioField('Этот проект видят', [v.required()], choices=access_levels)
-    ac_comment = RadioField('Кто может оставлять комментарии', [v.required()], choices=access_levels)
+    ac_read = RadioField('Этот проект видят', [v.data_required()], choices=access_levels)
+    ac_comment = RadioField('Кто может оставлять комментарии', [v.data_required()], choices=access_levels)
 
 
 class ProjectFolderForm(FlaskForm):
-    name = StringField('Название', [v.required(message='Имя забыли.')], filters=[strip_field])
+    name = StringField('Название', [v.data_required(message='Имя забыли.')], filters=[strip_field])
     in_menu = BooleanField('Показывать проекты из этой папки в меню', default=True)
 
 
@@ -45,7 +45,7 @@ class OutputOptions(FlaskForm):
 
 
 class TaskForm(FlaskForm):
-    subject = StringField('Название', [v.required(message='Опишите задачу.')], filters=[strip_field])
+    subject = StringField('Название', [v.data_required(message='Опишите задачу.')], filters=[strip_field])
     description = TextAreaField('Описание', [v.optional()])
     image_ = FileField('Картинка', [v.optional()])
     image_delete = BooleanField('Стереть картинку', [v.optional()])
@@ -68,19 +68,19 @@ class TaskForm(FlaskForm):
 
 
 class BugForm(FlaskForm):
-    subject = StringField('Тема', [v.required(message='Дайте хотя бы краткое описание')], filters=[strip_field])
+    subject = StringField('Тема', [v.data_required(message='Дайте хотя бы краткое описание')], filters=[strip_field])
     description = TextAreaField('Подробнее', [v.optional()])
 
 
 class SprintPropertiesForm(FlaskForm):
-    name = StringField('Название', [v.required(message='У доски должно быть название')], filters=[strip_field])
+    name = StringField('Название', [v.data_required(message='У доски должно быть название')], filters=[strip_field])
 
 
 class KarmaRecordForm(FlaskForm):
-    value = SelectField('Оценка', [v.required(message='Поставьте оценку')],
+    value = SelectField('Оценка', [v.data_required(message='Поставьте оценку')],
                         choices=[(-2, '-2'), (-1, '-1'), (0, ''), (1, '+1'), (2, '+2')],
                         coerce=int)
-    comment = TextAreaField('Обоснование', [v.required(message='Обоснуйте.')], filters=[strip_field])
+    comment = TextAreaField('Обоснование', [v.data_required(message='Обоснуйте.')], filters=[strip_field])
 
 
 class HistoryFiltersForm(FiltersForm):

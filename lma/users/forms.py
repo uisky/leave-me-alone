@@ -5,11 +5,11 @@ from wtforms import validators as v
 
 class RegisterForm(FlaskForm):
     email = StringField('E-mail', [
-        v.required(message='Введите e-mail.'),
+        v.data_required(message='Введите e-mail.'),
         v.Email(message='Неправильный адрес электронной почты.')
     ])
-    password = StringField('Пароль', [v.required(message='Введите пароль.')])
-    name = StringField('Ник', [v.required(message='Введите ник.')])
+    password = StringField('Пароль', [v.data_required(message='Введите пароль.')])
+    name = StringField('Ник', [v.data_required(message='Введите ник.')])
 
 
 class SettingsForm(RegisterForm):
