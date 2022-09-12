@@ -37,6 +37,7 @@ li.collapsed > ul { display: none; }
 }
 
 .tasks-tree .task .subj { width: 100%; }
+.tasks-tree .task .subj .git-branch { font-size: 0.9em; color: #777; }
 .tasks-tree .task .subj .meta { float: right; }
 .tasks-tree .task .subj .meta .estimate { color: #777; font-style: italic; display: inline-block; }
 

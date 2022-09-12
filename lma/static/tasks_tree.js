@@ -122,13 +122,13 @@
         /* Вызывается после загрузки комментариев */
         function init_comments() {
             var $comments = $('#comments'), $formEdit = $('#form-comment-edit'), $modalEdit = $('#modal-comment-edit'),
-                $btnSubmit = $formEdit.find(':submit');
+                $btnSubmit = $formEdit.find(':submit'), $elFormAddComment = $tab.find('#form-comment');
 
             // Убираем мигающий значок о новых комментариях
             $tree.find('.task.active .fa-comment').removeClass('new');
 
             // Обвес формы добавления комментария
-            $tab.find('#form-comment').ajaxForm({
+            $elFormAddComment.ajaxForm({
                 success: function(data) {
                     if(data.error) {
                         alert(data.error);
@@ -160,6 +160,20 @@
                 },
                 clearForm: true
             }).keypress(ctrlEnterSubmit);
+
+            // Детектор гит-веток при добавлении комментария
+            let elTaAddComment = document.getElementById('comments-add-body'),
+                elAddCommentGitWarning = document.getElementById('comments-add-gitwarning');
+            const likeBranch = ['feature/', 'bugfix/', 'refactor/', '`feature/', '`bugfix/', '`refactor/']
+            elTaAddComment.addEventListener('keyup', (e) => {
+                for(let like of likeBranch) {
+                    if(elTaAddComment.value.startsWith(like)) {
+                        elAddCommentGitWarning.style.display = 'block';
+                        return;
+                    }
+                }
+                elAddCommentGitWarning.style.display = 'none';
+            })
 
             // Обвес формы редактирования комментария
             $formEdit.ajaxForm({

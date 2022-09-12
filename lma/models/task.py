@@ -45,12 +45,9 @@ class Task(db.Model, storage.Entity):
     id = db.Column(db.Integer(), primary_key=True)
     created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
 
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False)
-    project_id = db.Column(db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'),
-                           nullable=False, index=True)
-    sprint_id = db.Column(db.Integer(), db.ForeignKey('sprints.id', ondelete='CASCADE', onupdate='CASCADE'),
-                          nullable=True, index=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
+    project_id = db.Column(db.Integer(), db.ForeignKey('projects.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
+    sprint_id = db.Column(db.Integer(), db.ForeignKey('sprints.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=True, index=True)
     assigned_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
 
     mp = db.Column(ARRAY(db.Integer(), zero_indexes=True))
@@ -60,12 +57,12 @@ class Task(db.Model, storage.Entity):
     status = db.Column(ENUM_STATUS, default='design.open')
     # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
     importance = db.Column(db.SmallInteger, nullable=False, server_default='0', default=0)
-    # Тип задачи: баг, фича, подумать
     character = db.Column(db.SmallInteger, nullable=True)
     subject = db.Column(db.String(1024), nullable=False)
     description = db.Column(db.Text(), nullable=False)
     deadline = db.Column(db.DateTime(timezone=True))
     estimate = db.Column(db.DECIMAL(precision=3, scale=1))
+    git_branch = db.Column(db.String(256))
 
     image = ImageAsset(width=2048, height=2048, transform='fit')
 

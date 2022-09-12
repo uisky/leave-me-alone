@@ -26,6 +26,7 @@ class Project(db.Model):
     name = db.Column(db.String(64), nullable=False)
     has_sprints = db.Column(db.Boolean, nullable=False, server_default='false')
     intro = db.Column(db.Text)
+    gitlab_url = db.Column(db.String(256))
 
     ac_link_code = db.Column(db.String(64), index=True, unique=True)
     ac_read = db.Column(ENUM_ACCESS_LEVEL, nullable=False, default='watcher', server_default='watcher')
@@ -140,11 +141,16 @@ class ProjectMember(MembershipBase, db.Model):
           task.sprint, task - можно ли перенести задачу в другую доску
           task.chparent, task - можно ли задаче task сменить родителя на кого-нибудь в этом проекте
           task.chparent, task, parent - можно ли задаче task сменить родителя на parent (parent = None: поставить в корень)
+          task.set-branch, task
 
         :param what: str
         :return: bool
         """
         patrimony, action = what.split('.')
+
+        # Владелец проекта может делать всё
+        if current_user.is_authenticated and self.user_id == current_user.id:
+            return True
 
         if patrimony == 'project':
             if action == 'edit':
@@ -197,6 +203,9 @@ class ProjectMember(MembershipBase, db.Model):
                     return True
             elif action == 'swap':
                 return self.can('task.chparent', *args)
+            elif action == 'set-git-branch':
+                if task.user_id == current_user.id or task.assigned_id == current_user.id:
+                    return True
             else:
                 raise ValueError('Unknown ProjectMember.can() permission requested: %r' % what)
 

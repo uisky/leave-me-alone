@@ -107,9 +107,19 @@
         </span>
     </div>
     <div class="col">
-    {% if not edit_task.id %}
-        <label class="form-label">Начальный статус</label>
-        {{ edit_form.status(class='form-select') }}
-    {% endif %}
+        <label class="form-label">Ветка GIT</label>
+        <span class="input-group">
+            {{ edit_form.git_branch(class='form-control') }}
+            <span class="input-group-text">дней</span>
+        </span>
     </div>
 </div>
+
+{% if not edit_task.id %}
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label">Начальный статус</label>
+        {{ edit_form.status(class='form-select') }}
+    </div>
+</div>
+{% endif %}

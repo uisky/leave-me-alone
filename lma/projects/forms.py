@@ -14,6 +14,7 @@ def strip_field(s):
 
 class ProjectPropertiesForm(FlaskForm):
     name = StringField('Название', [v.data_required(message='Проекту нужно имя.')], filters=[strip_field])
+    gitlab_url = StringField('Gitlab', [v.optional()], filters=[strip_field])
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
     # type = RadioField('Тип', [v.data_required()], choices=PROJECT_TYPES)
     # has_sprints = BooleanField('Использовать доски')
@@ -59,6 +60,7 @@ class TaskForm(FlaskForm):
                             choices=[(0, '')] + [(x['id'], x['name']) for x in Task.CHARACTERS.values()],
                             coerce=int)
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
+    git_branch = StringField('Ветка GIT', [v.optional()])
     status = SelectField(
         'Начальный статус',
         [v.optional()],

@@ -10,7 +10,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
-<link rel="stylesheet" href="/static/tasks_tree.css?4">
+<link rel="stylesheet" href="/static/tasks_tree.css?5">
 <script type="text/javascript" src="/static/js.cookie.js"></script>
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
@@ -83,6 +83,21 @@
                             &rarr; {{ member_link(project, selected.assignee) }}
                         {% endif %}
                         {{ selected.status|status_label }}
+                        <p>
+                        {% if selected.git_branch %}
+                                Ветка:
+                                {% if project.gitlab_url %}
+                                    <a href="{{ project.gitlab_url }}/tree/{{ selected.git_branch }}"><code>{{ selected.git_branch }}</code></a>
+                                {% else %}
+                                    <code>{{ selected.git_branch }}</code>
+                                {% endif %}
+                                {% if membership.can('task.set-git-branch', selected) %}
+                                    [ <a href="#modal-set-git-branch" data-bs-toggle="modal" class="ajax">указать</a> ]
+                                {% endif %}
+                        {% elif membership.can('task.set-git-branch', selected) %}
+                            Ветка: <a href="#modal-set-git-branch" data-bs-toggle="modal" class="ajax">указать</a>
+                        {% endif %}
+                        </p>
                         {% if selected.deadline %}
                             <p>
                                 Дедлайн:
@@ -120,6 +135,29 @@
                         {% endfor %}
                         </div>
                     </form>
+                    {% endif %}
+
+                    {% if membership.can('task.set-git-branch', selected) %}
+                    <form id="form-set-git-branch" method="post" action="{{ url_for('.task_set_git_branch', project_id=project.id, task_id=selected.id) }}">
+                        <div class="modal" id="modal-set-git-branch" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="myModalLabel">Указать ветку GIT</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" name="git_branch" value="{{ selected.git_branch or '' }}" class="form-control">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Ok</button>
+                        </div>
+                        </div></div></div>
+                    </form>
+                    <script type="text/javascript">
+                        $('#modal-set-git-branch').on('shown.bs.modal', () => {
+                            $('#form-set-git-branch').find('input[name=git_branch]').focus();
+                        });
+                    </script>
                     {% endif %}
                 </div>
 
@@ -334,6 +372,7 @@
                         <div class="subj">
                             {{ task.character|character_icon|safe }}
                             <a href="{{ url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id) }}">{{ task.subject }}</a>
+                            <span class="git-branch">{% if task.git_branch %}[{{ task.git_branch }}]{% endif %}</span>
 
                             {% if request.args.get('debug-mp') %}<small>{{ task.mp }}</small>{% endif %}
 
@@ -402,6 +441,6 @@
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
-<script type="text/javascript" src="/static/tasks_tree.js?4"></script>
+<script type="text/javascript" src="/static/tasks_tree.js?5"></script>
 <script type="text/javascript" src="/static/plugins/wtfc/tree.js"></script>
 {% endblock %}

@@ -16,8 +16,11 @@
 <h2>Написать комментарий</h2>
 <form method="post" action="{{ url_for('.task_comments', project_id=project.id, task_id=task.id) }}" id="form-comment" enctype="multipart/form-data">
     <div class="mb-3">
-        <textarea name="body" rows="4" class="form-control"></textarea>
+        <textarea name="body" rows="4" class="form-control" id="comments-add-body"></textarea>
         <div class="form-text">Здесь можно использовать Markdown</div>
+        <div class="form-text text-danger" id="comments-add-gitwarning" style="display: none">
+            Кажется, вы пытаетесь указать ветку GIT. Лучше сделайте это в свойствах задачи: в редакторе или прямо в описании задачи, сверху.
+        </div>
     </div>
 
     <div class="mb-3">
@@ -36,7 +39,7 @@
     </div>
     <div class="modal-body">
         <p>
-            <textarea name="body" class="form-control" rows="6"></textarea>
+            <textarea name="body" class="form-control" rows="6" id="comments-body"></textarea>
         </p>
         <p class="form-text">
             Если хотите удалить комментарий — просто сотрите его текст.

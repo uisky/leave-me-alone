@@ -69,7 +69,7 @@ STYLES_WHITELIST = [
 
 
 def sanitize_html(html):
-    return bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, styles=STYLES_WHITELIST)
+    return bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
 
 
 def print_sql(query):

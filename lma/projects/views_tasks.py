@@ -482,3 +482,25 @@ def reorder_tasks(project_id):
     db.session.commit()
 
     return 'ok'
+
+
+@mod.route('/<int:project_id>/<int:task_id>/git-branch/', methods=('POST',))
+def task_set_git_branch(project_id, task_id):
+    project, membership = load_project(project_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
+    old_sprint = task.sprint_id
+
+    if not membership.can('task.set-git-branch', task):
+        abort(403, 'Вы не можете указывать GIT-ветки к задачам тут.')
+
+    task.git_branch = request.form['git_branch'].strip()
+    if not task.git_branch:
+        task.git_branch = None
+
+    db.session.commit()
+
+    kw = {'project_id': task.project_id, 'task': task.id}
+    if project.has_sprints:
+        kw['sprint'] = task.sprint_id
+
+    return redirect(url_for('.tasks', **kw))
