@@ -45,6 +45,15 @@
         {{ form.image_(class='form-control') }}
     </div>
 
+    {% if not task %}
+    <div class="row mb-3">
+        <div class="col">
+            <label class="form-label">Начальный статус</label>
+            {{ form.status(class='radiolist') }}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="mb-3">
         <label class="form-label">Теги</label>
         {{ form.tagslist(class='form-control', placeholder='Через запятую') }}
@@ -89,7 +98,7 @@
     <div class="row mb-3">
         <div class="col">
             <label class="form-label">Характер</label>
-            {{ form.character(class='form-control') }}
+            {{ form.character(class='form-select') }}
         </div>
         <div class="col">
             <label class="form-label">Важность</label>
@@ -107,21 +116,9 @@
         </div>
         <div class="col">
             <label class="form-label">Ветка GIT</label>
-            <span class="input-group">
-                {{ form.git_branch(class='form-control') }}
-                <span class="input-group-text">дней</span>
-            </span>
+            {{ form.git_branch(class='form-control') }}
         </div>
     </div>
-
-    {% if not task %}
-    <div class="row mb-3">
-        <div class="col">
-            <label class="form-label">Начальный статус</label>
-            {{ form.status(class='form-select') }}
-        </div>
-    </div>
-    {% endif %}
 
     {% if task %}
         <div class="mb-3">

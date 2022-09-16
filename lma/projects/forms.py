@@ -60,11 +60,11 @@ class TaskForm(FlaskForm):
                             coerce=int)
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
     git_branch = StringField('Ветка GIT', [v.optional()])
-    status = SelectField(
+    status = RadioField(
         'Начальный статус',
         [v.optional()],
         choices=[('design.open', 'Надо проектировать'), ('dev.open', 'Можно разрабатывать'), ('qa.open', 'Надо потестить')],
-        default=None
+        default='design.open'
     )
 
 

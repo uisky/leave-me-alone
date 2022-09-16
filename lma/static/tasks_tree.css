@@ -69,3 +69,7 @@ li.collapsed > ul { display: none; }
 #form-chparent, #form-swap { display: none; }
 
 .task-history .dt { color: #666; font-size: .9em;}
+
+
+.radiolist { list-style: none; padding: 0; margin: 0; }
+.radiolist li { display: inline-block; padding-right: 20px; }
