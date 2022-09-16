@@ -24,7 +24,7 @@
             {%- if project.ac_link_code -%}
                 {{ project.ac_link_code }}
             {%- else -%}
-                {{ purl_for('.tasks', _external=True) }}
+                {{ purl_for('.tasks_list', _external=True) }}
             {%- endif -%}
             " onclick="$(this).select()">
     </div>

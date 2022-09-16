@@ -1,75 +1,20 @@
 (function() {
-    var $tree = $('.tasks-tree > ul'), $taskCurrent = $tree.find('.task.active').closest('li');
+    let $tree = $('.tasks-tree > ul'),
+        $taskCurrent = $tree.find('.task.active').closest('li'),
+        storage = window.localStorage;
 
     function ctrlEnterSubmit(e) {
-        if(e.ctrlKey && (e.which == 10 || e.which == 13)) {
+        if(e.ctrlKey && (e.which === 10 || e.which === 13)) {
             $(this).submit();
         }
     }
 
-    // Кнопка удаления задачи в редакторе
-    $('#btn-task-delete').click(function() {
-        if(!confirm('Вы уверены? Будут удалены все подзадачи!')) return;
-        $('#form-delete').submit()
-    });
-
-    // Фокус на поле "Задача" при активации таба "Создать подзадачу"
-    $('#tabs-task').find('a[href="#task-subtask"]').on('shown.bs.tab', function() {
-        $('#form-subtask').find('input[name=subject]').focus();
-    });
-
-    // Переместить задачу
-    chparentSelectTask = function(e) {
-        e.preventDefault();
-        $('#form-chparent input[name=parent_id]').val($(this).closest('li').data('id'));
-        $('#form-chparent').submit();
-    };
-    $('#btn-chparent').click(function(e) {
-        $('#form-edit').hide();
-        $('#form-chparent').show();
-        $tree.on('click', 'a', chparentSelectTask);
-    });
-    $('#btn-chparent-cancel').click(function(e) {
-        $('#form-edit').show();
-        $('#form-chparent').hide();
-        $tree.off('click', 'a', chparentSelectTask);
-    });
-    $('#btn-chparent-root').click(function(e) {
-        $('#form-chparent input[name=parent_id]').val(0);
-        $('#form-chparent').submit();
-    });
-
-    // Поменять местами
-    let swapSelectTask = function(e) {
-        e.preventDefault();
-        $('#form-swap input[name=sister_id]').val($(this).closest('li').data('id'));
-        $('#form-swap').submit();
-    };
-    $('#btn-swap').click(function(e) {
-        $('#form-edit').hide();
-        $('#form-swap').show();
-        $tree.on('click', 'a', swapSelectTask);
-    });
-    $('#btn-swap-cancel').click(function(e) {
-        $('#form-edit').show();
-        $('#form-swap').hide();
-        $tree.off('click', 'a', swapSelectTask);
-    });
-
-    // Перенести в другую доску
-    $('#form-sprint .act-select-sprint').on('click', function(e) {
-        $('#form-sprint button.act-select-sprint.btn-primary').removeClass('btn-primary').addClass('btn-secondary');
-        $(this).removeClass('btn-secondary').addClass('btn-primary');
-        $('#form-sprint [name=sprint_id]').val($(this).data('id'));
-    });
-
     // Развешиваем toggler'ы
-    var collapsed_cookie = 'clps';
-    var collapsed = Cookies.getJSON(collapsed_cookie) || [];
-    $tree.find('li').each(function() {
-        var $li = $(this);
+    let collapsed = JSON.parse(storage.getItem('tasks_collapsed')) || [];
+    $tree.find('ul > li').each(function() {
+        let $li = $(this);
         if($li.children('ul').length) {
-            if(collapsed.indexOf(parseInt($li.data('id'))) != -1) {
+            if(collapsed.indexOf(parseInt($li.data('id'))) !== -1) {
                 $li.addClass('collapsed');
             }
             $li.append($('<i class="toggler">'));
@@ -87,24 +32,27 @@
             $li.addClass('collapsed');
             collapsed.push(id);
         }
-        Cookies.set(collapsed_cookie, collapsed, {expires: 365, path: ''});
+        storage.setItem('tasks_collapsed', JSON.stringify(collapsed));
     });
 
     // Свернуть/развернуть все
     $('#btn-toggle-collapsed').click(function() {
-        var $this = $(this), open_togglers = $tree.find('li').not('.collapsed').children('.toggler');
+        var $this = $(this), open_togglers = $tree.find('ul > li').not('.collapsed').children('.toggler');
         if(open_togglers.length > 0) {
             open_togglers.click();
             $this.html('<i class="fa fa-plus"></i>');
         } else {
-            $tree.find('li').children('.toggler').click();
+            $tree.find('ul > li').children('.toggler').click();
             $this.html('<i class="fa fa-minus"></i>');
         }
     }).html(
-        $tree.find('li').not('.collapsed').children('.toggler').length
+        $tree.find('ul > li').not('.collapsed').children('.toggler').length
             ? '<i class="fa fa-minus"></i>'
             : '<i class="fa fa-plus"></i>'
     );
+
+    // Разворачиваем ветку с текущей задачей
+    $tree.find('.active').parents('li.collapsed').children('.toggler').click();
 
     // Установка статуса
     $('#form-setstatus').on('click', 'button.setter', function(e) {
@@ -112,23 +60,40 @@
         $('#form-setstatus').submit();
     });
 
-    // Разворачиваем ветку с текущей задачей
-    $tree.find('.active').parents('li.collapsed').children('.toggler').click();
+    // Указание ветки
+    function initGit() {
+        // Модалка указания GIT-ветки
+        let modalSetGitBranch = document.getElementById('modal-set-git-branch');
+        if (modalSetGitBranch) {
+            modalSetGitBranch.addEventListener('shown.bs.modal', () => {
+                $('#form-set-git-branch').find('input[name=git_branch]').focus();
+            });
+        }
+    }
+    initGit();
 
     // Комменты
-    $('#tabs-task a[href="#task-comments"]').on('shown.bs.tab', function() {
-        var $tab = $('#task-comments'), $tabHandle = $('#tabs-task a[href="#task-comments"]');
+    function initComments() {
+        let $tab = $('#task-comments'),
+            $tabHandle = $('#tabs-task a[href="#task-comments"]');
 
         /* Вызывается после загрузки комментариев */
-        function init_comments() {
-            var $comments = $('#comments'), $formEdit = $('#form-comment-edit'), $modalEdit = $('#modal-comment-edit'),
-                $btnSubmit = $formEdit.find(':submit'), $elFormAddComment = $tab.find('#form-comment');
+        function init_content() {
+            let $comments = $('#comments'),
+                $formEdit = $('#form-comment-edit'),
+                $modalEdit = $('#modal-comment-edit'),
+                $btnSubmit = $formEdit.find(':submit'), btnSubmit = document.getElementById('comments-add-submit'),
+                $elFormAddComment = $tab.find('#form-comment');
 
             // Убираем мигающий значок о новых комментариях
             $tree.find('.task.active .fa-comment').removeClass('new');
 
             // Обвес формы добавления комментария
             $elFormAddComment.ajaxForm({
+                beforeSubmit: function(e) {
+                    console.log(e, this);
+                    btnSubmit.innerText = 'Минуточку...';
+                },
                 success: function(data) {
                     if(data.error) {
                         alert(data.error);
@@ -137,8 +102,10 @@
 
                     $tab.find('ul.comments').append(data);
                     $tab.find('div.comments-empty-message').hide();
-                    let $image = $tab.find('#form-comment [name=image]');
-                    $image.wrap('<form>').closest('form').get(0).reset();
+
+                    // Очищаем инпут с картинкой
+                    let image = document.getElementById('comments-add-image');
+                    if (image) image.value = null;
 
                     // Увеличиваем счётчики комментариев, где надо:
                     // 1. Таб
@@ -157,6 +124,7 @@
                     } else {
                         $counter.html('<i class="fa fa-comment"></i> ' + (parseInt($counter.text()) + 1));
                     }
+                    btnSubmit.innerText = 'Отправить';
                 },
                 clearForm: true
             }).keypress(ctrlEnterSubmit);
@@ -240,28 +208,114 @@
 
         }
 
-        var LOAD_COMMENTS_ONLY_ONCE = false;
-        if(LOAD_COMMENTS_ONLY_ONCE) {
-            if($tab.find('.wait-stub').length) {
-                $tab.load($tab.data('url'), init_comments);
+        $('#tabs-task a[href="#task-comments"]').on('shown.bs.tab', function() {
+            if (!$tab.data('loaded')) {
+                $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
+                $tab.load($tab.data('url'), () => {
+                    $tab.data('loaded', '1')
+                    init_content();
+                });
             }
-        } else {
-            $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
-            $tab.load($tab.data('url'), init_comments);
-        }
-    });
+        });
+    }
+    initComments();
 
     // История
-    $('#tabs-task a[href="#task-history"]').on('shown.bs.tab', function() {
-        var $tab = $('#task-history');
-        $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
-        $tab.load($tab.data('url'));
-    });
+    function initHistory() {
+        $('#tabs-task a[href="#task-history"]').on('shown.bs.tab', function() {
+            let $tab = $('#task-history');
+            $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
+            $tab.load($tab.data('url'));
+        });
 
-    // Баги
-    $('#tabs-task a[href="#task-bugs"]').on('shown.bs.tab', function() {
-        var $tab = $('#task-bugs');
-        $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
-        $tab.load($tab.data('url'));
-    })
+    }
+    initHistory();
+
+    // Редактирование задачи
+    function initEditTask() {
+        $('#tabs-task a[href="#task-edit"]').on('shown.bs.tab', function() {
+            let $tab = $('#task-edit');
+            if (!$tab.data('loaded')) {
+                $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
+                $tab.load($tab.data('url'), () => {
+                    $tab.data('loaded', '1');
+
+                    // Кнопка удаления задачи в редакторе
+                    $('#btn-task-delete').click(function() {
+                        if(!confirm('Вы уверены? Будут удалены все подзадачи!')) return;
+                        $('#form-delete').submit()
+                    });
+
+                    // Перенести в другую доску
+                    $('#form-sprint .act-select-sprint').on('click', function(e) {
+                        $('#form-sprint button.act-select-sprint.btn-primary').removeClass('btn-primary').addClass('btn-secondary');
+                        $(this).removeClass('btn-secondary').addClass('btn-primary');
+                        $('#form-sprint [name=sprint_id]').val($(this).data('id'));
+                    });
+
+                    // Сменить родителя
+                    let chparentSelectTask = function(e) {
+                        e.preventDefault();
+                        $('#form-chparent input[name=parent_id]').val($(this).closest('li').data('id'));
+                        $('#form-chparent').submit();
+                    };
+                    $('#btn-chparent').click(function(e) {
+                        $('#form-edit').hide();
+                        $('#form-chparent').show();
+                        $tree.on('click', 'a', chparentSelectTask);
+                    });
+                    $('#btn-chparent-cancel').click(function(e) {
+                        $('#form-edit').show();
+                        $('#form-chparent').hide();
+                        $tree.off('click', 'a', chparentSelectTask);
+                    });
+                    $('#btn-chparent-root').click(function(e) {
+                        $('#form-chparent input[name=parent_id]').val(0);
+                        $('#form-chparent').submit();
+                    });
+
+                    // Поменять местами
+                    let swapSelectTask = function(e) {
+                        e.preventDefault();
+                        $('#form-swap input[name=sister_id]').val($(this).closest('li').data('id'));
+                        $('#form-swap').submit();
+                    };
+                    $('#btn-swap').click(function(e) {
+                        $('#form-edit').hide();
+                        $('#form-swap').show();
+                        $tree.on('click', 'a', swapSelectTask);
+                    });
+                    $('#btn-swap-cancel').click(function(e) {
+                        $('#form-edit').show();
+                        $('#form-swap').hide();
+                        $tree.off('click', 'a', swapSelectTask);
+                    });
+
+                });
+            }
+        });
+    }
+    initEditTask();
+
+    // Создать подзадачу
+    function initSubtask() {
+        // Загрузка контента при активации таба
+        function loadTab() {
+            let $tab = $('#task-subtask');
+            if (!$tab.data('loaded')) {
+                $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
+                $tab.load($tab.data('url'), () => {
+                    $tab.data('loaded', '1')
+                    $tab.find('[name=subject]').focus();
+                });
+            }
+        }
+
+        $('#tabs-task a[href="#task-subtask"]').on('shown.bs.tab', loadTab);
+        if(window.task_id === null) loadTab();
+    }
+    initSubtask();
+
+
+
 })();

@@ -83,7 +83,7 @@
             <td>{{ row.created.strftime('%d.%m.%Y %H:%M') }}</td>
             <td><a href="{{ url_for('.history', project_id=project.id, user_id=row.user_id) }}">{{ row.user.name }}</a></td>
             <td>{{ row.status|status_label }}</td>
-            <td class="t"><a href="{{ url_for('.tasks', project_id=project.id) }}?task={{ row.task_id }}">{{ row.task.path }}</a></td>
+            <td class="t"><a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=row.task.sprint_id, task_id=row.task_id) }}">{{ row.task.path }}</a></td>
         </tr>
         {% endfor %}
     </table>

@@ -16,8 +16,6 @@ class ProjectPropertiesForm(FlaskForm):
     name = StringField('Название', [v.data_required(message='Проекту нужно имя.')], filters=[strip_field])
     gitlab_url = StringField('Gitlab', [v.optional()], filters=[strip_field])
     intro = TextAreaField('Вступительное слово', [v.optional()], filters=[strip_field])
-    # type = RadioField('Тип', [v.data_required()], choices=PROJECT_TYPES)
-    # has_sprints = BooleanField('Использовать доски')
 
 
 class ProjectAccessForm(FlaskForm):
@@ -55,6 +53,7 @@ class TaskForm(FlaskForm):
     assigned_id = IntegerField('Исполнитель', [v.optional()])
     importance = SelectField('Важность', [v.optional()],
                              choices=[(id_, x['name']) for id_, x in Task.IMPORTANCE.items()],
+                             default=0,
                              coerce=int)
     character = SelectField('Характер', [v.optional()],
                             choices=[(0, '')] + [(x['id'], x['name']) for x in Task.CHARACTERS.values()],

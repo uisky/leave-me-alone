@@ -3,7 +3,7 @@
 .show-options button { font-size: .75em; padding: 0.15rem 0.25rem; background-color: #eee; }
 .show-options .max-deadline { font-size: 12px; }
 
-.toggler {
+.toggler, .xtoggler {
     display: block; width: 9px; height: 9px; background: url('/static/plusminus.png');
     cursor: pointer;
     -webkit-user-select: none;
@@ -13,8 +13,9 @@
     user-select: none;
 }
 li.collapsed .toggler { background-position: 0px -9px; }
+.xtoggler { background-position: 0px -9px; }
 li.collapsed > ul { display: none; }
-.tasks-tree .toggler { position: absolute; top: 11px; left: -12px; }
+.tasks-tree .toggler, .tasks-tree .xtoggler { position: absolute; top: 11px; left: -12px; }
 
 .tasks-tree {}
 .tasks-tree ul { list-style:none; margin: 0; padding-left: 20px; }

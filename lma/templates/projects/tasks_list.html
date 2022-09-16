@@ -1,0 +1,119 @@
+{% extends 'project.html' %}
+
+{% from '_macros.html' import member_link %}
+
+{% set menu_current = 'tasks' %}
+{% if selected %}
+    {% set page_title = selected.subject + ' @ ' + project.name %}
+{% else %}
+    {% set page_title = project.name %}
+{% endif %}
+
+
+
+{% block head %}
+<link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" href="/static/tasks_tree.css?5">
+<script type="text/javascript" src="/static/js.cookie.js"></script>
+<script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript">
+    var current_user = {"id": {{ current_user.id or None }}, "name": "{{ current_user.name or '' }}"};
+    var project = {"id": {{ project.id }}, "name": "{{ project.name }}"};
+    var task_id = {{ selected.id if selected else 'null' }};
+</script>
+{% endblock %}
+
+
+
+{% block content %}
+    <ul class="nav nav-tabs mb-1">
+        <li class="nav-item">
+            <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=0) }}" class="nav-link {% if sprint_id == 0 %} active {% endif %}">*</a>
+        </li>
+        {% for sprint in sprints.values() %}
+            <li class="nav-item">
+                <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint.id) }}" class="nav-link {% if sprint.id == sprint_id %} active {% endif %}">{{ sprint.name }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="row">
+        {# Панель задачи #}
+        <div class="col-lg-6 order-lg-last">
+
+        {# Табы #}
+        <ul class="nav nav-tabs" id="tabs-task">
+            {% if selected %}
+                <li class="nav-item"><a href="#task-details" class="nav-link active" data-bs-toggle="tab">Задача</a></li>
+                <li class="nav-item">
+                    <a href="#task-comments" class="nav-link" data-bs-toggle="tab">
+                        Комментарии
+                        {% if selected.cnt_comments %}({{ selected.cnt_comments }}){% endif %}
+                    </a>
+                </li>
+                <li class="nav-item me-auto"><a href="#task-history" class="nav-link" data-bs-toggle="tab">История</a></li>
+            {% endif %}
+            {% if selected and membership.can('task.edit', selected) %}
+                <li class="nav-item"><a href="#task-edit" data-bs-toggle="tab" class="nav-link">Редактировать</a></li>
+            {% endif %}
+            {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
+                <li class="nav-item"><a href="#task-subtask" data-bs-toggle="tab" class="nav-link {% if not selected %} active {% endif %}">Создать подзадачу</a></li>
+            {% endif %}
+        </ul>
+
+
+        <div class="tab-content">
+            {% if selected %}
+                {# Описание задачи #}
+                <div id="task-details" class="tab-pane active task-details">
+                    {% include 'projects/_task_details.html' %}
+                </div>
+
+                {# Комментарии #}
+                <div id="task-comments" class="tab-pane task-comments" data-url="{{ url_for('.task_comments', project_id=project.id, task_id=selected.id) }}"></div>
+
+                {# История #}
+                <div id="task-history" class="tab-pane task-history" data-url="{{ url_for('.task_history', project_id=project.id, task_id=selected.id) }}"></div>
+            {% endif %}
+
+            {# Создать подзадачу #}
+            {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
+                <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}"
+                     data-url="{{ url_for('.task_subtask', project_id=project.id, sprint_id=sprint_id, parent_id=selected.id if selected else None) }}">
+                </div>
+            {% endif %}
+
+            {# Редактор задачи #}
+            {% if selected and membership.can('task.edit', selected) %}
+                <div id="task-edit" class="tab-pane" data-url="{{ url_for('.task_edit', project_id=project.id, sprint_id=selected.sprint_id, task_id=selected.id) }}"></div>
+            {% endif %}
+        </div>
+
+
+        </div>
+
+        {# Панель дерева задач #}
+        <div class="col-lg-6">
+            <button type="button" class="btn btn-sm" id="btn-toggle-collapsed" title="Свернуть/развернуть подзадачи текущей задачи"><i class="fa fa-plus"></i></button>
+
+            {% include('projects/_task_tree.html') %}
+
+            {% if membership.can('project.task-level-0') %}
+                <p class="mt-2">
+                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id) }}" class="btn btn-success">Поставить задачу в корень</a>
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block tail %}
+<script type="text/javascript" src="/static/tasks.js"></script>
+<script type="text/javascript" src="/static/tasks_tree.js?5"></script>
+<script type="text/javascript" src="/static/plugins/wtfc/tree.js"></script>
+{% endblock %}

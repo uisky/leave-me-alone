@@ -55,7 +55,7 @@
     <ul class="project-list" id="projects">
     {% for project in projects %}
         <li {%- if project.user_id == current_user.id %} class="my" {%- endif %} draggable="true" data-id="{{ project.id }}">
-            <a href="{{ url_for('projects.tasks', project_id=project.id) }}">{{ project.name }}</a>
+            <a href="{{ url_for('projects.tasks_list', project_id=project.id) }}">{{ project.name }}</a>
             <a href="#" class="action-menu" title="Вы можете перетащить проект в другую папку">
                 <i class="fa fa-arrows"></i>
             </a>

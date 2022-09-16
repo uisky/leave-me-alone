@@ -45,12 +45,11 @@ def member(project_id, member_id):
         statuses.pop(statuses.index('canceled'))
     query = query.filter(Task.status.in_(statuses))
 
-    if project.has_sprints:
-        sprint = filters.sprint.data
-        if sprint == '-':
-            query = query.filter(Task.sprint_id == None)
-        elif sprint:
-            query = query.filter(Task.sprint_id == sprint)
+    sprint = filters.sprint.data
+    if sprint == '-':
+        query = query.filter(Task.sprint_id == None)
+    elif sprint:
+        query = query.filter(Task.sprint_id == sprint)
 
     query = query.paginate(request.args.get('page', 1, type=int), 50)
 

@@ -70,6 +70,8 @@ def upgrade():
                 {'task_id': comment['task_id'], 'comment_created': comment['created']}
             )
 
+    session.execute("DELETE FROM task_comments_seen WHERE cnt_comments = 0")
+
     # ### end Alembic commands ###
 
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 import json
 
 from flask import render_template, request, redirect, flash, abort, make_response, jsonify
@@ -17,16 +17,16 @@ def load_tasks_tree(project, options):
     :param project: Project
     :return: (OrderedDict(Task), dict(Seen), dict {'total': кол-во задач, 'max_deadline': крайний дедлайн, status: count})
     """
+    # Загружаем задачи первого уровня
+    ChildrenTasks = db.aliased(Task, name='children_tasks')
     query = db.session\
-        .query(Task)\
-        .filter_by(project_id=project.id)\
+        .query(Task, ChildrenTasks.id)\
+        .filter(Task.project_id == project.id)\
+        .filter(Task.parent_id == None)\
+        .outerjoin(ChildrenTasks, ChildrenTasks.parent_id == Task.id)\
+        .group_by(Task.id, db.text('users_1.id'), db.text('users_2.id'), ChildrenTasks.id)\
         .order_by(Task.mp)\
         .options(db.joinedload('user'), db.joinedload('assignee'), db.noload('tags'))
-
-    query = query\
-        .add_columns(db.func.count(Bug.id))\
-        .outerjoin(Bug, db.and_(Bug.task_id == Task.id, ~Bug.status.in_(('fixed', 'canceled'))))\
-        .group_by(Task.id, db.text('users_1.id'), db.text('users_2.id'))
 
     if current_user.is_authenticated:
         query = query\
@@ -39,18 +39,17 @@ def load_tasks_tree(project, options):
     else:
         query = query.add_columns('NULL')
 
-    if project.has_sprints:
-        if options.sprint.data:
-            query = query.filter(Task.sprint_id == options.sprint.data)
-        else:
-            query = query.filter(Task.sprint_id == None)
+    if options.sprint.data:
+        query = query.filter(Task.sprint_id == options.sprint.data)
+    else:
+        query = query.filter(Task.sprint_id == None)
 
     # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
     tasks = OrderedDict()
     seen = {}
 
-    for task, cnt_bugs, seen_ in query.all():
-        task.cnt_bugs = cnt_bugs
+    for task, has_children, seen_ in query.all():
+        task.has_children = has_children
         if seen_:
             seen[task.id] = seen_
         task.children_statuses = {}
@@ -69,10 +68,11 @@ def load_tasks_tree(project, options):
                 print('Ну, пиздец, приплыли! У задачи [%d %r %s] нет родителя id=%d' % (t.id, t.mp, t.subject, t.parent_id))
                 pass
 
+    # Если есть выбранная задача, то загружаем её и её подзадачи
+
     # Загружаем теги
-    q = TaskTag.query.join(Task).filter(Task.project_id == project.id)
-    if project.has_sprints:
-        q = q.filter(Task.sprint_id == options.sprint.data)
+    q = TaskTag.query.join(Task).filter(Task.project_id == project.id, Task.parent_id == None)
+    q = q.filter(Task.sprint_id == options.sprint.data)
 
     for tag in q.all():
         tasks[tag.task_id].tags.append(tag)
@@ -86,7 +86,8 @@ def load_tasks_tree(project, options):
     return tasks, seen
 
 
-def set_tags(task, tagslist):
+def set_tags(task: Task, tagslist: str) -> None:
+    """Устанавливает задаче task теги из списка tagslist (через запятую)"""
     TaskTag.query.filter_by(task_id=task.id).delete(synchronize_session=False)
     tags = set()
     for tagname in tagslist.split(','):
@@ -101,42 +102,98 @@ def set_tags(task, tagslist):
     db.session.bulk_save_objects(o)
 
 
-@mod.route('/<int:project_id>/', methods=('GET', 'POST'))
-def tasks(project_id):
+@mod.route('/<int:project_id>/')
+@mod.route('/<int:project_id>/<int:sprint_id>/')
+@mod.route('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/')
+def tasks_list(project_id, sprint_id=None, task_id=None, top_id=None):
+    """Список задач"""
+    # Редиректы с устаревших урлов
+    # /projects/<id>/?sprint=<sprint_id> -> /projects/<id>/<sprint_id>
+    # /projects/<id>/?task_id=<task_id>  -> /projects/<id>/<sprint_id>/task/<task_id>
+    if 'task_id' in request.args and sprint_id in request.args:
+        return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=request.args['sprint'], task_id=request.args['task_id']))
+    if 'task_id' in request.args:
+        return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=0, task_id=request.args['task_id']))
+    if 'sprint' in request.args:
+        return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=request.args['sprint']))
+
     project, membership = load_project(project_id)
+    sprints = OrderedDict()
+    for sprint in Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all():
+        sprints[sprint.id] = sprint
 
-    options = forms.OutputOptions(request.args)
-
-    # Текущая доска, если проект с досками
-    if project.has_sprints:
-        # sprints = Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all()
-        options.sprint.choices = [(x.id, x.name) for x in project.sprints] + [(0, 'Вне досок')]
-        if 'sprint' not in request.args:
-            options.sprint.data = int(request.cookies.get('sprint', '0'))
-
+    # Зашли в проект без указания доски, редиректимся туда
+    if sprint_id is None:
+        # Редиректимся на доску из куки или нулевую
+        return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=request.cookies.get('sprint', '0')))
+    else:
+        # Есть такая доска?
+        if task_id is None and sprint_id != 0 and sprint_id not in sprints:
+            return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=0))
+        # Запоминаем ID доски в куке для этого пути
         defer_cookie(
-            'sprint', str(options.sprint.data),
-            path=url_for('.tasks', project_id=project.id),
-            expires=datetime(2029, 8, 8)
+            'sprint', str(sprint_id),
+            path=url_for('.tasks_list', project_id=project.id),
+            expires=datetime.datetime.now() + datetime.timedelta(days=365)
         )
 
-    tasks, seen = load_tasks_tree(project, options)
-
-    # Выбранная задача
-    task_id = request.args.get('task', type=int)
+    # Если была выбрана задача
+    selected = None
     if task_id:
-        if task_id in tasks:
-            selected = tasks[task_id]
-        else:
-            selected = Task.query.filter_by(id=request.args.get('task'), project_id=project.id).first()
-            if not selected:
-                abort(404, 'Выбранная задача не обнаружена. Может, удалили? <a href="?">Весь проект</a>.')
-            return redirect(url_for('.tasks', project_id=project.id, sprint=selected.sprint_id or 0, task=selected.id))
+        selected = Task.query.filter_by(project_id=project_id, id=task_id)\
+            .first_or_404(f'Задача #{task_id} не найдена в этом проекте. Наверное, её удалили.')
+        if selected.sprint_id != sprint_id and sprint_id != 0:
+            print('REDIRECT', selected.sprint_id, sprint_id)
+            return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=selected.sprint_id, task_id=selected.id))
 
+    #
+    # В этом месте у нас sprint_id всегда либо 0, либо существующий спринт, task загружен или None
+    #
+
+    # Список всех задач спринта в tasks
+    children_tasks = db.aliased(Task, name='children_tasks')
+    query = db.session\
+        .query(Task, children_tasks.id)\
+        .filter(Task.project_id == project.id) \
+        .filter(Task.sprint_id == (None if sprint_id == 0 else sprint_id))\
+        .outerjoin(children_tasks, children_tasks.parent_id == Task.id)\
+        .order_by(Task.mp)\
+        .options(db.joinedload('user'), db.joinedload('assignee'), db.noload('tags'))
+
+    if selected:
+        if selected.top_id is None:
+            # Выбрана задача 1-го уровня, добавляем её поздадачи
+            query = query.filter(db.or_(Task.parent_id == None, Task.top_id == selected.id))
+        else:
+            # Выбрана поздадача, добавляем подзадачи той же ветки
+            query = query.filter(db.or_(Task.parent_id == None, Task.top_id == selected.top_id))
+    else:
+        query = query.filter(Task.parent_id == None)
+
+    if current_user.is_authenticated:
+        query = query\
+            .add_entity(TaskCommentsSeen)\
+            .outerjoin(TaskCommentsSeen, db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id))
+    else:
+        query = query.add_columns('NULL')
+
+    # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
+    tasks = OrderedDict()
+    seen = {}
+    for task, has_children, seen_ in query.all():
+        task.has_children = has_children
+        task.seen_by_me = seen_
+        tasks[task.id] = task
+
+    # Загружаем теги
+    q = TaskTag.query.join(Task).filter(Task.project_id == project.id, Task.parent_id == None, Task.sprint_id == sprint_id)
+    for tag in q.all():
+        tasks[tag.task_id].tags.append(tag)
+
+    if selected:
         form_edit = forms.TaskForm(obj=selected)
         form_edit.tagslist.data = ', '.join([tag.name for tag in selected.tags])
     else:
-        selected = None
         form_edit = None
 
     empty = Task(project_id=project.id, status='design.open', importance=0)
@@ -144,18 +201,37 @@ def tasks(project_id):
         empty.assigned_id = selected.assigned_id
     form_empty = forms.TaskForm(obj=empty)
 
-    # Ответ
+    # В шаблон нужно отдать:
+    # project, membership, sprint_id
+    # tasks: {id: Task, ...}
+    # seen: {id: Seen, ...}
+    # selected: Task
     return render_template(
-        'projects/tasks_%s.html' % project.type,
-        project=project, membership=membership, options=options,
-        tasks=list(tasks.values()),
-        selected=selected, empty=empty, form_empty=form_empty, form_edit=form_edit,
-        seen=seen
+        'projects/tasks_list.html',
+        project=project, membership=membership, sprints=sprints, sprint_id=sprint_id,
+        selected=selected,
+        tasks=list(tasks.values()), seen=seen,
+        empty=empty, form_empty=form_empty, form_edit=form_edit,
     )
 
 
-@mod.route('/<int:project_id>/<int:task_id>/edit/', methods=('POST',))
-def task_edit(project_id, task_id):
+@mod.get('/<int:project_id>/task/<int:task_id>/edit')
+@mod.get('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/edit')
+def task_edit(project_id, task_id, sprint_id=None):
+    project, membership = load_project(project_id)
+    task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
+
+    if not membership.can('task.edit', task):
+        abort(403, 'Вы не можете редактировать эту задачу.')
+
+    form = forms.TaskForm(obj=task)
+
+    return render_template('projects/_task_edit.html', project=project, membership=membership, task=task, form=form)
+
+
+@mod.post('/<int:project_id>/task/<int:task_id>/edit')
+@mod.post('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/edit')
+def task_edit_post(project_id, task_id, sprint_id=None):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
@@ -175,9 +251,6 @@ def task_edit(project_id, task_id):
                 is_modified = True
         is_modified |= all([getattr(hist, field) is None for field in history_fields])
 
-        if form.status.data == 'None':
-            form.status.data = None
-
         form.populate_obj(task)
         if task.character == 0:
             task.character = None
@@ -185,11 +258,10 @@ def task_edit(project_id, task_id):
             db.session.add(task)
             db.session.flush()
             task.image = form.image_.data
-        elif form.image_delete.data:
+        elif form.image_delete.data and task.image:
             del task.image
-
-        # Теги
-        if form.tagslist:
+        if form.tagslist.data:
+            print(form.tagslist.data)
             set_tags(task, form.tagslist.data)
 
         if is_modified:
@@ -205,32 +277,99 @@ def task_edit(project_id, task_id):
     if request.form.get('ajax'):
         if form.errors:
             return jsonify({'errors': form_json_errors(form)})
-
-        resp = make_response(task.json(membership, current_user))
-        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
-        return resp
+        return jsonify(task.json(membership, current_user))
 
     flash_errors(form)
-    view_data = {'project_id': task.project_id, 'task': task.id}
-    if project.has_sprints:
-        view_data['sprint'] = task.sprint_id
-    return redirect(url_for('.tasks', **view_data))
+
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id))
 
 
-@mod.route('/<int:project_id>/<int:task_id>/delete/', methods=('POST',))
-def task_delete(project_id, task_id):
+@mod.get('/<int:project_id>/<int:sprint_id>/tasks/<parent_id>/subtask/')
+@mod.get('/<int:project_id>/<int:sprint_id>/subtask/')
+def task_subtask(project_id, sprint_id, parent_id=None):
+    project, membership = load_project(project_id)
+    if parent_id:
+        parent = Task.query.filter_by(id=parent_id, project_id=project.id).first_or_404()
+        if not membership.can('task.subtask', parent):
+            abort(403, 'Вы не можете создавать подзадачи к этой задаче.')
+    else:
+        if not membership.can('project.task-level-0'):
+            abort(403, 'Вы не можете создавать задачи 1-го уровня в этом проекте.')
+        parent = None
+
+    form = forms.TaskForm()
+
+    return render_template('projects/_task_edit.html', project=project, membership=membership, sprint_id=sprint_id, parent=parent, form=form)
+
+
+@mod.post('/<int:project_id>/<int:sprint_id>/tasks/<parent_id>/subtask/')
+@mod.post('/<int:project_id>/<int:sprint_id>/subtask/')
+def task_subtask_post(project_id, sprint_id, parent_id=None):
+    project, membership = load_project(project_id)
+    if parent_id:
+        parent = Task.query.filter_by(id=parent_id, project_id=project.id).first_or_404()
+        if not membership.can('task.subtask', parent):
+            abort(403, 'Вы не можете создавать подзадачи к этой задаче.')
+    else:
+        if not membership.can('project.task-level-0'):
+            abort(403, 'Вы не можете создавать задачи 1-го уровня в этом проекте.')
+        parent = None
+
+    task = Task(project_id=project.id, user_id=current_user.id)
+    form = forms.TaskForm(obj=task)
+
+    if form.validate_on_submit():
+        form.populate_obj(task)
+        if task.character == 0:
+            task.character = None
+        if form.image_.data:
+            db.session.add(task)
+            db.session.flush()
+            task.image = form.image_.data
+        if form.tagslist:
+            set_tags(task, form.tagslist.data)
+
+        if parent:
+            task.sprint_id = parent.sprint_id
+        if sprint_id:
+            task.sprint_id = sprint_id
+
+        task.setparent(parent)
+        db.session.add(task)
+        db.session.flush()
+
+        # Удаляем статус у родительской задачи
+        if parent:
+            parent.status = None
+
+        # История!
+        db.session.flush()
+        hist = TaskHistory(task_id=task.id, user_id=task.user_id, status=task.status)
+        db.session.add(hist)
+
+        db.session.commit()
+
+        # Оповещаем assignee
+        mail_assigned(project, task)
+
+    if request.form.get('ajax'):
+        if form.errors:
+            return jsonify({'errors': form_json_errors(form)})
+        return jsonify(task.json(membership, current_user))
+
+    flash_errors(form)
+
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=parent.id if parent else task.id))
+
+
+@mod.post('/<int:project_id>/task/<int:task_id>/delete/')
+@mod.post('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/delete/')
+def task_delete(project_id, task_id, sprint_id=None):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
     if not membership.can('task.delete', task):
         abort(403, 'Вы не можете удалять эту задачу.')
-
-    kw = {'project_id': task.project_id}
-    if task.parent_id:
-        kw['task'] = task.parent_id
-    if project.has_sprints:
-        kw['sprint'] = task.sprint_id
-    redirect_url = url_for('.tasks', **kw)
 
     task.subtree(withme=True).delete(synchronize_session=False)
 
@@ -247,79 +386,12 @@ def task_delete(project_id, task_id):
         resp.headers['Content-Type'] = 'application/json; charset=utf-8'
         return resp
 
-    return redirect(redirect_url)
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.parent_id))
 
 
-@mod.route('/<int:project_id>/<parent_id>/subtask/', methods=('POST',))
-@mod.route('/<int:project_id>/subtask/', methods=('POST',))
-def task_subtask(project_id, parent_id=None):
-    project, membership = load_project(project_id)
-    if parent_id:
-        parent = Task.query.filter_by(id=parent_id, project_id=project.id).first_or_404()
-        if not membership.can('task.subtask', parent):
-            abort(403, 'Вы не можете создавать подзадачи к этой задаче.')
-    else:
-        if not membership.can('project.task-level-0'):
-            abort(403, 'Вы не можете создавать задачи 1-го уровня в этом проекте.')
-        parent = None
-
-    task = Task(project_id=project.id, user_id=current_user.id)
-    form = forms.TaskForm(obj=task)
-
-    # Строим URL, куда пойти после добавления задачи
-    kw = {'project_id': task.project_id}
-    if parent:
-        kw['task'] = parent.id
-    if project.has_sprints:
-        kw['sprint'] = request.form.get('sprint_id', 0, type=int)
-    redirect_url = url_for('.tasks', **kw)
-
-    if form.validate_on_submit():
-        form.populate_obj(task)
-        if form.image_.data:
-            db.session.add(task)
-            db.session.flush()
-            task.image = form.image_.data
-
-        if parent:
-            task.sprint_id = parent.sprint_id
-        elif request.form.get('sprint_id', 0, type=int):
-            task.sprint_id = request.form.get('sprint_id', type=int)
-
-        task.setparent(parent)
-        db.session.add(task)
-        db.session.flush()
-
-        if form.tagslist:
-            set_tags(task, form.tagslist.data)
-
-        # Удаляем статус у родительской задачи
-        if parent:
-            parent.status = None
-
-        # История!
-        db.session.flush()
-        hist = TaskHistory(task_id=task.id, status=task.status, user_id=task.user_id)
-        db.session.add(hist)
-
-        db.session.commit()
-
-        # Оповещаем assignee
-        mail_assigned(project, task)
-
-    if request.form.get('ajax'):
-        if form.errors:
-            return jsonify({'errors': form_json_errors(form)})
-        resp = make_response(task.json(membership, current_user))
-        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
-        return resp
-
-    flash_errors(form)
-    return redirect(redirect_url)
-
-
-@mod.route('/<int:project_id>/<int:task_id>/status/', methods=('POST',))
-def task_status(project_id, task_id):
+@mod.post('/<int:project_id>/task/<int:task_id>/status/')
+@mod.post('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/status/')
+def task_status(project_id, task_id, sprint_id=None):
     def check():
         if not membership.can('task.set-status', task, status):
             flash('Вы не можете установить этой задаче такой статус.', 'danger')
@@ -339,20 +411,15 @@ def task_status(project_id, task_id):
         db.session.commit()
         mail_changed(project, task, hist)
 
-    kw = {'project_id': task.project_id, 'task': task.id}
-    if project.has_sprints:
-        kw['sprint'] = task.sprint_id
-
     if request.form.get('ajax'):
-        resp = make_response(task.json(membership, current_user))
-        resp.headers['Content-Type'] = 'application/json; charset=utf-8'
-        return resp
+        return jsonify(task.json(membership, current_user))
 
-    return redirect(url_for('.tasks', **kw))
+    return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=task.sprint_id, task_id=task.id))
 
 
-@mod.route('/<int:project_id>/<int:task_id>/sprint/', methods=('POST',))
-def task_sprint(project_id, task_id):
+@mod.post('/<int:project_id>/task/<int:task_id>/sprint/')
+@mod.post('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/sprint/')
+def task_sprint(project_id, task_id, sprint_id=None):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
     old_sprint = task.sprint_id
@@ -368,15 +435,16 @@ def task_sprint(project_id, task_id):
     task.subtree(withme=True).update({'sprint_id': sprint_id}, synchronize_session=False)
     db.session.commit()
 
-    return redirect(url_for('.tasks', **{'project_id': task.project_id, 'sprint': old_sprint}))
+    return redirect(url_for('.tasks_list', project_id=task.project_id, sprint_id=old_sprint or 0))
 
 
-@mod.route('/<int:project_id>/<int:task_id>/chparent/', methods=('POST',))
-def task_chparent(project_id, task_id):
+@mod.post('/<int:project_id>/tasks/<int:task_id>/chparent/')
+@mod.post('/<int:project_id>/<int:sprint_id>/tasks/<int:task_id>/chparent/')
+def task_chparent(project_id, task_id, sprint_id=None):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
     subtree = task.subtree(withme=True).order_by(Task.mp).all()
-    back = redirect(url_for('.tasks', project_id=project.id, task=task.id, sprint=task.sprint_id))
+    back = redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id))
     if task.parent_id:
         old_parent = Task.query.get(task.parent_id)
     else:
@@ -408,11 +476,13 @@ def task_chparent(project_id, task_id):
                  .scalar() + 1
     prefix = parent.mp + [max_mp]
     task.parent_id = parent.id
+    task.top_id = parent.top_id if parent.top_id else parent.id
 
     # Меняем mp у всего поддерева исходной задачи
     cut = len(task.mp)
     for t in subtree:
         t.mp = prefix + t.mp[cut:]
+        t.top_id = parent.top_id if parent.top_id else parent.id
 
     # Остались ли у детки у старого родителя?
     if old_parent:
@@ -428,8 +498,9 @@ def task_chparent(project_id, task_id):
     return back
 
 
-@mod.route('/<int:project_id>/<int:task_id>/swap/', methods=('POST',))
-def task_swap(project_id, task_id):
+@mod.post('/<int:project_id>/tasks/<int:task_id>/swap/')
+@mod.post('/<int:project_id>/<int:sprint_id>/tasks/<int:task_id>/swap/')
+def task_swap(project_id, task_id, sprint_id=None):
     project, membership = load_project(project_id)
     sisters = [
         Task.query.filter_by(project_id=project.id, id=x).first_or_404()
@@ -447,48 +518,26 @@ def task_swap(project_id, task_id):
 
         return True
 
-    if not check():
-        return redirect(url_for('.tasks', project_id=project.id) + '?task=%d' % sisters[0].id)
+    if check():
+        mps = [sister.mp[:] for sister in sisters]
+        trees = [sister.subtree(withme=True).all() for sister in sisters]
 
-    mps = [sister.mp[:] for sister in sisters]
-    trees = [sister.subtree(withme=True).all() for sister in sisters]
+        for t in trees[0]:
+            t.mp = mps[1] + t.mp[len(mps[1]):]
 
-    for t in trees[0]:
-        t.mp = mps[1] + t.mp[len(mps[1]):]
+        for t in trees[1]:
+            t.mp = mps[0] + t.mp[len(mps[0]):]
 
-    for t in trees[1]:
-        t.mp = mps[0] + t.mp[len(mps[0]):]
+        db.session.commit()
 
-    db.session.commit()
-
-    kw = {'project_id': project.id, 'task': sisters[0].id}
-    if project.has_sprints:
-        kw['sprint'] = sisters[0].sprint_id
-    return redirect(url_for('.tasks', **kw))
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=sisters[0].sprint_id, task_id=sisters[0].id))
 
 
-@mod.route('/<int:project_id>/reorder/', methods=('POST',))
-def reorder_tasks(project_id):
-    project, membership = load_project(project_id)
-    if project.type != 'list':
-        abort(400)
-
-    ids = request.form.get('order').split(',')
-    for o, id_ in enumerate(ids):
-        db.session.execute(
-            'UPDATE tasks SET mp[1] = :order WHERE id = :id AND project_id = :project_id',
-            {'id': int(id_), 'project_id': project.id, 'order': o + 1}
-        )
-    db.session.commit()
-
-    return 'ok'
-
-
-@mod.route('/<int:project_id>/<int:task_id>/git-branch/', methods=('POST',))
-def task_set_git_branch(project_id, task_id):
+@mod.post('/<int:project_id>/tasks/<int:task_id>/git-branch/')
+@mod.post('/<int:project_id>/<int:sprint_id>/tasks/<int:task_id>/git-branch/')
+def task_set_git_branch(project_id, task_id, sprint_id=None):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
-    old_sprint = task.sprint_id
 
     if not membership.can('task.set-git-branch', task):
         abort(403, 'Вы не можете указывать GIT-ветки к задачам тут.')
@@ -499,8 +548,4 @@ def task_set_git_branch(project_id, task_id):
 
     db.session.commit()
 
-    kw = {'project_id': task.project_id, 'task': task.id}
-    if project.has_sprints:
-        kw['sprint'] = task.sprint_id
-
-    return redirect(url_for('.tasks', **kw))
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id))

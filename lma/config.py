@@ -4,6 +4,7 @@ DEBUG = False
 SQLALCHEMY_DATABASE_URI = 'postgresql://lma:e78z86@localhost:5432/lma'
 SQLALCHEMY_ECHO = False
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_ENGINE_OPTIONS = {'connect_args': {'options': '-c timezone=utc-3'}}
 
 SECRET_KEY = 'IJHk|kl.)&*gphdbaSD7yhj23r4hb^&Gdflaqshb6&'
 SECRET_KEY_PASSWORD = 'nYnLmHvghNl&bhTvVk)i8NM:7^%ASbB+g9asd'

@@ -13,21 +13,6 @@
 {% block content %}
 {{ super() }}
 
-{% if not project.has_sprints %}
-    <p>
-        Доски — это типа подпроектов. Когда задач становится слишком много,
-        их бывает удобно разделить. У каждой доски своя статистика, а переключаться между ними можно в выпадающей
-        менюшке в дереве задач. Создавать доски может только владелец проекта.
-    </p>
-    <form method="post" action="{{ purl_for('.sprints_onoff') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="has_sprints" value="Илья, ты пиздян.">
-        <button type="submit" class="btn btn-primary">Использовать доски</button>
-    </form>
-    <p class="form-text">
-        Вы всегда можете отменить доски.
-    </p>
-{% else %}
     {% if sprints %}
         <table class="table table-bordered table-list" id="table-sprints">
         <thead>
@@ -46,7 +31,7 @@
                 >
             <td><i class="fa fa-sort handle"></i></td>
             <td class="t">
-                <a href="{{ purl_for('.tasks', sprint=sprint.id) }}">{{ sprint.name }}</a>
+                <a href="{{ purl_for('.tasks_list', sprint_id=sprint.id) }}">{{ sprint.name }}</a>
             </td>
             <td>{{ stat|status_counters }}</td>
             <td>
@@ -63,33 +48,11 @@
     {% endif %}
 
     <a href="#modal-add" data-bs-toggle="modal" class="btn btn-success"> <i class="fa fa-plus-circle"></i> Добавить доску</a>
-    <a href="#modal-sprints-off" data-bs-toggle="modal" class="btn btn-danger"> <i class="fa fa-remove"></i> Отказаться от досок</a>
-{% endif %}
 {% endblock %}
 
 
 
 {% block tail %}
-{% if project.has_sprints %}
-    <form method="post" action="{{ purl_for('.sprints_onoff') }}" id="form-onoff">
-        <input type="hidden" name="csrf_toker" value="{{ csrf_token() }}">
-        <input type="hidden" name="has_sprints" value="">
-        <div class="modal" id="modal-sprints-off"><div class="modal-dialog"><div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Отказаться от досок</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                Если вы потом решите вернуть доски, то задачи останутся на своих досках.
-            </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Поехали</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-            </div>
-        </div></div></div>
-    </form>
-
-
     <form method="post" action="{{ purl_for('.sprint_edit') }}" id="form-add">
     <div class="modal" id="modal-add"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
@@ -192,5 +155,4 @@
 
     })();
     </script>
-{% endif %}
 {% endblock %}
