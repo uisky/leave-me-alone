@@ -180,6 +180,7 @@ def task_edit(project_id, task_id, sprint_id=None):
         abort(403, 'Вы не можете редактировать эту задачу.')
 
     form = forms.TaskForm(obj=task)
+    form.tagslist.data = ', '.join([tag.name for tag in task.tags])
 
     return render_template('projects/_task_edit.html', project=project, membership=membership, task=task, form=form)
 

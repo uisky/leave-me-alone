@@ -1,6 +1,6 @@
 <h1>{{ selected.subject }}</h1>
 {% for tag in selected.tags %}
-    <span class="badge label-tag">#{{ tag.name }}</span>
+    <a href="?tag={{ tag.name }}" class="badge label-tag">#{{ tag.name }}</a>
 {% endfor %}
 <div class="meta">
     Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
