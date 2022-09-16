@@ -13,7 +13,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/bootstrap-datetimepicker.min.css">
-<link rel="stylesheet" href="/static/tasks_tree.css?5">
+<link rel="stylesheet" href="/static/tasks_tree.css?6">
 <script type="text/javascript" src="/static/js.cookie.js"></script>
 <script type="text/javascript" src="/static/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/bootstrap-datetimepicker.min.js"></script>
@@ -96,6 +96,14 @@
         {# Панель дерева задач #}
         <div class="col-lg-6">
             <button type="button" class="btn btn-sm" id="btn-toggle-collapsed" title="Свернуть/развернуть подзадачи текущей задачи"><i class="fa fa-plus"></i></button>
+            {% if request.args.get('tag') %}
+                Фильтр: <span class="badge label-tag">#{{ request.args['tag'] }}</span>
+                [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(tag=None)) }}">x</a> ]
+            {% endif %}
+            {% if request.args.get('character') %}
+                Фильтр: характер={{ request.args['character'] }}
+                [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(character=None)) }}">x</a> ]
+            {% endif %}
 
             {% include('projects/_task_tree.html') %}
 
@@ -114,6 +122,5 @@
 
 {% block tail %}
 <script type="text/javascript" src="/static/tasks.js"></script>
-<script type="text/javascript" src="/static/tasks_tree.js?5"></script>
-<script type="text/javascript" src="/static/plugins/wtfc/tree.js"></script>
+<script type="text/javascript" src="/static/tasks_tree.js?6"></script>
 {% endblock %}

@@ -31,7 +31,12 @@
 {% if not tasks %}
     <div class="alert alert-info">
         {% if sprints %}
-            Доска пуста. Посмотрите в других досках:
+            Доска пуста.
+            {% if request.args %}
+                Фильтры применяются только к задачам первого уровня,
+                <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint.id) }}">попробуйте без них</a>.
+            {% endif %}
+            Посмотрите в других досках:
             <ul>
                 {% for sprint in sprints.values() %}
                 <li>
@@ -66,7 +71,7 @@
                 <div class="subj">
                     {{ task.character|character_icon|safe }}
 
-                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id) }}">
+                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.as_dict()) }}">
                         {{- task.subject -}}
                         {%- if task.has_children %}<i class="xtoggler"></i>{% endif -%}
                     </a>
@@ -91,7 +96,7 @@
                         {% endif %}
 
                         {% for tag in task.tags %}
-                            <span class="badge label-tag">#{{ tag.name }}</span>
+                            <a class="badge label-tag" href="?tag={{ tag.name }}">#{{ tag.name }}</a>
                         {% endfor %}
                     </span>
                 </div>

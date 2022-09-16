@@ -19,7 +19,7 @@ a.user:before {
 .important--1 { background-color: #58d258; }
 .important--2 { background-color: #AEEDBB; }
 
-.label-tag { background-color: #8983ff; }
+.label-tag, a.label-tag { background-color: #8983ff; color: white; text-decoration: none; }
 
 .bug-open { background-color: #5bc0de; }
 .bug-progress { background-color: #5cb85c; }

@@ -25,7 +25,7 @@ li.collapsed > ul { display: none; }
 .tasks-tree ul.hide-done li.li-done,
 .tasks-tree ul.hide-done li.li-canceled { display: none; }
 
-.tasks-tree > ul > li > .task .subj a { color: #516D86; font-weight: bold; }
+.tasks-tree > ul > li > .task .subj > a { color: #516D86; font-weight: bold; }
 .tasks-tree > ul > li:first-child > .task { border-top: none; }
 
 .tasks-tree .task { border-bottom: 1px dotted #ccc; clear: both; display: table; }

@@ -10,82 +10,6 @@ from lma.core import db
 from lma.utils import flash_errors, form_json_errors, defer_cookie, print_sql
 
 
-def load_tasks_tree(project, options):
-    """
-    Загружает дерево задач и TaskCommentSeen, считает статистику
-    :param options: forms.OutputOptions
-    :param project: Project
-    :return: (OrderedDict(Task), dict(Seen), dict {'total': кол-во задач, 'max_deadline': крайний дедлайн, status: count})
-    """
-    # Загружаем задачи первого уровня
-    ChildrenTasks = db.aliased(Task, name='children_tasks')
-    query = db.session\
-        .query(Task, ChildrenTasks.id)\
-        .filter(Task.project_id == project.id)\
-        .filter(Task.parent_id == None)\
-        .outerjoin(ChildrenTasks, ChildrenTasks.parent_id == Task.id)\
-        .group_by(Task.id, db.text('users_1.id'), db.text('users_2.id'), ChildrenTasks.id)\
-        .order_by(Task.mp)\
-        .options(db.joinedload('user'), db.joinedload('assignee'), db.noload('tags'))
-
-    if current_user.is_authenticated:
-        query = query\
-            .add_entity(TaskCommentsSeen)\
-            .outerjoin(
-                TaskCommentsSeen,
-                db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id)
-            )\
-            .group_by(TaskCommentsSeen.task_id, TaskCommentsSeen.user_id)
-    else:
-        query = query.add_columns('NULL')
-
-    if options.sprint.data:
-        query = query.filter(Task.sprint_id == options.sprint.data)
-    else:
-        query = query.filter(Task.sprint_id == None)
-
-    # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
-    tasks = OrderedDict()
-    seen = {}
-
-    for task, has_children, seen_ in query.all():
-        task.has_children = has_children
-        if seen_:
-            seen[task.id] = seen_
-        task.children_statuses = {}
-        tasks[task.id] = task
-
-        # Всем родителям увеличиваем счётчик статусов детей Task.children_statuses
-        if task.status:
-            t = task
-            try:
-                while t.parent_id:
-                    t.parent.children_statuses.setdefault(task.status, 0)
-                    t.parent.children_statuses[task.status] += 1
-                    t = t.parent
-            except AttributeError:
-                # Редкий случай, когда родитель не загружен в tasks (дерево поломалось)
-                print('Ну, пиздец, приплыли! У задачи [%d %r %s] нет родителя id=%d' % (t.id, t.mp, t.subject, t.parent_id))
-                pass
-
-    # Если есть выбранная задача, то загружаем её и её подзадачи
-
-    # Загружаем теги
-    q = TaskTag.query.join(Task).filter(Task.project_id == project.id, Task.parent_id == None)
-    q = q.filter(Task.sprint_id == options.sprint.data)
-
-    for tag in q.all():
-        tasks[tag.task_id].tags.append(tag)
-
-    # Приводим children_statuses к процентам
-    for id_, task in tasks.items():
-        if task.children_statuses:
-            cs = task.children_statuses
-            cs['ready'] = int((cs.get('complete', 0) + cs.get('canceled', 0)) / sum(cs.values()) * 100)
-
-    return tasks, seen
-
-
 def set_tags(task: Task, tagslist: str) -> None:
     """Устанавливает задаче task теги из списка tagslist (через запятую)"""
     TaskTag.query.filter_by(task_id=task.id).delete(synchronize_session=False)
@@ -100,6 +24,38 @@ def set_tags(task: Task, tagslist: str) -> None:
         o.append(TaskTag(task_id=task.id, name=tagname))
 
     db.session.bulk_save_objects(o)
+
+
+def add_seen_to_query(q):
+    """Добавляет в запрос `q` модель TaskCommentsSeen для авторированных юзеров и NULL для анонимов."""
+    if current_user.is_authenticated:
+        q = q.add_entity(TaskCommentsSeen)\
+            .outerjoin(TaskCommentsSeen, db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id))
+    else:
+        q = q.add_columns('NULL')
+    return q
+
+
+class TreeFilters:
+    tag = None
+    character = None
+
+    def __init__(self):
+        if request.args.get('tag'):
+            self.tag = request.args['tag']
+        if request.args.get('character'):
+            self.character = request.args['character']
+
+    def as_dict(self, **kwargs):
+        """Возвращает свои свойства в виде словаря, смёрженного с kwargs. Может юзаться в url_for():
+        url_for(..., project_id=id, **filters.as_dict(tag='forced')
+        """
+        ret = {
+            'tag': self.tag,
+            'character': self.character,
+            **kwargs
+        }
+        return ret
 
 
 @mod.route('/<int:project_id>/')
@@ -122,9 +78,8 @@ def tasks_list(project_id, sprint_id=None, task_id=None, top_id=None):
     for sprint in Sprint.query.filter_by(project_id=project.id).order_by(Sprint.sort).all():
         sprints[sprint.id] = sprint
 
-    # Зашли в проект без указания доски, редиректимся туда
     if sprint_id is None:
-        # Редиректимся на доску из куки или нулевую
+        # Зашли в проект без указания доски, редиректимся на доску из куки или нулевую
         return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=request.cookies.get('sprint', '0')))
     else:
         # Есть такая доска?
@@ -137,81 +92,81 @@ def tasks_list(project_id, sprint_id=None, task_id=None, top_id=None):
             expires=datetime.datetime.now() + datetime.timedelta(days=365)
         )
 
+    filters = TreeFilters()
+
     # Если была выбрана задача
     selected = None
     if task_id:
         selected = Task.query.filter_by(project_id=project_id, id=task_id)\
             .first_or_404(f'Задача #{task_id} не найдена в этом проекте. Наверное, её удалили.')
         if selected.sprint_id != sprint_id and sprint_id != 0:
-            print('REDIRECT', selected.sprint_id, sprint_id)
             return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=selected.sprint_id, task_id=selected.id))
-
-    #
-    # В этом месте у нас sprint_id всегда либо 0, либо существующий спринт, task загружен или None
-    #
 
     # Список всех задач спринта в tasks
     children_tasks = db.aliased(Task, name='children_tasks')
-    query = db.session\
+    q_top = db.session\
         .query(Task, children_tasks.id)\
         .filter(Task.project_id == project.id) \
         .filter(Task.sprint_id == (None if sprint_id == 0 else sprint_id))\
+        .filter(Task.parent_id == None)\
         .outerjoin(children_tasks, children_tasks.parent_id == Task.id)\
-        .order_by(Task.mp)\
         .options(db.joinedload('user'), db.joinedload('assignee'), db.noload('tags'))
 
+    q_top = add_seen_to_query(q_top)
+
+    # Фильтры
+    if filters.tag:
+        q_top = q_top.join(TaskTag, TaskTag.task_id == Task.id).filter(TaskTag.name == filters.tag)
+
+    if filters.character:
+        q_top = q_top.filter(Task.character == filters.character)
+
+    # Сортировки
+    sort = request.args.get('sort')
+    if sort == 'subject':
+        q_top = q_top.order_by(Task.subject, Task.mp)
+    elif sort == 'importance':
+        q_top = q_top.order_by(Task.importance.desc(), Task.mp)
+    elif sort == 'created':
+        q_top = q_top.order_by(Task.created.desc())
+    else:
+        q_top = q_top.order_by(Task.mp)
+
+    # Запрос для поздадач, если выбрана какая-нибудь задача
     if selected:
+        q_sub = Task.query.order_by(Task.mp).options(db.joinedload('user'), db.joinedload('assignee'), db.noload('tags'))
+        q_sub = add_seen_to_query(q_sub)
         if selected.top_id is None:
             # Выбрана задача 1-го уровня, добавляем её поздадачи
-            query = query.filter(db.or_(Task.parent_id == None, Task.top_id == selected.id))
+            q_sub = q_sub.filter(Task.top_id == selected.id)
         else:
             # Выбрана поздадача, добавляем подзадачи той же ветки
-            query = query.filter(db.or_(Task.parent_id == None, Task.top_id == selected.top_id))
-    else:
-        query = query.filter(Task.parent_id == None)
-
-    if current_user.is_authenticated:
-        query = query\
-            .add_entity(TaskCommentsSeen)\
-            .outerjoin(TaskCommentsSeen, db.and_(TaskCommentsSeen.task_id == Task.id, TaskCommentsSeen.user_id == current_user.id))
-    else:
-        query = query.add_columns('NULL')
+            q_sub = q_sub.filter(Task.top_id == selected.top_id)
 
     # Заполняем tasks и заодно считаем стату по статусам детей каждой задачи
     tasks = OrderedDict()
     seen = {}
-    for task, has_children, seen_ in query.all():
+    for task, has_children, seen_ in q_top.all():
         task.has_children = has_children
         task.seen_by_me = seen_
         tasks[task.id] = task
+        if selected and (selected.top_id is None and task.id == selected.id or selected.top_id is not None and task.id == selected.top_id):
+            for sub, seen_sub in q_sub.all():
+                sub.seen_by_me = seen_sub
+                tasks[sub.id] = sub
 
-    # Загружаем теги
-    q = TaskTag.query.join(Task).filter(Task.project_id == project.id, Task.parent_id == None, Task.sprint_id == sprint_id)
+    # Загружаем теги. Кривовато: грузим все теги всех задач доски
+    q = TaskTag.query.join(Task).filter(Task.project_id == project.id, Task.sprint_id == sprint_id)
     for tag in q.all():
-        tasks[tag.task_id].tags.append(tag)
+        if tag.task_id in tasks:
+            tasks[tag.task_id].tags.append(tag)
 
-    if selected:
-        form_edit = forms.TaskForm(obj=selected)
-        form_edit.tagslist.data = ', '.join([tag.name for tag in selected.tags])
-    else:
-        form_edit = None
-
-    empty = Task(project_id=project.id, status='design.open', importance=0)
-    if selected:
-        empty.assigned_id = selected.assigned_id
-    form_empty = forms.TaskForm(obj=empty)
-
-    # В шаблон нужно отдать:
-    # project, membership, sprint_id
-    # tasks: {id: Task, ...}
-    # seen: {id: Seen, ...}
-    # selected: Task
     return render_template(
         'projects/tasks_list.html',
+        filters=filters,
         project=project, membership=membership, sprints=sprints, sprint_id=sprint_id,
         selected=selected,
-        tasks=list(tasks.values()), seen=seen,
-        empty=empty, form_empty=form_empty, form_edit=form_edit,
+        tasks=list(tasks.values()), seen=seen
     )
 
 
