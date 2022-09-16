@@ -34,13 +34,13 @@
             Доска пуста.
             {% if request.args %}
                 Фильтры применяются только к задачам первого уровня,
-                <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint.id) }}">попробуйте без них</a>.
+                <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id) }}">попробуйте без них</a>.
             {% endif %}
             Посмотрите в других досках:
             <ul>
                 {% for sprint in sprints.values() %}
                 <li>
-                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint.id) }}">{{ sprint.name }}</a>
+                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id) }}">{{ sprint.name }}</a>
                 </li>
                 {% endfor %}
             </ul>
