@@ -19,7 +19,7 @@
 {% endif %}
 <form id="{% if task %}form-edit{% else %}form-subtask{% endif %}" method="post" action="{{ url }}" enctype="multipart/form-data">
     {{ form.csrf_token }}
-    <h2>{% if task %}Редактировать задачу{% else %}Создать подзадачу{% endif %}</h2>
+    <h2>{% if task %}Редактировать задачу{% else %}Создать {% if parent %}под{% endif %}задачу{% endif %}</h2>
 
     <input type="hidden" name="parent_id" value="0">
 

@@ -20,6 +20,13 @@ a.user:before {
 .important--2 { background-color: #AEEDBB; }
 
 .label-tag, a.label-tag { background-color: #8983ff; color: white; text-decoration: none; }
+.label-tag a.rm {
+    color: #fff;
+    text-decoration: none;
+    border-left: 1px solid white;
+    padding-left: 3px;
+    margin-left: 1px;
+}
 
 .bug-open { background-color: #5bc0de; }
 .bug-progress { background-color: #5cb85c; }

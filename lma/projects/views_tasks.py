@@ -39,12 +39,15 @@ def add_seen_to_query(q):
 class TreeFilters:
     tag = None
     character = None
+    sort = None
 
     def __init__(self):
         if request.args.get('tag'):
             self.tag = request.args['tag']
         if request.args.get('character'):
             self.character = request.args['character']
+        if request.args.get('sort'):
+            self.sort = request.args['sort']
 
     def as_dict(self, **kwargs):
         """Возвращает свои свойства в виде словаря, смёрженного с kwargs. Может юзаться в url_for():
@@ -53,6 +56,7 @@ class TreeFilters:
         ret = {
             'tag': self.tag,
             'character': self.character,
+            'sort': self.sort,
             **kwargs
         }
         return ret

@@ -1,6 +1,6 @@
 <h1>{{ selected.subject }}</h1>
 {% for tag in selected.tags %}
-    <a href="?tag={{ tag.name }}" class="badge label-tag">#{{ tag.name }}</a>
+    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.as_dict(tag=tag.name)) }}" class="badge label-tag">#{{ tag.name }}</a>
 {% endfor %}
 <div class="meta">
     Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}

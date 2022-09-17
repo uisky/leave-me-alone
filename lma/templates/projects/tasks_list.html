@@ -95,15 +95,39 @@
 
         {# Панель дерева задач #}
         <div class="col-lg-6">
-            <button type="button" class="btn btn-sm" id="btn-toggle-collapsed" title="Свернуть/развернуть подзадачи текущей задачи"><i class="fa fa-plus"></i></button>
-            {% if request.args.get('tag') %}
-                Фильтр: <span class="badge label-tag">#{{ request.args['tag'] }}</span>
-                [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(tag=None)) }}">x</a> ]
-            {% endif %}
-            {% if request.args.get('character') %}
-                Фильтр: характер={{ request.args['character'] }}
-                [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(character=None)) }}">x</a> ]
-            {% endif %}
+            <form id="form-filters">
+            <input type="hidden" name="tag" value="{{ filters.tag or '' }}">
+            <input type="hidden" name="character" value="{{ filters.character or '' }}">
+            <div class="row mb-1">
+                <div class="col">
+                    {% if selected %}
+                        <button type="button" class="btn btn-sm" id="btn-toggle-collapsed" title="Свернуть/развернуть подзадачи текущей задачи"><i class="fa fa-plus"></i></button>
+                    {% endif %}
+                </div>
+                <div class="col">
+                {% if request.args.get('tag') %}
+                    <span class="badge label-tag">
+                        #{{ request.args['tag'] }}
+                        <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(tag=None)) }}" class="rm">x</a>
+                    </span>
+                {% endif %}
+                </div>
+                {% if request.args.get('character') %}
+                <div class="col">
+                    Фильтр: характер={{ request.args['character'] }}
+                    [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(character=None)) }}">x</a> ]
+                </div>
+                {% endif %}
+                <div class="col">
+                    <select name="sort" onchange="this.form.submit()" class="form-select form-select-sm">
+                        {% set sorts = [('', 'По умолчанию'), ('created', 'По дате создания'), ('subject', 'По названию'), ('importance', 'По важности')] %}
+                        {% for sort, title in sorts %}
+                            <option value="{{ sort }}" {% if filters.sort == sort %} selected {% endif %}>{{ title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            </form>
 
             {% include('projects/_task_tree.html') %}
 

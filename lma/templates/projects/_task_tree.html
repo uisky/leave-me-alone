@@ -96,7 +96,7 @@
                         {% endif %}
 
                         {% for tag in task.tags %}
-                            <a class="badge label-tag" href="?tag={{ tag.name }}">#{{ tag.name }}</a>
+                            <a class="badge label-tag" href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.as_dict(tag=tag.name)) }}">#{{ tag.name }}</a>
                         {% endfor %}
                     </span>
                 </div>
