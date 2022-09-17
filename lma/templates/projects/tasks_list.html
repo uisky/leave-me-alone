@@ -97,7 +97,6 @@
         <div class="col-lg-6">
             <form id="form-filters">
             <input type="hidden" name="tag" value="{{ filters.tag or '' }}">
-            <input type="hidden" name="character" value="{{ filters.character or '' }}">
             <div class="row mb-1">
                 <div class="col">
                     {% if selected %}
@@ -112,12 +111,14 @@
                     </span>
                 {% endif %}
                 </div>
-                {% if request.args.get('character') %}
                 <div class="col">
-                    Фильтр: характер={{ request.args['character'] }}
-                    [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.dict(character=None)) }}">x</a> ]
+                    <select name="character" onchange="this.form.submit()" class="form-select form-select-sm">
+                        <option value="">Все характеры</option>
+                        {% for id, ch in Task.CHARACTERS.items() %}
+                            <option value="{{ id }}" {% if filters.character == id %} selected {% endif %}>{{ ch.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                {% endif %}
                 <div class="col">
                     <select name="sort" onchange="this.form.submit()" class="form-select form-select-sm">
                         {% set sorts = [('', 'По умолчанию'), ('created', 'По дате создания'), ('subject', 'По названию'), ('importance', 'По важности')] %}

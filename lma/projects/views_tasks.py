@@ -45,7 +45,7 @@ class TreeFilters:
         if request.args.get('tag'):
             self.tag = request.args['tag']
         if request.args.get('character'):
-            self.character = request.args['character']
+            self.character = int(request.args['character'])
         if request.args.get('sort'):
             self.sort = request.args['sort']
 
@@ -170,7 +170,8 @@ def tasks_list(project_id, sprint_id=None, task_id=None, top_id=None):
         filters=filters,
         project=project, membership=membership, sprints=sprints, sprint_id=sprint_id,
         selected=selected,
-        tasks=list(tasks.values()), seen=seen
+        tasks=list(tasks.values()), seen=seen,
+        Task=Task
     )
 
 
