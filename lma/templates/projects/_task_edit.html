@@ -1,21 +1,24 @@
 {#
     Форма для редактирования существующей задачи или создания подзадачи
+
     Ожидает увидеть в контексте:
     При редактировании задачи:
         task: Task
         form: WTForm
+        filters: TreeFilters
 
     При создании подзадачи:
         parent: Task или None, если задача ставится в корень
         sprint_id: int
         form: WTForm
+        filters: TreeFilters
 #}
 {% from '_macros.html' import member_link %}
 
 {% if task %}
-    {% set url = url_for('.task_edit_post', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id) %}
+    {% set url = url_for('.task_edit_post', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) %}
 {% else %}
-    {% set url = url_for('.task_subtask_post', project_id=project.id, sprint_id=sprint_id, parent_id=parent.id if parent else None) %}
+    {% set url = url_for('.task_subtask_post', project_id=project.id, sprint_id=sprint_id, parent_id=parent.id if parent else None, **filters.dict()) %}
 {% endif %}
 <form id="{% if task %}form-edit{% else %}form-subtask{% endif %}" method="post" action="{{ url }}" enctype="multipart/form-data">
     {{ form.csrf_token }}
@@ -143,10 +146,10 @@
 
 
 {% if task %}
-    <form id="form-delete" method="post" action="{{ url_for('.task_delete', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id) }}"></form>
+    <form id="form-delete" method="post" action="{{ url_for('.task_delete', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}"></form>
 
     {% if membership.can('task.chparent', task) %}
-        <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id) }}">
+        <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
         <h2>Переместить ветку</h2>
         <p>
             Выберите задачу, которая должна стать новым родителем выбранной задачи.
@@ -164,7 +167,7 @@
     {% endif %}
 
     {% if membership.can('task.swap', task) %}
-        <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id) }}">
+        <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
         <h2>Сортировка</h2>
         <p>
             Выберите задачу того же уровня, с которой нужно поменяться местами.
@@ -177,7 +180,7 @@
     {% endif %}
 
     {% if membership.can('task.sprint', task) %}
-        <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id) }}">
+        <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
 
         <div class="modal" id="modal-sprint" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
         <div class="modal-header">

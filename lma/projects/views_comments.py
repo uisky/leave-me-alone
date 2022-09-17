@@ -98,11 +98,11 @@ def task_comment(project_id, task_id, comment_id):
         else:
             if not membership.can('comment.edit', comment):
                 return jsonify({'error': 'Редактировать этот коментарий вам не позволено.'})
-            d = comment.as_dict()
+            d = comment.dict()
             d['action'] = 'saved'
             d['body_html'] = jinja_markdown(comment.body)
             db.session.commit()
 
             return jsonify(d)
 
-    return jsonify(comment.as_dict())
+    return jsonify(comment.dict())

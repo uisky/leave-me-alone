@@ -1,6 +1,6 @@
 <h1>{{ selected.subject }}</h1>
 {% for tag in selected.tags %}
-    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.as_dict(tag=tag.name)) }}" class="badge label-tag">#{{ tag.name }}</a>
+    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.dict(tag=tag.name)) }}" class="badge label-tag">#{{ tag.name }}</a>
 {% endfor %}
 <div class="meta">
     Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
@@ -44,7 +44,7 @@
 {% endif %}
 
 {% if membership.can('task.set-status', selected) %}
-<form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id) }}">
+<form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id, **filters.dict()) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="status">
     <div class="mb-2">
@@ -64,7 +64,7 @@
 {% endif %}
 
 {% if membership.can('task.set-git-branch', selected) %}
-<form id="form-set-git-branch" method="post" action="{{ url_for('.task_set_git_branch', project_id=project.id, task_id=selected.id) }}">
+<form id="form-set-git-branch" method="post" action="{{ url_for('.task_set_git_branch', project_id=project.id, task_id=selected.id, **filters.dict()) }}">
     <div class="modal" id="modal-set-git-branch" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header">
         <h5 class="modal-title" id="myModalLabel">Указать ветку GIT</h5>

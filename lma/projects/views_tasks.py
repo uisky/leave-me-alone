@@ -49,9 +49,9 @@ class TreeFilters:
         if request.args.get('sort'):
             self.sort = request.args['sort']
 
-    def as_dict(self, **kwargs):
+    def dict(self, **kwargs):
         """Возвращает свои свойства в виде словаря, смёрженного с kwargs. Может юзаться в url_for():
-        url_for(..., project_id=id, **filters.as_dict(tag='forced')
+        url_for(..., project_id=id, **filters.dict(tag='forced')
         """
         ret = {
             'tag': self.tag,
@@ -177,6 +177,7 @@ def tasks_list(project_id, sprint_id=None, task_id=None, top_id=None):
 @mod.get('/<int:project_id>/task/<int:task_id>/edit')
 @mod.get('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/edit')
 def task_edit(project_id, task_id, sprint_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
@@ -186,12 +187,13 @@ def task_edit(project_id, task_id, sprint_id=None):
     form = forms.TaskForm(obj=task)
     form.tagslist.data = ', '.join([tag.name for tag in task.tags])
 
-    return render_template('projects/_task_edit.html', project=project, membership=membership, task=task, form=form)
+    return render_template('projects/_task_edit.html', project=project, membership=membership, task=task, form=form, filters=filters)
 
 
 @mod.post('/<int:project_id>/task/<int:task_id>/edit')
 @mod.post('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/edit')
 def task_edit_post(project_id, task_id, sprint_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
@@ -221,7 +223,6 @@ def task_edit_post(project_id, task_id, sprint_id=None):
         elif form.image_delete.data and task.image:
             del task.image
         if form.tagslist.data:
-            print(form.tagslist.data)
             set_tags(task, form.tagslist.data)
 
         if is_modified:
@@ -241,12 +242,13 @@ def task_edit_post(project_id, task_id, sprint_id=None):
 
     flash_errors(form)
 
-    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id))
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()))
 
 
 @mod.get('/<int:project_id>/<int:sprint_id>/tasks/<parent_id>/subtask/')
 @mod.get('/<int:project_id>/<int:sprint_id>/subtask/')
 def task_subtask(project_id, sprint_id, parent_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     if parent_id:
         parent = Task.query.filter_by(id=parent_id, project_id=project.id).first_or_404()
@@ -259,12 +261,13 @@ def task_subtask(project_id, sprint_id, parent_id=None):
 
     form = forms.TaskForm()
 
-    return render_template('projects/_task_edit.html', project=project, membership=membership, sprint_id=sprint_id, parent=parent, form=form)
+    return render_template('projects/_task_edit.html', project=project, membership=membership, sprint_id=sprint_id, parent=parent, form=form, filters=filters)
 
 
 @mod.post('/<int:project_id>/<int:sprint_id>/tasks/<parent_id>/subtask/')
 @mod.post('/<int:project_id>/<int:sprint_id>/subtask/')
 def task_subtask_post(project_id, sprint_id, parent_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     if parent_id:
         parent = Task.query.filter_by(id=parent_id, project_id=project.id).first_or_404()
@@ -319,12 +322,13 @@ def task_subtask_post(project_id, sprint_id, parent_id=None):
 
     flash_errors(form)
 
-    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=parent.id if parent else task.id))
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=parent.id if parent else task.id, **filters.dict()))
 
 
 @mod.post('/<int:project_id>/task/<int:task_id>/delete/')
 @mod.post('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/delete/')
 def task_delete(project_id, task_id, sprint_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
@@ -346,7 +350,7 @@ def task_delete(project_id, task_id, sprint_id=None):
         resp.headers['Content-Type'] = 'application/json; charset=utf-8'
         return resp
 
-    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.parent_id))
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.parent_id, **filters.dict()))
 
 
 @mod.post('/<int:project_id>/task/<int:task_id>/status/')
@@ -359,6 +363,7 @@ def task_status(project_id, task_id, sprint_id=None):
 
         return True
 
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
     status = request.form.get('status')
@@ -374,7 +379,7 @@ def task_status(project_id, task_id, sprint_id=None):
     if request.form.get('ajax'):
         return jsonify(task.json(membership, current_user))
 
-    return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=task.sprint_id, task_id=task.id))
+    return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()))
 
 
 @mod.post('/<int:project_id>/task/<int:task_id>/sprint/')
@@ -401,10 +406,11 @@ def task_sprint(project_id, task_id, sprint_id=None):
 @mod.post('/<int:project_id>/tasks/<int:task_id>/chparent/')
 @mod.post('/<int:project_id>/<int:sprint_id>/tasks/<int:task_id>/chparent/')
 def task_chparent(project_id, task_id, sprint_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
     subtree = task.subtree(withme=True).order_by(Task.mp).all()
-    back = redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id))
+    back = redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()))
     if task.parent_id:
         old_parent = Task.query.get(task.parent_id)
     else:
@@ -461,6 +467,7 @@ def task_chparent(project_id, task_id, sprint_id=None):
 @mod.post('/<int:project_id>/tasks/<int:task_id>/swap/')
 @mod.post('/<int:project_id>/<int:sprint_id>/tasks/<int:task_id>/swap/')
 def task_swap(project_id, task_id, sprint_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     sisters = [
         Task.query.filter_by(project_id=project.id, id=x).first_or_404()
@@ -490,12 +497,13 @@ def task_swap(project_id, task_id, sprint_id=None):
 
         db.session.commit()
 
-    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=sisters[0].sprint_id, task_id=sisters[0].id))
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=sisters[0].sprint_id, task_id=sisters[0].id, **filters.dict()))
 
 
 @mod.post('/<int:project_id>/tasks/<int:task_id>/git-branch/')
 @mod.post('/<int:project_id>/<int:sprint_id>/tasks/<int:task_id>/git-branch/')
 def task_set_git_branch(project_id, task_id, sprint_id=None):
+    filters = TreeFilters()
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
 
@@ -508,4 +516,4 @@ def task_set_git_branch(project_id, task_id, sprint_id=None):
 
     db.session.commit()
 
-    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id))
+    return redirect(url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()))

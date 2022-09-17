@@ -80,13 +80,13 @@
             {# Создать подзадачу #}
             {% if selected and membership.can('task.subtask', selected) or not selected and membership.can('project.task-level-0') %}
                 <div id="task-subtask" class="tab-pane {% if not selected %} active {% endif %}"
-                     data-url="{{ url_for('.task_subtask', project_id=project.id, sprint_id=sprint_id, parent_id=selected.id if selected else None) }}">
+                     data-url="{{ url_for('.task_subtask', project_id=project.id, sprint_id=sprint_id, parent_id=selected.id if selected else None, **filters.dict()) }}">
                 </div>
             {% endif %}
 
             {# Редактор задачи #}
             {% if selected and membership.can('task.edit', selected) %}
-                <div id="task-edit" class="tab-pane" data-url="{{ url_for('.task_edit', project_id=project.id, sprint_id=selected.sprint_id, task_id=selected.id) }}"></div>
+                <div id="task-edit" class="tab-pane" data-url="{{ url_for('.task_edit', project_id=project.id, sprint_id=selected.sprint_id, task_id=selected.id, **filters.dict()) }}"></div>
             {% endif %}
         </div>
 
@@ -108,14 +108,14 @@
                 {% if request.args.get('tag') %}
                     <span class="badge label-tag">
                         #{{ request.args['tag'] }}
-                        <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(tag=None)) }}" class="rm">x</a>
+                        <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.dict(tag=None)) }}" class="rm">x</a>
                     </span>
                 {% endif %}
                 </div>
                 {% if request.args.get('character') %}
                 <div class="col">
                     Фильтр: характер={{ request.args['character'] }}
-                    [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.as_dict(character=None)) }}">x</a> ]
+                    [ <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, task_id=selected.id if selected else None, **filters.dict(character=None)) }}">x</a> ]
                 </div>
                 {% endif %}
                 <div class="col">

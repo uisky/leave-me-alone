@@ -278,7 +278,7 @@ class TaskComment(db.Model, storage.Entity):
     user = db.relationship('User', backref='comments')
     task = db.relationship('Task', backref='comments')
 
-    def as_dict(self):
+    def dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 

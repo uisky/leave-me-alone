@@ -71,7 +71,7 @@
                 <div class="subj">
                     {{ task.character|character_icon|safe }}
 
-                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.as_dict()) }}">
+                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
                         {{- task.subject -}}
                         {%- if task.has_children %}<i class="xtoggler"></i>{% endif -%}
                     </a>
@@ -96,7 +96,7 @@
                         {% endif %}
 
                         {% for tag in task.tags %}
-                            <a class="badge label-tag" href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.as_dict(tag=tag.name)) }}">#{{ tag.name }}</a>
+                            <a class="badge label-tag" href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.dict(tag=tag.name)) }}">#{{ tag.name }}</a>
                         {% endfor %}
                     </span>
                 </div>
