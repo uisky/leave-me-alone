@@ -445,11 +445,14 @@ def task_chparent(project_id, task_id, sprint_id=None):
     task.parent_id = parent.id
     task.top_id = parent.top_id if parent.top_id else parent.id
 
-    # Меняем mp у всего поддерева исходной задачи
+    # Меняем mp и top_id у всего поддерева исходной задачи
+    # Перенесли в корень:      parent.id = None                  => task.top_id = None, sub.top_id = task.id
+    # Перенесли на 2 уровень:  parent.id, parent.top_id = None   => task.top_id = parent.id, sub.top_id = task.top_id
+    # Перенесли на 2+ уровень: parent.id, parent.top_id          => task.top_id = parent.top_id, sub.top_id = task.top_id
     cut = len(task.mp)
     for t in subtree:
         t.mp = prefix + t.mp[cut:]
-        t.top_id = parent.top_id if parent.top_id else parent.id
+        t.top_id = task.top_id if task.top_id else task.id
 
     # Остались ли у детки у старого родителя?
     if old_parent:
