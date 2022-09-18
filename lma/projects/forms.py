@@ -60,6 +60,7 @@ class TaskForm(FlaskForm):
                             coerce=int)
     estimate = DecimalField('Оценка по времени', [v.optional()], places=1)
     git_branch = StringField('Ветка GIT', [v.optional()])
+    soundtrack = StringField('Саундтрек задачи', [v.optional()])
     status = RadioField(
         'Начальный статус',
         [v.optional()],

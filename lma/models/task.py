@@ -63,6 +63,7 @@ class Task(db.Model, storage.Entity):
     deadline = db.Column(db.DateTime(timezone=True))
     estimate = db.Column(db.DECIMAL(precision=3, scale=1))
     git_branch = db.Column(db.String(256))
+    soundtrack = db.Column(db.String(2048))
 
     image = ImageAsset(width=2048, height=2048, transform='fit')
 

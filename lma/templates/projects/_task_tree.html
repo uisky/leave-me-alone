@@ -78,19 +78,21 @@
                     {% if task.git_branch %}<span class="git-branch">[{{ task.git_branch }}]</span>{% endif %}
 
                     <span class="meta">
-                        {%- if task.estimate %}
+                        {% if task.estimate %}
                             <span class="estimate">{{ task.estimate }}d</span>
-                        {%- endif %}
+                        {% endif %}
 
-                        {{- task.importance|importance_icon|safe }}
 
-                        {%- if task.cnt_comments -%}
+
+                        {{ task.importance|importance_icon|safe }}
+
+                        {% if task.cnt_comments -%}
                             {{- _task_comments_icon(task) -}}
-                        {%- endif %}
+                        {% endif %}
 
-                        {%- for tag in task.tags %}
+                        {% for tag in task.tags %}
                             <a class="badge label-tag" href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.dict(tag=tag.name)) }}">#{{ tag.name }}</a>
-                        {%- endfor %}
+                        {% endfor %}
                     </span>
                 </div>
 

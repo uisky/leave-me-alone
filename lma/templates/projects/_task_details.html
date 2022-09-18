@@ -32,6 +32,11 @@
             {% if selected.status in ('open', 'progress', 'pause') and selected.deadline <= g.now %}</span>{% endif %}
         </p>
     {% endif %}
+    {% if selected.soundtrack %}
+        <p>
+            <a href="{{ selected.soundtrack }}" target="_blank"><i class="fas fa-music"></i> Саундтрэк задачи</a>
+        </p>
+    {% endif %}
 </div>
 
 <div class="description">
