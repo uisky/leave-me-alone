@@ -371,6 +371,10 @@ def task_status(project_id, task_id, sprint_id=None):
 
     if check():
         task.status = status
+        # Если я стартанул разработку ничьей задачи, то становлюсь её исполнителем
+        if task.assigned_id is None and status == 'dev.progress':
+            task.assigned_id = current_user.id
+
         # Пишем в историю
         hist = TaskHistory(task_id=task.id, user_id=current_user.id, status=status)
         db.session.add(hist)

@@ -220,6 +220,7 @@ def status_button_text(new_status, task):
         'canceled': {
             'design.open': 'Вернуть на перепроектирование',
             'dev.open': 'Вернуть в разработку',
+            'qa.open': 'Вернуть на тестирование',
             'complete': 'Всё готово'
         },
 
