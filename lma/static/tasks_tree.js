@@ -91,7 +91,6 @@
             // Обвес формы добавления комментария
             $elFormAddComment.ajaxForm({
                 beforeSubmit: function(e) {
-                    console.log(e, this);
                     btnSubmit.innerText = 'Минуточку...';
                 },
                 success: function(data) {
@@ -240,6 +239,8 @@
                 $tab.load($tab.data('url'), () => {
                     $tab.data('loaded', '1');
 
+                    $('#form-edit').keypress(ctrlEnterSubmit);
+
                     // Кнопка удаления задачи в редакторе
                     $('#btn-task-delete').click(function() {
                         if(!confirm('Вы уверены? Будут удалены все подзадачи!')) return;
@@ -290,7 +291,6 @@
                         $('#form-swap').hide();
                         $tree.off('click', 'a', swapSelectTask);
                     });
-
                 });
             }
         });
@@ -306,6 +306,7 @@
                 $tab.html('<div class="wait-stub"><i class="fa fa-spinner fa-spin"></i></div>');
                 $tab.load($tab.data('url'), () => {
                     $tab.data('loaded', '1')
+                    $('#form-subtask').keypress(ctrlEnterSubmit);
                     $tab.find('[name=subject]').focus();
                 });
             }
