@@ -134,7 +134,7 @@
 
             {% if membership.can('project.task-level-0') %}
                 <p class="mt-2">
-                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id) }}" class="btn btn-success">Поставить задачу в корень</a>
+                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.dict()) }}" class="btn btn-success">Поставить задачу в корень</a>
                 </p>
             {% endif %}
 
