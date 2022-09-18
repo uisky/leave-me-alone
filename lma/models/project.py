@@ -19,12 +19,9 @@ class Project(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     created = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.text('now()'))
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'),
-                        nullable=False, index=True)
-    type = db.Column(ENUM(*TYPES.keys(), name='project_type'), nullable=False, default='tree', server_default='tree')
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
 
     name = db.Column(db.String(64), nullable=False)
-    has_sprints = db.Column(db.Boolean, nullable=False, server_default='false')
     intro = db.Column(db.Text)
     gitlab_url = db.Column(db.String(256))
 
@@ -183,7 +180,7 @@ class ProjectMember(MembershipBase, db.Model):
                 else:
                     return task.allowed_statuses(self.user, self)
             elif action == 'sprint':
-                return self.project.has_sprints and task.parent_id is None and 'lead' in self.roles
+                return task.parent_id is None and 'lead' in self.roles
             elif action == 'chparent':
                 # Лид может всё
                 if 'lead' in self.roles:

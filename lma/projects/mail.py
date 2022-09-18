@@ -19,7 +19,7 @@ def mail_assigned(project, task):
 {1}
 
 Не забудьте поставить статус «В работе», когда приступите.
-    """.format(project.name, url_for('.tasks', project_id=task.project_id, task=task.id, _external=True), task=task)
+    """.format(project.name, url_for('.tasks_list', project_id=task.project_id, sprint_id=task.sprint_id, task_id=task.id, _external=True), task=task)
 
     mail.send_message(
         subject='Новая задача: %s' % task.subject,
@@ -46,11 +46,11 @@ def mail_changed(project, task, hist):
     msg_text = """
 В задаче "%s" проекта "%s" поменялись свойства: %s.
 
-  http://leave-me-alone.ru%s
+  %s
 
     """ % (
         task.subject, project.name, ', '.join(changed),
-        url_for('.tasks', project_id=task.project_id, task=task.id)
+        url_for('.tasks_list', project_id=task.project_id, sprint_id=task.sprint_id, task_id=task.id, _external=True)
     )
     mail.send_message(
         subject='Изменилась задача: %s' % task.subject,
@@ -72,11 +72,11 @@ def mail_karma(record):
 
 
 def mail_comment(comment):
-    msg_text = """Комментируя задачу <a href="http://leave-me-alone.ru%s#task-comments">%s</a>, %s сказал следующее:
+    msg_text = """Комментируя задачу <a href="%s#task-comments">%s</a>, %s сказал следующее:
 
 %s
     """ % (
-        url_for('.tasks', project_id=comment.task.project_id, task=comment.task.id),
+        url_for('.tasks_list', project_id=comment.task.project_id, sprint_id=comment.task.sprint_id, task_id=comment.task.id, _external=True),
         comment.task.subject,
         current_user.name,
         comment.body

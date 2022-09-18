@@ -1,0 +1,116 @@
+{%- macro _task_li_class(task) -%}
+    {%- if task.status %}li-{{ task.status }} {% endif -%}
+    {%- if task.top_id == None and selected.id != task.id %}collapsed {% endif -%}
+{%- endmacro -%}
+{% macro _task_container_class(task, selected) -%}
+    task
+    {%- if task.id == selected.id %} active {% endif %}
+    {%- if current_user.is_authenticated and task.assigned_id == current_user.id %} my {% endif %}
+{%- endmacro -%}
+{% macro _task_comments_icon(task) %}
+    {% set new = task.cnt_comments %}
+    {% if task.seen_by_me %}
+        {% set new = task.cnt_comments - task.seen_by_me.cnt_comments %}
+    {% endif %}
+    <span class="cnt-comments">
+        {% if new %}
+            <i class="fa fa-comment new"></i>
+            {% if task.cnt_comments - new %}
+                {{ task.cnt_comments - new -}}
+            {%- endif -%}
+            +{{- new }}
+        {% else %}
+            <i class="fa fa-comment"></i>
+            {{ task.cnt_comments }}
+        {% endif %}
+    </span>
+{% endmacro %}
+
+
+{% if not tasks %}
+    <div class="alert alert-info">
+        {% if sprints %}
+            Доска пуста.
+            {% if request.args %}
+                Фильтры применяются только к задачам первого уровня,
+                <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id) }}">попробуйте без них</a>.
+            {% endif %}
+            Посмотрите в других досках:
+            <ul>
+                {% for sprint in sprints.values() %}
+                <li>
+                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id) }}">{{ sprint.name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            В проекте нет задач.
+        {% endif %}
+    </div>
+{% else %}
+
+    <div class="tasks-tree show-deadline">
+    {% for task in tasks %}
+        {% if loop.index0 == 0 %}
+            {% set prev_depth = -1 %}
+        {% else %}
+            {% set prev_depth = tasks[loop.index0 - 1].depth %}
+        {% endif %}
+
+        {% if task.depth == prev_depth %}
+            {% if loop.index0 > 0 %} </li> {% endif %}
+        {% elif task.depth > prev_depth %}
+            {{ ('<ul>' * (task.depth - prev_depth)) | safe }}
+        {% elif task.depth < prev_depth %}
+            {{ ('</li></ul>' * (prev_depth - task.depth)) | safe }}
+        {% endif %}
+
+        <li data-id="{{ task.id }}" class="{{ _task_li_class(task) }}">
+            <div class="{{ _task_container_class(task, selected) }}">
+                <div class="subj">
+                    {{ task.character|character_icon|safe }}
+
+                    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
+                        {{- task.subject -}}
+                        {%- if task.has_children %}<i class="xtoggler"></i>{% endif -%}
+                    </a>
+
+                    {% if task.git_branch %}<span class="git-branch">[{{ task.git_branch }}]</span>{% endif %}
+
+                    <span class="meta">
+                        {%- if task.estimate %}
+                            <span class="estimate">{{ task.estimate }}d</span>
+                        {%- endif %}
+
+                        {{- task.importance|importance_icon|safe }}
+
+                        {%- if task.cnt_comments -%}
+                            {{- _task_comments_icon(task) -}}
+                        {%- endif %}
+
+                        {%- for tag in task.tags %}
+                            <a class="badge label-tag" href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.dict(tag=tag.name)) }}">#{{ tag.name }}</a>
+                        {%- endfor %}
+                    </span>
+                </div>
+
+                <div class="deadline {% if task.deadline and task.status not in ('complete', 'canceled') and task.deadline < g.now %} late {% endif %}">
+                    {%- if task.deadline %}{{ task.deadline.strftime('%d.%m') }}{%- endif -%}
+                </div>
+
+                <div class="users">
+                    {%- if task.assigned_id -%}
+                        <a href="{{ url_for('.member', project_id=project.id, member_id=task.assigned_id) }}" class="user">{{ task.assignee.name }}</a>
+                    {%- endif -%}
+                </div>
+
+                <div class="status">
+                    {{- task.status|status_label -}}
+                </div>
+            </div>
+
+    {% endfor %}
+    {{ ('</li></ul>' * (tasks[-1].depth + 1)) | safe }}
+    </div>
+
+{% endif %}

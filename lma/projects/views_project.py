@@ -43,16 +43,12 @@ def about(project_id):
 
 @mod.route('/add/', methods=('POST',), endpoint='project_add')
 def project_add():
-    project = Project(user_id=current_user.id, type='tree')
+    project = Project(user_id=current_user.id)
 
     project.name = request.form.get('name', '').strip()
     if project.name == '':
         flash('Проекту нужно имя!', 'danger')
         return redirect(url_for('.index'))
-
-    # project.type = request.form.get('type', 'tree')
-    # if project.type not in Project.TYPES.keys():
-    #     project.type = 'tree'
 
     db.session.add(project)
     db.session.flush()
@@ -67,7 +63,7 @@ def project_add():
     db.session.add(membership)
     db.session.commit()
 
-    return redirect(url_for('.tasks', project_id=project.id))
+    return redirect(url_for('.tasks_list', project_id=project.id))
 
 
 @mod.route('/<int:project_id>/edit/', methods=('GET', 'POST'), endpoint='project_edit')
@@ -112,28 +108,15 @@ def sprints(project_id):
         abort(403, 'Досками может управлять только владелец.')
 
     sprints = OrderedDict()
-    if project.has_sprints:
-        query = db.session.query(Sprint, Task.status, db.func.count(Task.id))\
-            .outerjoin(Task)\
-            .filter(Sprint.project_id == project.id)\
-            .group_by(Sprint.id, Task.status)\
-            .order_by(Sprint.sort, Task.status)
-        for sprint, status, cnt in query.all():
-            sprints.setdefault(sprint, OrderedDict())[status] = cnt
+    query = db.session.query(Sprint, Task.status, db.func.count(Task.id))\
+        .outerjoin(Task)\
+        .filter(Sprint.project_id == project.id)\
+        .group_by(Sprint.id, Task.status)\
+        .order_by(Sprint.sort, Task.status)
+    for sprint, status, cnt in query.all():
+        sprints.setdefault(sprint, OrderedDict())[status] = cnt
 
     return render_template('projects/edit/sprints.html', project=project, sprints=sprints)
-
-
-@mod.route('/<int:project_id>/edit/sprints/onoff/', methods=('POST',))
-def sprints_onoff(project_id):
-    project, membership = load_project(project_id)
-    if not membership.can('project.edit'):
-        abort(403, 'Досками может управлять только владелец.')
-
-    project.has_sprints = bool(request.form.get('has_sprints', False))
-    db.session.commit()
-
-    return redirect(url_for('.sprints', project_id=project.id))
 
 
 @mod.route('/<int:project_id>/sprints/add/', methods=('POST',))

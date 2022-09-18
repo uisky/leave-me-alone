@@ -19,7 +19,14 @@ a.user:before {
 .important--1 { background-color: #58d258; }
 .important--2 { background-color: #AEEDBB; }
 
-.label-tag { background-color: #8983ff; }
+.label-tag, a.label-tag { background-color: #8983ff; color: white; text-decoration: none; }
+.label-tag a.rm {
+    color: #fff;
+    text-decoration: none;
+    border-left: 1px solid white;
+    padding-left: 3px;
+    margin-left: 1px;
+}
 
 .bug-open { background-color: #5bc0de; }
 .bug-progress { background-color: #5cb85c; }
@@ -153,8 +160,6 @@ label.status-release_pause { background-color: #5DB55C; color: white; }
 label.status-complete { background-color: #BAE0BA; color: white; }
 label.status-canceled { background-color: #CED1D6; color: white; }
 
-
-
 .phase-design { background-color: #5CC0DE; color: white; }
 .phase-dev { background-color: #2882BB; color: white; }
 .phase-qa { background-color: #EEAC4D; color: white; }
@@ -169,3 +174,6 @@ label.status-canceled { background-color: #CED1D6; color: white; }
 .state-progress { }
 .state-pause { }
 .state-done { }
+
+.radiolist { list-style: none; padding: 0; margin: 0; }
+.radiolist li { display: inline-block; padding-right: 20px; }

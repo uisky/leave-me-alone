@@ -1,0 +1,82 @@
+<h1>{{ selected.subject }}</h1>
+{% for tag in selected.tags %}
+    <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=sprint_id, **filters.dict(tag=tag.name)) }}" class="badge label-tag">#{{ tag.name }}</a>
+{% endfor %}
+<div class="meta">
+    Поставлена {{ selected.created.strftime('%d.%m.%Y %H:%M') }}
+    {{ member_link(project, selected.user) }}
+    {% if selected.assigned_id %}
+        &rarr; {{ member_link(project, selected.assignee) }}
+    {% endif %}
+    {{ selected.status|status_label }}
+    <p>
+    {% if selected.git_branch %}
+        Ветка:
+        {% if project.gitlab_url %}
+            <a href="{{ project.gitlab_url }}/tree/{{ selected.git_branch }}"><code id="git-branch-value">{{ selected.git_branch }}</code></a>
+        {% else %}
+            <code id="git-branch-value">{{ selected.git_branch }}</code>
+        {% endif %}
+        {% if membership.can('task.set-git-branch', selected) %}
+            [ <a href="#modal-set-git-branch" data-bs-toggle="modal" class="ajax">указать</a> ]
+        {% endif %}
+    {% elif membership.can('task.set-git-branch', selected) %}
+        Ветка: <a href="#modal-set-git-branch" data-bs-toggle="modal" class="ajax">указать</a>
+    {% endif %}
+    </p>
+    {% if selected.deadline %}
+        <p>
+            Дедлайн:
+            {% if selected.status in ('open', 'progress', 'pause') and selected.deadline <= g.now %}<span class="deadline late">{% endif %}
+                {{ selected.deadline.strftime('%d.%m.%Y %H:%M') }}
+            {% if selected.status in ('open', 'progress', 'pause') and selected.deadline <= g.now %}</span>{% endif %}
+        </p>
+    {% endif %}
+</div>
+
+<div class="description">
+    {{ selected.description|markdown|safe }}
+</div>
+{% if selected.image %}
+    <div class="image">
+        <img src="{{ selected.image.url }}" width="{{ selected.image.width }}" height="{{ selected.image.height }}">
+    </div>
+{% endif %}
+
+{% if membership.can('task.set-status', selected) %}
+<form id="form-setstatus" method="post" action="{{ url_for('.task_status', project_id=project.id, task_id=selected.id, **filters.dict()) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="status">
+    <div class="mb-2">
+    {% set allowed_statuses = selected.allowed_statuses(current_user, membership) %}
+    {% for status in allowed_statuses %}
+        {% set prev_phase = '' if loop.index0 == 0 else allowed_statuses[loop.index0 - 1].split('.')[0] %}
+
+        {% if status.split('.')[0] != prev_phase %}
+            </div><div class="mb-2">
+        {% endif %}
+        <button type="button" class="btn {{ status|status_class }} setter" data-status="{{ status }}" title="Задача получит статус «{{ status }}»">
+            {{ status|status_button_text(selected) }}
+        </button>
+    {% endfor %}
+    </div>
+</form>
+{% endif %}
+
+{% if membership.can('task.set-git-branch', selected) %}
+<form id="form-set-git-branch" method="post" action="{{ url_for('.task_set_git_branch', project_id=project.id, task_id=selected.id, **filters.dict()) }}">
+    <div class="modal" id="modal-set-git-branch" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="myModalLabel">Указать ветку GIT</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <input type="text" name="git_branch" value="{{ selected.git_branch or '' }}" class="form-control">
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-primary">Ok</button>
+    </div>
+    </div></div></div>
+</form>
+{% endif %}

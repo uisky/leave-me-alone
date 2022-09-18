@@ -51,8 +51,8 @@ class Task(db.Model, storage.Entity):
     assigned_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
 
     mp = db.Column(ARRAY(db.Integer(), zero_indexes=True))
-    parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'),
-                          index=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'), index=True)
+    top_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE', onupdate='CASCADE'), index=True)
 
     status = db.Column(ENUM_STATUS, default='design.open')
     # Важность задачи, от -2 до +2, значения и икноки в IMPORTANCE
@@ -68,15 +68,21 @@ class Task(db.Model, storage.Entity):
 
     user = db.relationship('User', backref='tasks', foreign_keys=[user_id])
     assignee = db.relationship('User', backref='assigned', foreign_keys=[assigned_id])
-    children = db.relationship('Task', backref=db.backref('parent', remote_side=id))
+
+    top = db.relationship('Task', foreign_keys=[top_id], remote_side=id)
+    parent = db.relationship('Task', foreign_keys=[parent_id], remote_side=id)
+
     history = db.relationship('TaskHistory', backref='task', order_by='TaskHistory.created', passive_deletes=True)
     sprint = db.relationship('Sprint', backref='tasks')
     tags = db.relationship('TaskTag', order_by='TaskTag.name')
 
     cnt_comments = db.Column(db.Integer, nullable=False, server_default='0', default=0)
 
+    # TaskCommentsSeen для текущего юзера, заполняется при загрузке вручную
+    seen_by_me = None
+
     def __str__(self):
-        return '<Task %d: %s - "%s">' % (self.id, self.mp, self.subject)
+        return f'<Task {self.id}-{self.top_id} "{self.subject}">'
 
     def __repr__(self):
         return self.__str__()
@@ -86,12 +92,23 @@ class Task(db.Model, storage.Entity):
         return len(self.mp) - 1
 
     @property
-    def path(self):
-        task = self
-        subjs = [self.subject]
-        while task.parent_id is not None:
-            task = Task.query.get(task.parent_id)
-            subjs.insert(0, task.subject)
+    def path(self, full=False):
+        """
+        Возвращает строку с названием задачи и:
+        при full=False - названием задачи первого уровня, если текущая задача - подзадача
+        при full=True - полный путь от задачи первого уровня до этой (работает дольше, генерит много запросов)
+        """
+        if full:
+            subjs = [self.subject]
+            task = self
+            while task.parent_id is not None:
+                task = task.parent
+                subjs.insert(0, task.subject)
+        else:
+            subjs = []
+            if self.top_id:
+                subjs.append(self.top.subject)
+            subjs.append(self.subject)
 
         return ' / '.join(subjs)
 
@@ -132,23 +149,22 @@ class Task(db.Model, storage.Entity):
 
     def setparent(self, parent):
         """
-        Устанавливает parent_id и mp, чтобы усыновиться parent'ом.
+        Устанавливает parent_id, top_id и mp, чтобы усыновиться parent'ом.
         parent может быть None, тогда создаётся задача в корень
         :param parent:
         :return:
         """
-        if parent:
-            self.parent_id = parent.id
-        else:
-            self.parent_id = None
-
         if parent is None:
+            self.parent_id = None
+            self.top_id = None
             max_mp = db.session.execute(
                 "SELECT coalesce(max(mp[1]), 0) FROM %s WHERE project_id = :project_id and parent_id is null" % self.__tablename__,
                 {'project_id': self.project_id}
             ).scalar() + 1
             self.mp = [max_mp]
         else:
+            self.parent_id = parent.id
+            self.top_id = parent.top_id if parent.top_id else parent.id
             max_mp = db.session.execute(
                 "SELECT coalesce(max(mp[%d]), 0) FROM %s WHERE project_id = :project_id and parent_id = :parent_id" %
                 (len(parent.mp) + 1, self.__tablename__),
@@ -164,10 +180,7 @@ class Task(db.Model, storage.Entity):
         """
         query = Task.query.\
             filter_by(project_id=self.project_id).\
-            filter(db.text(
-                'mp[1:%d] = :mp' % len(self.mp),
-                bindparams=[db.bindparam('mp', value=self.mp, type_=ARRAY(db.Integer))]
-            ))
+            filter(db.text('mp[1:%d] = :mp' % len(self.mp)).bindparams(mp=self.mp))
         if not withme:
             query = query.filter(Task.id != self.id)
         return query
@@ -272,7 +285,7 @@ class TaskComment(db.Model, storage.Entity):
     user = db.relationship('User', backref='comments')
     task = db.relationship('Task', backref='comments')
 
-    def as_dict(self):
+    def dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 

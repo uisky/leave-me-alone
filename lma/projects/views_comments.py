@@ -11,7 +11,7 @@ from lma.core import db
 from lma.jinja import jinja_markdown
 
 
-@mod.route('/<int:project_id>/<int:task_id>/comments/', methods=('GET', 'POST'))
+@mod.route('/<int:project_id>/task/<int:task_id>/comments/', methods=('GET', 'POST'))
 def task_comments(project_id, task_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
@@ -73,7 +73,7 @@ def task_comments(project_id, task_id):
                                comments=comments, seen=seen)
 
 
-@mod.route('/<int:project_id>/<int:task_id>/comments/<int:comment_id>/', methods=('GET', 'POST'))
+@mod.route('/<int:project_id>/task/<int:task_id>/comments/<int:comment_id>/', methods=('GET', 'POST'))
 def task_comment(project_id, task_id, comment_id):
     project, membership = load_project(project_id)
     task = Task.query.filter_by(id=task_id, project_id=project.id).first_or_404()
@@ -98,11 +98,11 @@ def task_comment(project_id, task_id, comment_id):
         else:
             if not membership.can('comment.edit', comment):
                 return jsonify({'error': 'Редактировать этот коментарий вам не позволено.'})
-            d = comment.as_dict()
+            d = comment.dict()
             d['action'] = 'saved'
             d['body_html'] = jinja_markdown(comment.body)
             db.session.commit()
 
             return jsonify(d)
 
-    return jsonify(comment.as_dict())
+    return jsonify(comment.dict())

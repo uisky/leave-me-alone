@@ -1,125 +1,206 @@
 {#
-    Ожидает увидеть переменные
-    WTForm edit_form
-    Task edit_task
+    Форма для редактирования существующей задачи или создания подзадачи
+
+    Ожидает увидеть в контексте:
+    При редактировании задачи:
+        task: Task
+        form: WTForm
+        filters: TreeFilters
+
+    При создании подзадачи:
+        parent: Task или None, если задача ставится в корень
+        sprint_id: int
+        form: WTForm
+        filters: TreeFilters
 #}
 {% from '_macros.html' import member_link %}
 
-{{ edit_form.csrf_token }}
-<input type="hidden" name="parent_id" value="0">
-
-{% if edit_task.id %}
-<div class="row mb-3">
-    <div class="col">
-        <strong>Создал: </strong>
-        {{ member_link(project, edit_task.user) }}
-        {{ edit_task.created|humantime }}
-    </div>
-
-    <div class="col">
-        <strong>Статус: </strong>
-        {{ edit_task.status|status_label }}
-    </div>
-</div>
+{% if task %}
+    {% set url = url_for('.task_edit_post', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) %}
+{% else %}
+    {% set url = url_for('.task_subtask_post', project_id=project.id, sprint_id=sprint_id, parent_id=parent.id if parent else None, **filters.dict()) %}
 {% endif %}
+<form id="{% if task %}form-edit{% else %}form-subtask{% endif %}" method="post" action="{{ url }}" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    <h2>{% if task %}Редактировать задачу{% else %}Создать {% if parent %}под{% endif %}задачу{% endif %}</h2>
 
-<div class="mb-3">
-    <label class="form-label">Задача</label>
-    {{ edit_form.subject(class='form-control') }}
-</div>
+    <input type="hidden" name="parent_id" value="0">
 
-<div class="mb-3">
-    <label class="form-label">Детали</label>
-    {{ edit_form.description(class='form-control', rows=8) }}
-    <p class="form-text">Здесь можно использовать Markdown</p>
-</div>
+    <div class="mb-3">
+        <label class="form-label">Задача</label>
+        {{ form.subject(class='form-control') }}
+    </div>
 
-<div class="mb-3">
-    <label class="form-label">Приложить картинку</label>
-    {% if edit_task.image %}
-        <div class="form-check">
-            {{ edit_form.image_delete(class='form-check-input') }}
-            <label class="form-check-label">Стереть ту, что уже приложена</label>
+    <div class="mb-3">
+        <label class="form-label">Детали</label>
+        {{ form.description(class='form-control', rows=8) }}
+        <p class="form-text">Здесь можно использовать Markdown</p>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Приложить картинку</label>
+        {% if task and task.image %}
+            <div class="form-check">
+                {{ form.image_delete(class='form-check-input') }}
+                <label class="form-check-label">Стереть ту, что уже приложена</label>
+            </div>
+        {% endif %}
+        {{ form.image_(class='form-control') }}
+    </div>
+
+    {% if not task %}
+    <div class="row mb-3">
+        <div class="col">
+            <label class="form-label">Начальный статус</label>
+            {{ form.status(class='radiolist') }}
         </div>
+    </div>
     {% endif %}
-    {{ edit_form.image_(class='form-control') }}
-</div>
 
-<div class="mb-3">
-    <label class="form-label">Теги</label>
-    {{ edit_form.tagslist(class='form-control', placeholder='Через запятую') }}
-</div>
+    <div class="mb-3">
+        <label class="form-label">Теги</label>
+        {{ form.tagslist(class='form-control', placeholder='Через запятую') }}
+    </div>
 
-<div class="row mb-3">
-    <div class="col">
-        {% set deadline_id = 'deadline-%d' % (edit_task.id or 0) %}
-        <label class="form-label">Дедлайн</label>
-        <div class='input-group date'>
-            {{ edit_form.deadline(class='form-control', id=deadline_id) }}
-            <span class="input-group-text">
-                <i class="fa fa-remove" id="{{ deadline_id }}-clear"></i>
+    <div class="row mb-3">
+        <div class="col">
+            <label class="form-label">Дедлайн</label>
+            <div class='input-group date'>
+                {{ form.deadline(class='form-control', id='deadline-input') }}
+                <span class="input-group-text">
+                    <i class="fa fa-remove" id="deadline-input-clear"></i>
+                </span>
+            </div>
+            <script type="text/javascript">
+                $('#deadline-input').datetimepicker({
+                    'sideBySide': true,
+                    'showTodayButton': true,
+                    'stepping': 10,
+                    'locale': 'ru',
+                        icons: {
+                        previous: 'fa fa-chevron-left',
+                        next: 'fa fa-chevron-right'
+                    }
+                });
+                $('#deadline-input-clear').click(function(e) { $('#deadline-input').val(''); });
+            </script>
+        </div>
+        <div class="col">
+            <label class="form-label">Исполнитель</label>
+            <select name="assigned_id" class="form-select">
+                <option value="">Никто</option>
+                {% for member in project.members_users() %}
+                    <option value="{{ member.user_id }}" {% if task and member.user_id == task.assigned_id %} selected {% endif %}>
+                        {{ member.user.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <label class="form-label">Характер</label>
+            {{ form.character(class='form-select') }}
+        </div>
+        <div class="col">
+            <label class="form-label">Важность</label>
+            {{ form.importance(class='form-select') }}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <label class="form-label">Эстимейт</label>
+            <span class="input-group">
+                {{ form.estimate(class='form-control', placeholder="Можно десятичные дроби, 1 час = 0.1 дня") }}
+                <span class="input-group-text">дней</span>
             </span>
         </div>
-        <script type="text/javascript">
-            $('#{{ deadline_id }}').datetimepicker({
-                'sideBySide': true,
-                'showTodayButton': true,
-                'stepping': 10,
-                'locale': 'ru',
-                    icons: {
-                    previous: 'fa fa-chevron-left',
-                    next: 'fa fa-chevron-right'
-                }
-            });
-            $('#{{ deadline_id }}-clear').click(function(e) { $('#{{ deadline_id }}').val(''); });
-        </script>
+        <div class="col">
+            <label class="form-label">Ветка GIT</label>
+            {{ form.git_branch(class='form-control') }}
+        </div>
     </div>
-    <div class="col">
-        <label class="form-label">Исполнитель</label>
-        <select name="assigned_id" class="form-select">
-            <option value="">Никто</option>
-            {% for member in project.members_users() %}
-                <option value="{{ member.user_id }}" {% if member.user_id == edit_task.assigned_id %} selected {% endif %}>
-                    {{ member.user.name }}
-                </option>
+
+    {% if task %}
+        <div class="mb-3">
+            <button type="submit" class="btn btn-success mb-1"><i class="fa fa-check"></i> Сохранить</button>
+            <button type="button" class="btn btn-danger mb-1" id="btn-task-delete"><i class="fa fa-remove"></i> Удалить</button>
+            {% if membership.can('task.chparent', task) %}
+                <button type="button" class="btn btn-info mb-1" id="btn-chparent"><i class="fa fa-share-alt"></i> Сменить надзадачу</button>
+            {% endif %}
+            {% if membership.can('task.swap', task) and (task.top_id != None or not filters.sort) %}
+                <button type="button" class="btn btn-info mb-1" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
+            {% endif %}
+            {% if membership.can('task.sprint', task) %}
+                <button type="button" class="btn btn-info mb-1" id="btn-sprint" data-bs-toggle="modal" data-bs-target="#modal-sprint"><i class="fa fa-map"></i> На другую доску</button>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="mb-3">
+            <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Создать</button>
+        </div>
+    {% endif %}
+</form>
+
+
+{% if task %}
+    <form id="form-delete" method="post" action="{{ url_for('.task_delete', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}"></form>
+
+    {% if membership.can('task.chparent', task) %}
+        <form id="form-chparent" method="post" action="{{ url_for('.task_chparent', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
+        <h2>Переместить ветку</h2>
+        <p>
+            Выберите задачу, которая должна стать новым родителем выбранной задачи.
+        </p>
+        <input type="hidden" name="parent_id">
+        {% if task.parent_id %}
+        <button type="button" class="btn btn-secondary" id="btn-chparent-root">
+            <span class="fa fa-hand-o-up"></span> В корень
+        </button>
+        {% endif %}
+        <button type="button" class="btn btn-warning" id="btn-chparent-cancel">
+            <span class="fa fa-remove"></span> Отмена
+        </button>
+    </form>
+    {% endif %}
+
+    {% if membership.can('task.swap', task) %}
+        <form id="form-swap" method="post" action="{{ url_for('.task_swap', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
+        <h2>Сортировка</h2>
+        <p>
+            Выберите задачу того же уровня, с которой нужно поменяться местами.
+        </p>
+        <input type="hidden" name="sister_id">
+        <button type="button" class="btn btn-warning" id="btn-swap-cancel">
+            <span class="fa fa-remove"></span> Отмена
+        </button>
+    </form>
+    {% endif %}
+
+    {% if membership.can('task.sprint', task) %}
+        <form id="form-sprint" method="post" action="{{ url_for('.task_sprint', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
+
+        <div class="modal" id="modal-sprint" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="myModalLabel">Перенести ветку в другую доску</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            {% for sprint in project.sprints %}
+                <button type="button" data-id="{{ sprint.id }}"
+                        class="btn act-select-sprint {% if task.sprint_id == sprint.id %} btn-primary {% else %} btn-outline-secondary {% endif %} mb-1"
+                >{{ sprint.name }}</button>
             {% endfor %}
-        </select>
-    </div>
-</div>
 
-<div class="row mb-3">
-    <div class="col">
-        <label class="form-label">Характер</label>
-        {{ edit_form.character(class='form-control') }}
-    </div>
-    <div class="col">
-        <label class="form-label">Важность</label>
-        {{ edit_form.importance(class='form-select') }}
-    </div>
-</div>
-
-<div class="row mb-3">
-    <div class="col">
-        <label class="form-label">Эстимейт</label>
-        <span class="input-group">
-            {{ edit_form.estimate(class='form-control', placeholder="Можно десятичные дроби, 1 час = 0.1 дня") }}
-            <span class="input-group-text">дней</span>
-        </span>
-    </div>
-    <div class="col">
-        <label class="form-label">Ветка GIT</label>
-        <span class="input-group">
-            {{ edit_form.git_branch(class='form-control') }}
-            <span class="input-group-text">дней</span>
-        </span>
-    </div>
-</div>
-
-{% if not edit_task.id %}
-<div class="row mb-3">
-    <div class="col">
-        <label class="form-label">Начальный статус</label>
-        {{ edit_form.status(class='form-select') }}
-    </div>
-</div>
+            <input type="hidden" name="sprint_id" value="{{ task.sprint_id }}">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="submit" class="btn btn-primary">Ok</button>
+        </div>
+        </div></div></div>
+    </form>
+    {% endif %}
 {% endif %}
