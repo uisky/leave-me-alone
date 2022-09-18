@@ -130,7 +130,7 @@
             {% if membership.can('task.chparent', task) %}
                 <button type="button" class="btn btn-info mb-1" id="btn-chparent"><i class="fa fa-share-alt"></i> Сменить надзадачу</button>
             {% endif %}
-            {% if membership.can('task.swap', task) %}
+            {% if membership.can('task.swap', task) and (task.top_id != None or not filters.sort) %}
                 <button type="button" class="btn btn-info mb-1" id="btn-swap"><i class="fa fa-random"></i> Поменять местами</button>
             {% endif %}
             {% if membership.can('task.sprint', task) %}

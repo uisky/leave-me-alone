@@ -65,7 +65,7 @@ class TreeFilters:
 @mod.route('/<int:project_id>/')
 @mod.route('/<int:project_id>/<int:sprint_id>/')
 @mod.route('/<int:project_id>/<int:sprint_id>/task/<int:task_id>/')
-def tasks_list(project_id, sprint_id=None, task_id=None, top_id=None):
+def tasks_list(project_id, sprint_id=None, task_id=None):
     """Список задач"""
     # Редиректы с устаревших урлов
     # /projects/<id>/?sprint=<sprint_id> -> /projects/<id>/<sprint_id>

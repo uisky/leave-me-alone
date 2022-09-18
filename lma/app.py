@@ -1,5 +1,7 @@
 import locale
 import os
+import subprocess
+import datetime
 
 from flask import Flask, g, render_template
 
@@ -33,6 +35,8 @@ def create_app(cfg=None, purpose=None):
 
     storage.init_app(app)
 
+    get_release_version(app)
+
     @app.after_request
     def deferred_cookies(response):
         for args, kwargs in g.get('deferred_cookies', []):
@@ -55,9 +59,7 @@ def load_config(app, cfg=None):
     окружения LMA_CFG
     """
     app.config.from_pyfile('config.py')
-
-    if os.path.isfile('config.local.py'):
-        app.config.from_pyfile('config.local.py')
+    app.config.from_pyfile('config.local.py')
 
     if cfg is None and 'LMA_CFG' in os.environ:
         cfg = os.environ['LMA_CFG']
@@ -84,3 +86,17 @@ def init_login(app):
 
 def init_mail(app):
     mail.init_app(app)
+
+
+def get_release_version(app):
+    try:
+        basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        # Достаём ID последнего коммита из git rev-parse HEAD
+        run = subprocess.run(['git', '-C', basedir, 'rev-parse', '--verify', 'HEAD'], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if run.returncode != 0 or not run.stdout:
+            raise Exception('git rev-parse HEAD error: {}'.format(run.stderr))
+        version = run.stdout.strip()
+    except (Exception, IOError) as e:
+        version = datetime.datetime.now().strftime('%Y%m%d%H%M')
+
+    app.config['RELEASE_VERSION'] = version

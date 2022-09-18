@@ -146,6 +146,5 @@
 
 
 {% block tail %}
-<script type="text/javascript" src="/static/tasks.js"></script>
-<script type="text/javascript" src="/static/tasks_tree.js?6"></script>
+<script type="text/javascript" src="/static/tasks_tree.js?{{ config.get('RELEASE_VERSION') }}"></script>
 {% endblock %}
