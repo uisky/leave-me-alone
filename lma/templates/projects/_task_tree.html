@@ -1,6 +1,6 @@
 {%- macro _task_li_class(task) -%}
     {%- if task.status %}li-{{ task.status }} {% endif -%}
-    {%- if task.top_id == None and selected.id != task.id %}collapsed {% endif -%}
+    {%- if task.top_id == None and selected.id != task.id and selected.top_id != task.id %}collapsed by-engine {% endif -%}
 {%- endmacro -%}
 {% macro _task_container_class(task, selected) -%}
     task
