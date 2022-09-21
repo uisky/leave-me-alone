@@ -72,8 +72,14 @@
 
                     <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, task_id=task.id, **filters.dict()) }}">
                         {{- task.subject -}}
-                        {%- if task.has_children %}<i class="xtoggler"></i>{% endif -%}
+                        {# Тогглеры со ссылкой на задачу -- не для текущей ветки #}
+                        {%- if task.has_children and selected.id != task.id and selected.top_id != task.id -%}
+                            <i class="xtoggler"></i>
+                        {%- endif -%}
                     </a>
+                    {%- if task.has_children and (selected.id == task.id or selected.top_id == task.id) -%}
+                        <a href="{{ url_for('.tasks_list', project_id=project.id, sprint_id=task.sprint_id, **filters.dict()) }}"><i class="xtoggler"></i></a>
+                    {% endif %}
 
                     {% if task.git_branch %}<span class="git-branch">[{{ task.git_branch }}]</span>{% endif %}
 
