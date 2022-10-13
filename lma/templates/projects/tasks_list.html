@@ -111,6 +111,22 @@
                     </span>
                 {% endif %}
                 </div>
+                <div class="col col-md-1">
+                    <select name="stage" onchange="this.form.submit()" class="form-select form-select-sm">
+                        <option value="">*</option>
+                        {% for stage in ['design', 'dev', 'qa', 'review', 'debug', 'release'] %}
+                            <option value="{{ stage }}" {% if filters.stage == stage %} selected {% endif %}>{{ stage }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col col-md-1">
+                    <select name="state" onchange="this.form.submit()" class="form-select form-select-sm">
+                        <option value="">*</option>
+                        {% for state in ['open', 'progress', 'pause', 'done'] %}
+                            <option value="{{ state }}" {% if filters.state == state %} selected {% endif %}>{{ state }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="col">
                     <select name="character" onchange="this.form.submit()" class="form-select form-select-sm">
                         <option value="">Все характеры</option>
@@ -121,7 +137,7 @@
                 </div>
                 <div class="col">
                     <select name="sort" onchange="this.form.submit()" class="form-select form-select-sm">
-                        {% set sorts = [('', 'По умолчанию'), ('created', 'По дате создания'), ('subject', 'По названию'), ('importance', 'По важности')] %}
+                        {% set sorts = [('', 'По умолчанию'), ('created', 'По дате создания'), ('-created', 'яинадзос етад оП'), ('subject', 'По названию'), ('importance', 'По важности')] %}
                         {% for sort, title in sorts %}
                             <option value="{{ sort }}" {% if filters.sort == sort %} selected {% endif %}>{{ title }}</option>
                         {% endfor %}

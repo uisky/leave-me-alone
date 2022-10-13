@@ -40,6 +40,8 @@ class TreeFilters:
     tag = None
     character = None
     sort = None
+    stage = None
+    state = None
 
     def __init__(self):
         if request.args.get('tag'):
@@ -48,6 +50,10 @@ class TreeFilters:
             self.character = int(request.args['character'])
         if request.args.get('sort'):
             self.sort = request.args['sort']
+        if request.args.get('stage'):
+            self.stage = request.args['stage']
+        if request.args.get('state'):
+            self.state = request.args['state']
 
     def dict(self, **kwargs):
         """Возвращает свои свойства в виде словаря, смёрженного с kwargs. Может юзаться в url_for():
@@ -57,6 +63,8 @@ class TreeFilters:
             'tag': self.tag,
             'character': self.character,
             'sort': self.sort,
+            'stage': self.stage,
+            'state': self.state,
             **kwargs
         }
         return ret
@@ -125,6 +133,18 @@ def tasks_list(project_id, sprint_id=None, task_id=None):
     if filters.character:
         q_top = q_top.filter(Task.character == filters.character)
 
+    if filters.stage and filters.state:
+        status = f'{filters.stage}.{filters.state}'
+        if status not in Task.STATUSES:
+            return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=sprint_id, task_id=task_id, **filters.dict(state=None)))
+        q_top = q_top.filter(Task.status == status)
+    elif filters.stage:
+        statuses = [s for s in Task.STATUSES if s.startswith(f'{filters.stage}.')]
+        q_top = q_top.filter(Task.status.in_(statuses))
+    elif filters.state:
+        statuses = [s for s in Task.STATUSES if s.endswith(f'.{filters.state}')]
+        q_top = q_top.filter(Task.status.in_(statuses))
+
     # Сортировки
     sort = request.args.get('sort')
     if sort == 'subject':
@@ -133,6 +153,8 @@ def tasks_list(project_id, sprint_id=None, task_id=None):
         q_top = q_top.order_by(Task.importance.desc(), Task.mp)
     elif sort == 'created':
         q_top = q_top.order_by(Task.created.desc())
+    elif sort == '-created':
+        q_top = q_top.order_by(Task.created)
     else:
         q_top = q_top.order_by(Task.mp)
 
