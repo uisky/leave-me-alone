@@ -111,7 +111,7 @@
                     </span>
                 {% endif %}
                 </div>
-                <div class="col col-md-1">
+                <div class="col col-md-1 {% if filters.stage %} bg-warning {% endif %}">
                     <select name="stage" onchange="this.form.submit()" class="form-select form-select-sm">
                         <option value="">*</option>
                         {% for stage in ['design', 'dev', 'qa', 'review', 'debug', 'release'] %}
@@ -119,7 +119,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col col-md-1">
+                <div class="col col-md-1 {% if filters.state %} bg-warning {% endif %}">
                     <select name="state" onchange="this.form.submit()" class="form-select form-select-sm">
                         <option value="">*</option>
                         {% for state in ['open', 'progress', 'pause', 'done'] %}
@@ -127,7 +127,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col">
+                <div class="col {% if filters.character %} bg-warning {% endif %}">
                     <select name="character" onchange="this.form.submit()" class="form-select form-select-sm">
                         <option value="">Все характеры</option>
                         {% for id, ch in Task.CHARACTERS.items() %}
