@@ -137,13 +137,13 @@ def tasks_list(project_id, sprint_id=None, task_id=None):
         status = f'{filters.stage}.{filters.state}'
         if status not in Task.STATUSES:
             return redirect(url_for('.tasks_list', project_id=project_id, sprint_id=sprint_id, task_id=task_id, **filters.dict(state=None)))
-        q_top = q_top.filter(Task.status == status)
+        q_top = q_top.filter(db.or_(Task.status == status, Task.status == None))
     elif filters.stage:
         statuses = [s for s in Task.STATUSES if s.startswith(f'{filters.stage}.')]
-        q_top = q_top.filter(Task.status.in_(statuses))
+        q_top = q_top.filter(db.or_(Task.status.in_(statuses), Task.status == None))
     elif filters.state:
         statuses = [s for s in Task.STATUSES if s.endswith(f'.{filters.state}')]
-        q_top = q_top.filter(Task.status.in_(statuses))
+        q_top = q_top.filter(db.or_(Task.status.in_(statuses), Task.status == None))
 
     # Сортировки
     sort = request.args.get('sort')

@@ -115,7 +115,7 @@
                     <select name="stage" onchange="this.form.submit()" class="form-select form-select-sm">
                         <option value="">*</option>
                         {% for stage in ['design', 'dev', 'qa', 'review', 'debug', 'release'] %}
-                            <option value="{{ stage }}" {% if filters.stage == stage %} selected {% endif %}>{{ stage }}</option>
+                            <option value="{{ stage }}" {% if filters.stage == stage %} selected {% endif %}>{{ 'proj' if stage == 'design' else stage }}</option>
                         {% endfor %}
                     </select>
                 </div>
